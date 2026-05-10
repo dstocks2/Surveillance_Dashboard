@@ -668,10 +668,10 @@ function renderLive() {
     el.innerHTML = liveCards +
       recent.slice(0, 6).map(row => `
         <div class="card cd">
-          <div class="cst"><span class="dot dot-g"></span><span style="color:#14532d">Klaar</span></div>
-          <div class="cn">${row.name}</div>
+          <div class="cst"><span class="dot dot-g"></span><span style="color:#166534">Klaar</span></div>
           <div class="cr">${row.route}</div>
-          <div class="cdur">${row.dur} min</div>
+          <div class="cn">${row.name}</div>
+          <div class="ct" style="margin-top:6px">Duur &nbsp;<span style="font-weight:500;color:#166534">${row.dur} min</span></div>
           <div class="ct">${fmtT(row.start)} &ndash; ${fmtT(row.end)}</div>
         </div>`).join('');
     drawTimeline(recent, Object.entries(S.active), cutoff, nowT);
