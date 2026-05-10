@@ -1083,34 +1083,6 @@ function renderPlan() {
   const dienstBar = document.getElementById('dienst-bar');
   if (dienstBar) dienstBar.style.display = 'none';
 
-  // Skip current slot if all its rondes have already been completed (end exists)
-  if (curIdx >= 0) {
-    const cur = todaySchema[curIdx];
-    const sameTimeCheck = todaySchema.filter(s => s.h === cur.h && s.m === cur.m);
-    const slotDoneTime = cur.h * 60 + cur.m;
-    // A ronde at this slot is "done" if there's a log entry for it that started
-    // at or after the slot time (in wall-clock adjusted minutes) and has ended.
-    const allDone = sameTimeCheck.every(s => {
-      if (!s.ronde) return true; // non-ronde items always considered done
-      // Check if this ronde has a completed log entry that started after the slot time today
-      const slotMs = (() => {
-        const d = new Date();
-        const slotH = cur.h % 24;
-        const slotM = cur.m;
-        const base = new Date(d.getFullYear(), d.getMonth(), d.getDate(), slotH, slotM, 0, 0).getTime();
-        // For nacht items (h >= 24), the slot was yesterday night
-        if (cur.h >= 24) return base - 24 * 60 * 60 * 1000;
-        return base;
-      })();
-      return S.log.some(r => r.route === s.ronde && r.end && r.start >= slotMs);
-    });
-    if (allDone && curIdx + 1 < todaySchema.length) {
-      // Advance to next slot
-      const nextItem = todaySchema[curIdx + 1];
-      curIdx = todaySchema.findIndex(s => s.h === nextItem.h && s.m === nextItem.m);
-    }
-  }
-
   if (curIdx >= 0) {
     const cur = todaySchema[curIdx];
     // Collect all items at the same timestamp (parallel rondes)
