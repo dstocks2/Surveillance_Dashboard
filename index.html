@@ -316,7 +316,9 @@ function fbSave() {
   const data = {
     active:  S.active,
     log:     S.log,
-    dienst:  [...S.dienst]
+    dienst:  [...S.dienst],
+    names:   S.names,
+    routes:  S.routes
   };
   window.fbSet(window.fbRef(window.fbDb, 'dashboard'), data)
     .catch(e => console.warn('Firebase write error:', e));
@@ -327,19 +329,29 @@ function fbListen() {
   window.fbOnValue(window.fbRef(window.fbDb, 'dashboard'), snap => {
     const d = snap.val();
     if (!d) return;
-    // Only update shared data (active, log, dienst) — keep local names/routes
-    if (d.active !== undefined) S.active = d.active || {};
-    if (d.log    !== undefined) S.log    = d.log    || [];
-    if (d.dienst !== undefined) S.dienst = new Set(d.dienst || []);
-    // Update localStorage as backup
+
+    // Sync all shared data
+    if (d.active  !== undefined) S.active = d.active  || {};
+    if (d.log     !== undefined) S.log    = d.log     || [];
+    if (d.dienst  !== undefined) S.dienst = new Set(d.dienst || []);
+    if (d.names   !== undefined && Array.isArray(d.names)  && d.names.length)  S.names  = d.names;
+    if (d.routes  !== undefined && Array.isArray(d.routes) && d.routes.length) S.routes = d.routes;
+
+    // Backup to localStorage
     LS.set('rn_active', S.active);
     LS.set('rn_log',    S.log);
     LS.set('rn_dienst', [...S.dienst]);
-    // Re-render visible pane
+    LS.set('rn_names',  S.names);
+    LS.set('rn_routes', S.routes);
+
+    // Re-render everything
+    renderNameBtns();
+    renderRouteBtns();
     renderAllActive();
-    if (document.getElementById('pane-live').classList.contains('on'))  renderLive();
+    if (document.getElementById('pane-live').classList.contains('on'))   renderLive();
     if (document.getElementById('pane-dienst').classList.contains('on')) renderDienst();
     if (document.getElementById('pane-plan').classList.contains('on'))   renderPlan();
+    if (document.getElementById('pane-cfg').classList.contains('on'))    renderCfg();
     updBtn();
   }, e => console.warn('Firebase read error:', e));
 }
