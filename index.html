@@ -313,24 +313,23 @@ const LS = {
 // ── Firebase sync ─────────────────────────────────────────────────────────
 function fbSave() {
   if (!window.fbDb) return;
-  // Write each section separately to avoid race conditions
+  // Only save settings — active/log only written via fbSaveActive()
   const updates = {};
-  updates['/dashboard/active']  = S.active;
-  updates['/dashboard/log']     = S.log.slice(0, 200); // cap at 200 entries
   updates['/dashboard/dienst']  = [...S.dienst];
   updates['/dashboard/names']   = S.names;
   updates['/dashboard/routes']  = S.routes;
   window.fbUpdate(window.fbRef(window.fbDb), updates)
-    .catch(e => console.warn('Firebase write error:', e));
+    .catch(e => console.warn('Firebase settings write error:', e));
 }
 
-// Targeted save for just active+log (retour/start) — faster, less data
+// Writes active + log atomically to Firebase — this is the ONLY place these are saved
 function fbSaveActive() {
   if (!window.fbDb) return;
   const updates = {};
   updates['/dashboard/active'] = S.active;
   updates['/dashboard/log']    = S.log.slice(0, 200);
   window.fbUpdate(window.fbRef(window.fbDb), updates)
+    .then(() => console.log('Firebase active saved OK'))
     .catch(e => console.warn('Firebase active write error:', e));
 }
 
@@ -347,9 +346,7 @@ function fbListen() {
     if (d.names   !== undefined && Array.isArray(d.names)  && d.names.length)  S.names  = d.names;
     if (d.routes  !== undefined && Array.isArray(d.routes) && d.routes.length) S.routes = d.routes;
 
-    // Backup to localStorage
-    LS.set('rn_active', S.active);
-    LS.set('rn_log',    S.log);
+    // Only back up settings to localStorage (not active/log)
     LS.set('rn_dienst', [...S.dienst]);
     LS.set('rn_names',  S.names);
     LS.set('rn_routes', S.routes);
@@ -393,17 +390,17 @@ if (LS.get('rn_version') !== VERSION) {
 let S = {
   names:  LS.get('rn_names')  || DN,
   routes: LS.get('rn_routes') || DR,
-  active: LS.get('rn_active') || {},
-  log:    LS.get('rn_log')    || [],
+  active: {},   // always loaded from Firebase — never from localStorage
+  log:    [],   // always loaded from Firebase — never from localStorage
   sns: new Set(), sr: null, dienst: new Set(LS.get('rn_dienst') || []),
   tick: null, tickL: null
 };
 
 function save() {
+  // Only save settings to localStorage (names, routes, dienst)
+  // active and log are ONLY stored in Firebase
   LS.set('rn_names',  S.names);
   LS.set('rn_routes', S.routes);
-  LS.set('rn_active', S.active);
-  LS.set('rn_log',    S.log);
   LS.set('rn_dienst', [...S.dienst]);
   fbSave();
 }
@@ -536,9 +533,6 @@ function doStart() {
     S.active[n] = { route: S.sr, start: startTime };
     started.push(n.split(' ')[0]);
   });
-  // Save locally + push active/log to Firebase immediately
-  LS.set('rn_active', S.active);
-  LS.set('rn_log',    S.log);
   fbSaveActive();
   if (started.length) showToast(started.join(' & ') + ' gestart — ' + S.sr);
   if (skipped.length) setTimeout(() => showToast(skipped.join(', ') + ' al onderweg, overgeslagen'), 2800);
@@ -568,9 +562,6 @@ function doRetour(name) {
   const dur = Math.round((end - a.start) / 60000);
   S.log.unshift({ id: S.log.length + 1, name: n, route: a.route, start: a.start, end, dur });
   delete S.active[n];
-  // Save locally + push active/log to Firebase immediately
-  LS.set('rn_active', S.active);
-  LS.set('rn_log',    S.log);
   fbSaveActive();
   showToast(n.split(' ')[0] + ' terug! \u2014 ' + dur + ' min');
   renderAllActive();
@@ -1227,13 +1218,17 @@ render();
 renderAllActive();
 renderPlan();
 
-// Start Firebase when ready
+// Start Firebase when ready — Firebase is the ONLY source for active/log
 function initFirebase() {
-  fbListen();
+  fbListen(); // this will populate S.active and S.log and trigger re-render
   const fbSt = document.getElementById('fb-status');
   if (fbSt) fbSt.textContent = '● gesynchroniseerd';
   console.log('Firebase verbonden — data wordt gesynchroniseerd');
 }
+
+// Clear any stale active/log from localStorage on startup
+localStorage.removeItem('rn_active');
+localStorage.removeItem('rn_log');
 
 if (window.firebaseReady) {
   initFirebase();
