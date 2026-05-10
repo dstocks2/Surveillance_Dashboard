@@ -326,8 +326,9 @@ function fbSave() {
 function fbSaveActive() {
   if (!window.fbDb) return;
   const updates = {};
-  updates['/dashboard/active'] = S.active;
-  updates['/dashboard/log']    = S.log.slice(0, 200);
+  // Use explicit null-safe values — empty object stays as {} not deleted
+  updates['/dashboard/active'] = Object.keys(S.active).length ? S.active : null;
+  updates['/dashboard/log']    = S.log.length ? S.log.slice(0, 200) : null;
   window.fbUpdate(window.fbRef(window.fbDb), updates)
     .then(() => console.log('Firebase active saved OK'))
     .catch(e => console.warn('Firebase active write error:', e));
@@ -339,12 +340,13 @@ function fbListen() {
     const d = snap.val();
     if (!d) return;
 
-    // Sync all shared data — always accept Firebase as source of truth
-    if (d.active  !== undefined) S.active = d.active  || {};
-    if (d.log     !== undefined) S.log    = d.log     || [];
-    if (d.dienst  !== undefined) S.dienst = new Set(d.dienst || []);
-    if (d.names   !== undefined && Array.isArray(d.names)  && d.names.length)  S.names  = d.names;
-    if (d.routes  !== undefined && Array.isArray(d.routes) && d.routes.length) S.routes = d.routes;
+    // Sync all shared data — Firebase is always source of truth
+    // Note: Firebase stores empty {} as null — handle both cases
+    S.active = (d.active && typeof d.active === 'object') ? d.active : {};
+    if (d.log    !== undefined) S.log    = Array.isArray(d.log)    ? d.log    : [];
+    if (d.dienst !== undefined) S.dienst = new Set(Array.isArray(d.dienst) ? d.dienst : []);
+    if (d.names  !== undefined && Array.isArray(d.names)  && d.names.length)  S.names  = d.names;
+    if (d.routes !== undefined && Array.isArray(d.routes) && d.routes.length) S.routes = d.routes;
 
     // Only back up settings to localStorage (not active/log)
     LS.set('rn_dienst', [...S.dienst]);
@@ -576,6 +578,7 @@ function renderOwnCard() {
 function renderAllActive() {
   clearInterval(S.tick);
   const el = document.getElementById('all-active-cards');
+  if (!el) return;
   const entries = Object.entries(S.active);
   if (!entries.length) {
     el.innerHTML = '<div class="empty">Nog niemand onderweg</div>';
