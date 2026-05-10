@@ -964,11 +964,11 @@ const SCHEMA = [
   { h: 17, m: 0,  ronde: "Verpleegronde",   taak: "Verpleegronde" },
   { h: 17, m: 0,  ronde: "Polironde",       taak: "Polironde afsluiting" },
   { h: 18, m: 0,  ronde: null,              taak: "Fietsenstalling J0K + toegangsdeuren bouwdeel L niveau 1 sluiten" },
-  { h: 19, m: 0,  ronde: "Sluitronde 1",    taak: "Voordeur Stratenum, rolluiken HvdB, voordeur op uitloop" },
-  { h: 19, m: 0,  ronde: "Sluitronde 2",    taak: "Afsluiten bouwdelen A, B, C, D, H 0+1" },
+  { h: 19, m: 0,  ronde: "Sluitronde 1",    taak: "Voordeur Stratenum, rolluiken HvdB, voordeur op uitloop", weekdagsOnly: true },
+  { h: 19, m: 0,  ronde: "Sluitronde 2",    taak: "Afsluiten bouwdelen A, B, C, D, H 0+1", weekdagsOnly: true },
   { h: 20, m: 0,  ronde: "Aflos centrale hal", taak: "Aflos centrale hal (tot 21:00)" },
   { h: 21, m: 0,  ronde: "Verpleegronde",   taak: "Verpleegronde — einde bezoektijd" },
-  { h: 22, m: 0,  ronde: "Sluitronde 1",    taak: "HvdB gebouw + fietsenstalling glazendeuren sluiten" },
+  { h: 22, m: 0,  ronde: "Sluitronde 1",    taak: "HvdB gebouw + fietsenstalling glazendeuren sluiten", weekdagsOnly: true },
   { h: 22, m: 45, ronde: null,              taak: "Overdracht nachtdienst — porto inloggen, sleutels, bodycam" },
   { h: 23, m: 0,  ronde: "Aflos centrale hal", taak: "Aflos centrale hal — proactief aanwezig" },
   { h: 23, m: 0,  ronde: "P-noord",         taak: "Zichtbaar aanwezig P-Noord — veiligheidsgevoel personeel" },
@@ -980,7 +980,7 @@ const SCHEMA = [
   { h: 26, m: 0,  ronde: "Verpleegronde",   taak: "Verpleegronde WKZ" },
   { h: 26, m: 0,  ronde: "Parkeercontrole", taak: "Telling P1, P2, P3 WKZ — doorgeven aan meldkamer" },
   { h: 27, m: 0,  ronde: "Verpleegronde",   taak: "Verpleegronde UMC" },
-  { h: 28, m: 0,  ronde: "Sluitronde 2",    taak: "Sluitronde F, G, H verdiepingen 2 t/m 5" },
+  { h: 28, m: 0,  ronde: "Sluitronde 2",    taak: "Sluitronde F, G, H verdiepingen 2 t/m 5", weekdagsOnly: true },
   { h: 29, m: 0,  ronde: "Polironde",       taak: "Nachtcontrole bouwdelen E-Q-L" },
   { h: 30, m: 0,  ronde: "Openingsronde",   taak: "Openingsronde: poli L deuren, fietsenstalling J0K & HvdB, voordeur + rolluiken HvdB, rolluik Stratenum" },
 ];
@@ -1003,13 +1003,75 @@ function fmtSchemaTime(item) {
 
 
 
+
+function isWeekday() {
+  // Returns true Mon-Fri, false Sat-Sun
+  const day = new Date().getDay(); // 0=Sun, 1=Mon...6=Sat
+  return day >= 1 && day <= 5;
+}
+
+function suggestSurveillant(ronde) {
+  // Returns best available person for a ronde, or null
+  // Criteria (in priority order):
+  // 1. Must be on dienst (if dienst set), else all names
+  // 2. Must NOT currently be active (already running a ronde)
+  // 3. Prefer someone who has NOT run this specific ronde in last 8 hours
+  // 4. Prefer someone who has NOT run ANY ronde in last 30 minutes (just returned)
+
+  if (!ronde) return null;
+  const candidates = activeNames(); // respects dienst filter
+  const now = Date.now();
+  const h8  = now - 8  * 60 * 60 * 1000; // 8 hours ago
+  const m30 = now - 30 * 60 * 1000;       // 30 minutes ago
+
+  // Who is currently active?
+  const bezig = new Set(Object.keys(S.active));
+
+  // Who ran this ronde in last 8h?
+  const ranThisRonde = new Set(
+    S.log.filter(r => r.route === ronde && r.end >= h8).map(r => r.name)
+  );
+
+  // Who returned from any ronde in last 30 min?
+  const justReturned = new Set(
+    S.log.filter(r => r.end >= m30).map(r => r.name)
+  );
+
+  // Score each candidate (lower = better)
+  const scored = candidates
+    .filter(n => !bezig.has(n))   // not currently running
+    .map(n => {
+      let score = 0;
+      if (ranThisRonde.has(n)) score += 10;  // already did this ronde recently
+      if (justReturned.has(n)) score += 5;   // just came back from something
+      return { name: n, score };
+    })
+    .sort((a, b) => a.score - b.score);
+
+  return scored.length ? scored[0].name : null;
+}
+
+function startRondeVoorgesteld(ronde, naam) {
+  // Quick-start from plan tab: set selection and start
+  S.sr = ronde;
+  S.sns = new Set([naam]);
+  doStart();
+  showToast(naam.split(' ')[0] + ' gestart op ' + ronde);
+  // Switch to reg tab to show active card
+  goTab('reg');
+}
+
 function renderPlan() {
   const now = nowMinsAdj();
 
-  // Find current index: last schema item whose time <= now
+  // Filter schema for today (exclude weekday-only items in weekend)
+  const weekday = isWeekday();
+  const todaySchema = SCHEMA.filter(s => !s.weekdagsOnly || weekday);
+
+  // Find current index
   let curIdx = -1;
-  for (let i = 0; i < SCHEMA.length; i++) {
-    if (SCHEMA[i].h * 60 + SCHEMA[i].m <= now) curIdx = i;
+  for (let i = 0; i < todaySchema.length; i++) {
+    if (todaySchema[i].h * 60 + todaySchema[i].m <= now) curIdx = i;
   }
 
   // ── NOW BLOCK ─────────────────────────────────────────────────────────
@@ -1020,7 +1082,7 @@ function renderPlan() {
   if (dienstBar) dienstBar.style.display = 'none';
 
   if (curIdx >= 0) {
-    const cur = SCHEMA[curIdx];
+    const cur = todaySchema[curIdx];
     // Collect all items at the same timestamp (parallel rondes)
     // Build route → runners map
     const routeRunners = {};
@@ -1029,21 +1091,41 @@ function renderPlan() {
       routeRunners[a.route].push(name);
     });
 
-    const sameTime = SCHEMA.filter(s => s.h === cur.h && s.m === cur.m);
+    const sameTime = todaySchema.filter(s => s.h === cur.h && s.m === cur.m);
 
     const taakHtml = sameTime.map(s => {
       const runners = s.ronde && routeRunners[s.ronde] ? routeRunners[s.ronde] : [];
       const isActive = runners.length > 0;
+
+      // Suggestion logic
+      const suggested = !isActive ? suggestSurveillant(s.ronde) : null;
+
       const rondeTag = s.ronde
         ? `<span style="background:${isActive?'#dcfce7':'#dbeafe'};color:${isActive?'#15803d':'#1d4ed8'};font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;margin-right:6px;white-space:nowrap">${s.ronde}</span>`
         : '';
       const looptTag = isActive
-        ? `<span style="font-size:11px;color:#15803d;font-weight:500;margin-left:4px">● wordt gelopen door: ${runners.map(n=>n.split(' ')[0]).join(' & ')}</span>`
+        ? `<span style="font-size:11px;color:#15803d;font-weight:500;margin-left:4px">● wordt gedaan door: ${runners.map(n=>n.split(' ')[0]).join(' & ')}</span>`
         : '';
-      return `<div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+
+      // Suggestion + quick-start block
+      const suggestHtml = (s.ronde && suggested && !isActive) ? `
+        <div style="margin-top:8px;padding:8px 10px;background:#fff;border-radius:8px;border:0.5px solid #bfdbfe;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div>
+            <span style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#64748b">Voorgesteld aan</span>
+            <div style="font-size:14px;font-weight:600;color:#1e293b;margin-top:2px">${suggested}</div>
+          </div>
+          <button onclick="startRondeVoorgesteld(${JSON.stringify(s.ronde)}, ${JSON.stringify(suggested)})"
+            style="padding:9px 16px;border-radius:8px;border:none;background:#1d4ed8;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;min-height:44px;transition:opacity .13s"
+            onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+            ▶ Ronde starten
+          </button>
+        </div>` : '';
+
+      return `<div style="margin-bottom:10px">
         <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
           ${rondeTag}<span style="font-size:13px;color:#334155">${s.taak}</span>${looptTag}
         </div>
+        ${suggestHtml}
       </div>`;
     }).join('');
 
@@ -1063,7 +1145,7 @@ function renderPlan() {
   const planLijst = document.getElementById('plan-lijst');
 
   // Group upcoming items by timestamp
-  const remaining = SCHEMA.slice(curIdx + 1);
+  const remaining = todaySchema.slice(curIdx + 1);
   const groups = [];
   remaining.forEach(item => {
     const key = item.h * 60 + item.m;
