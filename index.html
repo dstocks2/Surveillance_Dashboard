@@ -147,6 +147,38 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .modal-btn-nee{background:#f1f5f9;color:#64748b}
 .modal-btn-ja{background:#dc2626;color:#fff}
 </style>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, get, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyB9D09JXjLPp0Pdz-F3iIFHWdNCTKFtDOk",
+    authDomain: "surveillance-dashboard-bab07.firebaseapp.com",
+    databaseURL: "https://surveillance-dashboard-bab07-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "surveillance-dashboard-bab07",
+    storageBucket: "surveillance-dashboard-bab07.firebasestorage.app",
+    messagingSenderId: "463291924795",
+    appId: "1:463291924795:web:8ea56aed92b83a8e5c371e"
+  };
+
+  const app   = initializeApp(firebaseConfig);
+  const db    = getDatabase(app);
+
+  // Expose to global scope for use in non-module script
+  window.fbDb     = db;
+  window.fbRef    = ref;
+  window.fbSet    = set;
+  window.fbGet    = get;
+  window.fbOnValue = onValue;
+  window.fbUpdate = update;
+  window.fbRemove = remove;
+  window.firebaseReady = true;
+  
+  // Signal app to init after Firebase is ready
+  document.dispatchEvent(new Event('firebaseReady'));
+</script>
 </head>
 <body>
 
@@ -155,7 +187,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   <div style="width:1px;height:36px;background:rgba(255,255,255,.2);flex-shrink:0"></div>
   <div>
     <h1>Surveillance Dashboard</h1>
-    <p>Klik je naam &rarr; kies ronde &rarr; start &nbsp;|&nbsp; Bij terugkomst: naam &rarr; retour melden</p>
+    <p>Klik je naam &rarr; kies ronde &rarr; start &nbsp;|&nbsp; Bij terugkomst: naam &rarr; retour melden &nbsp;<span id="fb-status" style="font-size:10px;opacity:.7">⏳ verbinden...</span></p>
   </div>
 </div>
 
@@ -278,6 +310,41 @@ const LS = {
   set: (k, v) => localStorage.setItem(k, JSON.stringify(v))
 };
 
+// ── Firebase sync ─────────────────────────────────────────────────────────
+function fbSave() {
+  if (!window.fbDb) return;
+  const data = {
+    active:  S.active,
+    log:     S.log,
+    dienst:  [...S.dienst]
+  };
+  window.fbSet(window.fbRef(window.fbDb, 'dashboard'), data)
+    .catch(e => console.warn('Firebase write error:', e));
+}
+
+function fbListen() {
+  if (!window.fbDb) return;
+  window.fbOnValue(window.fbRef(window.fbDb, 'dashboard'), snap => {
+    const d = snap.val();
+    if (!d) return;
+    // Only update shared data (active, log, dienst) — keep local names/routes
+    if (d.active !== undefined) S.active = d.active || {};
+    if (d.log    !== undefined) S.log    = d.log    || [];
+    if (d.dienst !== undefined) S.dienst = new Set(d.dienst || []);
+    // Update localStorage as backup
+    LS.set('rn_active', S.active);
+    LS.set('rn_log',    S.log);
+    LS.set('rn_dienst', [...S.dienst]);
+    // Re-render visible pane
+    renderAllActive();
+    if (document.getElementById('pane-live').classList.contains('on'))  renderLive();
+    if (document.getElementById('pane-dienst').classList.contains('on')) renderDienst();
+    if (document.getElementById('pane-plan').classList.contains('on'))   renderPlan();
+    updBtn();
+  }, e => console.warn('Firebase read error:', e));
+}
+
+
 const VERSION = '4';
 const DN = ['Alex Strouken','Anne Johan Lynch','Ayoub Essabri','Baran Basar',
             'Danny Stockschen','Dennis Smit','Dennis Verhoef','Dionisa van de Woude',
@@ -316,6 +383,7 @@ function save() {
   LS.set('rn_active', S.active);
   LS.set('rn_log',    S.log);
   LS.set('rn_dienst', [...S.dienst]);
+  fbSave();
 }
 
 function fmtT(ms) {
@@ -1142,6 +1210,20 @@ pruneLog();
 render();
 renderAllActive();
 renderPlan();
+
+// Start Firebase when ready
+function initFirebase() {
+  fbListen();
+  const fbSt = document.getElementById('fb-status');
+  if (fbSt) fbSt.textContent = '● gesynchroniseerd';
+  console.log('Firebase verbonden — data wordt gesynchroniseerd');
+}
+
+if (window.firebaseReady) {
+  initFirebase();
+} else {
+  document.addEventListener('firebaseReady', initFirebase);
+}
 </script>
 </body>
 </html>
