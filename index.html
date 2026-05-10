@@ -313,15 +313,25 @@ const LS = {
 // ── Firebase sync ─────────────────────────────────────────────────────────
 function fbSave() {
   if (!window.fbDb) return;
-  const data = {
-    active:  S.active,
-    log:     S.log,
-    dienst:  [...S.dienst],
-    names:   S.names,
-    routes:  S.routes
-  };
-  window.fbSet(window.fbRef(window.fbDb, 'dashboard'), data)
+  // Write each section separately to avoid race conditions
+  const updates = {};
+  updates['/dashboard/active']  = S.active;
+  updates['/dashboard/log']     = S.log.slice(0, 200); // cap at 200 entries
+  updates['/dashboard/dienst']  = [...S.dienst];
+  updates['/dashboard/names']   = S.names;
+  updates['/dashboard/routes']  = S.routes;
+  window.fbUpdate(window.fbRef(window.fbDb), updates)
     .catch(e => console.warn('Firebase write error:', e));
+}
+
+// Targeted save for just active+log (retour/start) — faster, less data
+function fbSaveActive() {
+  if (!window.fbDb) return;
+  const updates = {};
+  updates['/dashboard/active'] = S.active;
+  updates['/dashboard/log']    = S.log.slice(0, 200);
+  window.fbUpdate(window.fbRef(window.fbDb), updates)
+    .catch(e => console.warn('Firebase active write error:', e));
 }
 
 function fbListen() {
@@ -330,7 +340,7 @@ function fbListen() {
     const d = snap.val();
     if (!d) return;
 
-    // Sync all shared data
+    // Sync all shared data — always accept Firebase as source of truth
     if (d.active  !== undefined) S.active = d.active  || {};
     if (d.log     !== undefined) S.log    = d.log     || [];
     if (d.dienst  !== undefined) S.dienst = new Set(d.dienst || []);
@@ -526,7 +536,10 @@ function doStart() {
     S.active[n] = { route: S.sr, start: startTime };
     started.push(n.split(' ')[0]);
   });
-  save();
+  // Save locally + push active/log to Firebase immediately
+  LS.set('rn_active', S.active);
+  LS.set('rn_log',    S.log);
+  fbSaveActive();
   if (started.length) showToast(started.join(' & ') + ' gestart — ' + S.sr);
   if (skipped.length) setTimeout(() => showToast(skipped.join(', ') + ' al onderweg, overgeslagen'), 2800);
   S.sns = new Set(); S.sr = null;
@@ -555,7 +568,10 @@ function doRetour(name) {
   const dur = Math.round((end - a.start) / 60000);
   S.log.unshift({ id: S.log.length + 1, name: n, route: a.route, start: a.start, end, dur });
   delete S.active[n];
-  save();
+  // Save locally + push active/log to Firebase immediately
+  LS.set('rn_active', S.active);
+  LS.set('rn_log',    S.log);
+  fbSaveActive();
   showToast(n.split(' ')[0] + ' terug! \u2014 ' + dur + ' min');
   renderAllActive();
   updBtn();
