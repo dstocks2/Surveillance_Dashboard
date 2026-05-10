@@ -953,11 +953,11 @@ const SCHEMA = [
   { h: 18, m: 0,  ronde: null,              taak: "Fietsenstalling J0K + toegangsdeuren bouwdeel L niveau 1 sluiten" },
   { h: 19, m: 0,  ronde: "Sluitronde 1",    taak: "Voordeur Stratenum, rolluiken HvdB, voordeur op uitloop" },
   { h: 19, m: 0,  ronde: "Sluitronde 2",    taak: "Afsluiten bouwdelen A, B, C, D, H 0+1" },
-  { h: 20, m: 0,  ronde: null,              taak: "1 persoon aanwezig in centrale hal (tot 21:00)" },
+  { h: 20, m: 0,  ronde: "Aflos centrale hal", taak: "Aflos centrale hal (tot 21:00)" },
   { h: 21, m: 0,  ronde: "Verpleegronde",   taak: "Verpleegronde — einde bezoektijd" },
   { h: 22, m: 0,  ronde: "Sluitronde 1",    taak: "HvdB gebouw + fietsenstalling glazendeuren sluiten" },
   { h: 22, m: 45, ronde: null,              taak: "Overdracht nachtdienst — porto inloggen, sleutels, bodycam" },
-  { h: 23, m: 0,  ronde: null,              taak: "1 surveillant centrale hal — proactief aanwezig" },
+  { h: 23, m: 0,  ronde: "Aflos centrale hal", taak: "Aflos centrale hal — proactief aanwezig" },
   { h: 23, m: 0,  ronde: "P-noord",         taak: "Zichtbaar aanwezig P-Noord — veiligheidsgevoel personeel" },
   { h: 23, m: 0,  ronde: "P-zuid",          taak: "Zichtbaar aanwezig P-Zuid + bakjes legen kaartnemers" },
   // Na middernacht: sla op als 24+h zodat volgorde klopt
@@ -1049,13 +1049,6 @@ function renderPlan() {
   // ── UPCOMING LIST ─────────────────────────────────────────────────────
   const planLijst = document.getElementById('plan-lijst');
 
-  // Build route → runners map for upcoming annotation
-  const routeRunners2 = {};
-  Object.entries(S.active).forEach(([name, a]) => {
-    if (!routeRunners2[a.route]) routeRunners2[a.route] = [];
-    routeRunners2[a.route].push(name);
-  });
-
   // Group upcoming items by timestamp
   const remaining = SCHEMA.slice(curIdx + 1);
   const groups = [];
@@ -1077,16 +1070,11 @@ function renderPlan() {
     const isFirst = gi === 0;
 
     const taakHtml = grp.items.map(s => {
-      const runners = s.ronde && routeRunners2[s.ronde] ? routeRunners2[s.ronde] : [];
-      const isActive = runners.length > 0;
       const rondeTag = s.ronde
-        ? `<span style="display:inline-block;background:${isActive?'#dcfce7':'#dbeafe'};color:${isActive?'#15803d':'#1d4ed8'};font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;margin-right:6px;white-space:nowrap">${s.ronde}</span>`
-        : '';
-      const looptTag = isActive
-        ? `<span style="font-size:11px;color:#15803d;font-weight:500">● wordt gelopen door: ${runners.map(n=>n.split(' ')[0]).join(' & ')}</span>`
+        ? `<span style="display:inline-block;background:#dbeafe;color:#1d4ed8;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;margin-right:6px;white-space:nowrap">${s.ronde}</span>`
         : '';
       return `<div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:4px">
-        ${rondeTag}<span style="font-size:${isFirst?'13':'12'}px;color:${isFirst?'#1e293b':'#64748b'}">${s.taak}</span>${looptTag}
+        ${rondeTag}<span style="font-size:${isFirst?'13':'12'}px;color:${isFirst?'#1e293b':'#64748b'}">${s.taak}</span>
       </div>`;
     }).join('');
 
