@@ -136,10 +136,10 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 }
 
 #timeline-outer { margin-top: 8px; }
-#timeline-axis-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-#timeline-axis { min-width: 600px; display: block; }
-#timeline-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-#timeline-canvas { min-width: 600px; display: block; }
+#timeline-axis-wrap { overflow-x: hidden; }
+#timeline-axis { display: block; }
+#timeline-wrap { overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+#timeline-canvas { display: block; }
 
 /* Custom confirm dialog */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -240,14 +240,15 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <div class="hr" style="margin-top:20px"></div>
     <p class="lbl" style="margin-top:16px">Tijdslijn afgelopen 24 uur</p>
     <div id="timeline-outer" style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;background:#f8fafc">
-      <div id="timeline-axis-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch;" id="axwrap">
+      <div id="timeline-axis-wrap" style="overflow-x:hidden;" id="axwrap">
         <canvas id="timeline-axis" style="width:100%;display:block;background:#f8fafc;"></canvas>
       </div>
-      <div id="timeline-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-height:320px;overflow-y:auto;">
+      <div id="timeline-wrap" style="overflow-x:hidden;-webkit-overflow-scrolling:touch;max-height:320px;overflow-y:auto;">
         <canvas id="timeline-canvas" style="width:100%;display:block;background:#f8fafc;"></canvas>
       </div>
     </div>
     <div id="timeline-legend" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;font-size:11px;color:#64748b"></div>
+    <div id="tl-tooltip" style="display:none;position:fixed;z-index:9999;background:#1e293b;color:#fff;padding:10px 14px;border-radius:8px;font-size:12px;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.25);min-width:160px;line-height:1.7"></div>
   </div>
 
   <!-- VOORGESTELDE RONDE -->
@@ -697,7 +698,7 @@ function drawTimeline(recent, active, cutoff, now) {
   const PAD_L   = 150;
   const PAD_R   = 16;
   const ROW_H   = 40;
-  const AXIS_H  = 28; // fixed height for the axis bar
+  const AXIS_H  = 36; // fixed height for the axis bar
 
   // Use the outer container width for consistent sizing
   const outer = document.getElementById('timeline-outer');
@@ -715,31 +716,110 @@ function drawTimeline(recent, active, cutoff, now) {
   axisEl.height       = AXIS_H * DPR;
   axisEl.style.width  = W + 'px';
   axisEl.style.height = AXIS_H + 'px';
-  axisEl.style.minWidth = '600px';
 
   const ac = axisEl.getContext('2d');
   ac.scale(DPR, DPR);
   ac.clearRect(0, 0, W, AXIS_H);
-  ac.fillStyle = '#f1f5f9';
-  ac.fillRect(0, 0, W, AXIS_H);
 
-  // Hour labels on axis
-  ac.font      = '10px system-ui, sans-serif';
-  ac.textAlign = 'center';
+  // ── Dagdeel colour bands on axis ─────────────────────────────────────
+
+  // Draw dagdeel bands.
+  // Use the EXACT same x-coordinate reference as the hour tick marks:
+  //   tick h  →  x = toX(now - (24-h)*3600000)
+  // So shift boundaries (07:00, 15:00, 23:00) correspond to fractional h values.
+  // We find the x-pixel of each boundary directly via toX, then paint rectangles.
+
+  const shiftColorAt = hr => (hr >= 7 && hr < 15) ? '#fef9c3'
+                           : (hr >= 15 && hr < 23) ? '#dbeafe'
+                           :                         '#e8eaed';
+  const shiftLabelAt = hr => (hr >= 7 && hr < 15) ? 'vroeg'
+                           : (hr >= 15 && hr < 23) ? 'laat'
+                           :                         'nacht';
+
+  // The tick at integer h maps to now - (24-h)*3600000.
+  // We need the x-position of 07:00, 15:00, 23:00 in the last 24h window.
+  // For each shift boundary hour B, the timestamp is:
+  //   now - ((now_hours - B + 24) % 24) * 3600000  - now_mins*60000 - now_secs*1000 - now_ms
+  // i.e. the most recent occurrence of hour B at :00:00.000, going backwards from now.
+  function lastOccurrence(boundaryHour) {
+    const d = new Date(now);
+    // How many ms ago was the last boundaryHour:00:00?
+    const h = d.getHours(), m = d.getMinutes(), s = d.getSeconds(), ms = d.getMilliseconds();
+    const msFromBoundary = ((h - boundaryHour + 24) % 24) * 3600000 + m * 60000 + s * 1000 + ms;
+    return now - msFromBoundary;
+  }
+
+  // Build segment list from left (cutoff) to right (now) using boundary x-positions
+  const b7  = lastOccurrence(7);
+  const b15 = lastOccurrence(15);
+  const b23 = lastOccurrence(23);
+
+  // All candidate boundaries within window
+  const rawPts = [cutoff, now];
+  [b7 - 86400000, b15 - 86400000, b23 - 86400000, b7, b15, b23].forEach(t => {
+    if (t > cutoff && t < now) rawPts.push(t);
+  });
+  rawPts.sort((a, b) => a - b);
+
+  const merged = [];
+  for (let i = 0; i < rawPts.length - 1; i++) {
+    const midT = rawPts[i] + 30000; // 30s into segment → correct hour
+    const d    = new Date(midT);
+    const hr   = d.getHours();
+    const col  = shiftColorAt(hr);
+    const lbl  = shiftLabelAt(hr);
+    if (merged.length && merged[merged.length-1].color === col) {
+      merged[merged.length-1].tTo = rawPts[i+1];
+    } else {
+      merged.push({ color: col, label: lbl, tFrom: rawPts[i], tTo: rawPts[i+1] });
+    }
+  }
+
+  // Paint axis colour band (top 14px)
+  merged.forEach(seg => {
+    const x1 = toX(seg.tFrom);
+    const x2 = toX(seg.tTo);
+    if (x2 <= x1) return;
+    ac.fillStyle = seg.color;
+    ac.fillRect(x1, 0, x2 - x1, 14);
+    if (x2 - x1 > 36 && seg.label) {
+      ac.fillStyle = '#475569';
+      ac.font = 'bold 9px system-ui, sans-serif';
+      ac.textAlign = 'center';
+      ac.fillText(seg.label, (x1 + x2) / 2, 10);
+    }
+  });
+  // thin separator line below bands
+  ac.strokeStyle = '#cbd5e1';
+  ac.lineWidth = 1;
+  ac.beginPath(); ac.moveTo(PAD_L, 14); ac.lineTo(W, 14); ac.stroke();
+
+  // Hour ticks + labels
+  // Draw tick labels at the EXACT pixel of each whole clock-hour boundary.
+  // A clock-hour H in the 24h window has timestamp: lastOccurrence(H) or lastOccurrence(H)-24h
+  // Instead, compute per tick: find the timestamp where getHours()==h and mins/secs==0.
+  // This is simply: snap the tick timestamp to its own floor-hour.
   for (let h = 0; h <= 24; h++) {
-    const t  = now - (24 - h) * 3600000;
-    const x  = toX(t);
-    // Tick mark
-    ac.strokeStyle = '#cbd5e1';
+    const t    = now - (24 - h) * 3600000;
+    const d    = new Date(t);
+    const hr   = d.getHours();
+    // Snap to exact hour boundary: subtract minutes/seconds/ms
+    const tSnap = t - d.getMinutes()*60000 - d.getSeconds()*1000 - d.getMilliseconds();
+    const xSnap = toX(tSnap);
+    // Colour tick by dagdeel
+    const bandColor = (hr >= 7 && hr < 15) ? '#ca8a04' : (hr >= 15 && hr < 23) ? '#3b82f6' : '#64748b';
+    ac.strokeStyle = bandColor + '88';
     ac.lineWidth   = 1;
     ac.beginPath();
-    ac.moveTo(x, AXIS_H - 6);
-    ac.lineTo(x, AXIS_H);
+    ac.moveTo(xSnap, AXIS_H - 8);
+    ac.lineTo(xSnap, AXIS_H);
     ac.stroke();
-    // Label every 2 hours
-    if (h % 2 === 0) {
-      ac.fillStyle = '#64748b';
-      ac.fillText(String(new Date(t).getHours()).padStart(2,'0') + ':00', x, AXIS_H - 10);
+    // Label only odd hours (1, 3, 5, 7, 9 … 23) — includes all 3 shift boundaries
+    if (hr % 2 !== 0) {
+      ac.fillStyle  = bandColor;
+      ac.font       = 'bold 10px system-ui, sans-serif';
+      ac.textAlign  = 'center';
+      ac.fillText(String(hr).padStart(2,'0') + ':00', xSnap, AXIS_H - 11);
     }
   }
   // "Nu" marker on axis
@@ -753,7 +833,7 @@ function drawTimeline(recent, active, cutoff, now) {
   ac.fillStyle   = '#ef4444';
   ac.font        = 'bold 10px system-ui, sans-serif';
   ac.textAlign   = 'center';
-  ac.fillText('NU', nx, 10);
+  ac.fillText('NU', nx, 11);
 
   // ── ROWS CANVAS (variable height, scrollable) ─────────────────────────
   if (!allRoutes.length) {
@@ -761,7 +841,6 @@ function drawTimeline(recent, active, cutoff, now) {
     canvas.height       = 50 * DPR;
     canvas.style.width  = W + 'px';
     canvas.style.height = '50px';
-    canvas.style.minWidth = '600px';
     const ctx = canvas.getContext('2d');
     ctx.scale(DPR, DPR);
     ctx.fillStyle = '#f8fafc';
@@ -778,24 +857,38 @@ function drawTimeline(recent, active, cutoff, now) {
   canvas.height       = rowsH * DPR;
   canvas.style.width  = W + 'px';
   canvas.style.height = rowsH + 'px';
-  canvas.style.minWidth = '600px';
 
   const ctx = canvas.getContext('2d');
   ctx.scale(DPR, DPR);
   ctx.clearRect(0, 0, W, rowsH);
 
+  // Dagdeel band data reused in rows
+  // axSegments already computed above — reused for row bands
+
   // Row backgrounds + ronde labels
   allRoutes.forEach((route, i) => {
     const y = i * ROW_H + 4;
-    ctx.fillStyle = i % 2 === 0 ? '#f1f5f9' : '#ffffff';
+    // Base row colour (subtle stripe)
+    ctx.fillStyle = i % 2 === 0 ? '#f8fafc' : '#ffffff';
     ctx.fillRect(0, y, W, ROW_H);
 
-    // Vertical gridlines
-    ctx.strokeStyle = '#e2e8f0';
+    // Dagdeel colour bands (reuse merged segments)
+    merged.forEach(seg => {
+      const x1 = toX(seg.tFrom);
+      const x2 = toX(seg.tTo);
+      if (x2 <= x1) return;
+      ctx.fillStyle = seg.color + (i % 2 === 0 ? '55' : '75');
+      ctx.fillRect(x1, y, x2 - x1, ROW_H);
+    });
+
+    // Vertical gridlines snapped to exact hour boundaries
+    ctx.strokeStyle = '#cbd5e180';
     ctx.lineWidth = 1;
-    for (let h = 0; h <= 24; h++) {
-      const t = now - (24 - h) * 3600000;
-      const x = toX(t);
+    for (let h = 0; h <= 24; h += 2) {
+      const t  = now - (24 - h) * 3600000;
+      const d2 = new Date(t);
+      const tSnap = t - d2.getMinutes()*60000 - d2.getSeconds()*1000 - d2.getMilliseconds();
+      const x = toX(tSnap);
       ctx.beginPath();
       ctx.moveTo(x, y);
       ctx.lineTo(x, y + ROW_H);
@@ -896,8 +989,84 @@ function drawTimeline(recent, active, cutoff, now) {
   const leg = document.getElementById('timeline-legend');
   if (leg) {
     leg.innerHTML =
-      '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:16px;height:10px;background:#fee2e2;border:1.5px dashed #ef4444;border-radius:2px;display:inline-block"></span>Onderweg (lopend)</span>' +
-      '<span style="display:inline-flex;align-items:center;gap:4px;margin-left:12px"><span style="width:16px;height:10px;background:#dbeafe;border:1.5px solid #2563eb;border-radius:2px;display:inline-block"></span>Voltooid</span>';
+      '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:16px;height:10px;background:#fee2e2;border:1.5px dashed #ef4444;border-radius:2px;display:inline-block"></span>Onderweg</span>' +
+      '<span style="display:inline-flex;align-items:center;gap:4px;margin-left:10px"><span style="width:16px;height:10px;background:#dbeafe;border:1.5px solid #2563eb;border-radius:2px;display:inline-block"></span>Voltooid</span>';
+  }
+
+  // ── TOOLTIP ──────────────────────────────────────────────────────────────
+  const TL_HITS = [];
+
+  recent.forEach(row => {
+    const i = allRoutes.indexOf(row.route);
+    if (i < 0) return;
+    const y  = i * ROW_H + 4;
+    const x1 = toX(row.start);
+    const x2 = toX(row.end);
+    const bh = ROW_H * 0.55;
+    const by = y + (ROW_H - bh) / 2;
+    TL_HITS.push({ x1, x2, by, bh, route: row.route, name: row.name, start: row.start, end: row.end, isActive: false });
+  });
+
+  Object.entries(activeByRoute).forEach(([route, members]) => {
+    const i = allRoutes.indexOf(route);
+    if (i < 0) return;
+    const minStart = Math.min(...members.map(([,a]) => a.start));
+    const y  = i * ROW_H + 4;
+    const x1 = toX(Math.max(minStart, cutoff));
+    const x2 = toX(now);
+    const bh = ROW_H * 0.55;
+    const by = y + (ROW_H - bh) / 2;
+    TL_HITS.push({ x1, x2, by, bh, route, name: members.map(([n]) => n).join(', '), start: minStart, end: null, isActive: true });
+  });
+
+  const tip  = document.getElementById('tl-tooltip');
+  const wrap = document.getElementById('timeline-wrap');
+  if (tip && wrap) {
+    function fmtMs(ms)  { return new Date(ms).toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'}); }
+    function fmtDur(ms) { const m=Math.round(ms/60000); return m<60?m+' min':Math.floor(m/60)+'u '+(m%60)+'min'; }
+
+    function tlHitTest(cx, cy) {
+      const rect   = canvas.getBoundingClientRect();
+      // canvas CSS width == W (set explicitly), so scaleX = 1 after scrollLeft correction
+      // mx/my are in the same coordinate space as x1/x2/by/bh (canvas draw units)
+      const mx = (cx - rect.left) + (wrap.scrollLeft || 0);
+      const my = (cy - rect.top) * ((allRoutes.length * ROW_H + 8) / rect.height);
+      for (const h of TL_HITS) {
+        if (mx >= h.x1 && mx <= h.x2 && my >= h.by && my <= h.by + h.bh) return h;
+      }
+      return null;
+    }
+
+    function showTip(h, cx, cy) {
+      const dur = h.end ? fmtDur(h.end - h.start) : fmtDur(Date.now() - h.start) + ' (loopt nog)';
+      tip.innerHTML =
+        '<div style="font-weight:700;font-size:13px;margin-bottom:5px;border-bottom:1px solid #334155;padding-bottom:4px">' + h.route + '</div>' +
+        '<div style="margin-bottom:2px">👤 ' + h.name + '</div>' +
+        '<div>🕐 Start: <b>' + fmtMs(h.start) + '</b></div>' +
+        (h.end ? '<div>🕑 Eind: <b>' + fmtMs(h.end) + '</b></div>' : '<div style="color:#fca5a5">● Nog onderweg</div>') +
+        '<div>⏱ Duur: <b>' + dur + '</b></div>';
+      tip.style.display = 'block';
+      // Keep tooltip inside viewport
+      const vw = window.innerWidth, vh = window.innerHeight;
+      let tx = cx + 16, ty = cy - 10;
+      if (tx + 180 > vw) tx = cx - 190;
+      if (ty + 130 > vh) ty = cy - 130;
+      tip.style.left = tx + 'px';
+      tip.style.top  = ty + 'px';
+    }
+
+    canvas.addEventListener('mousemove', e => {
+      const hit = tlHitTest(e.clientX, e.clientY);
+      if (hit) { showTip(hit, e.clientX, e.clientY); canvas.style.cursor = 'pointer'; }
+      else      { tip.style.display = 'none'; canvas.style.cursor = 'default'; }
+    });
+    canvas.addEventListener('mouseleave', () => { tip.style.display = 'none'; canvas.style.cursor = 'default'; });
+
+    canvas.addEventListener('touchstart', e => {
+      const t = e.touches[0];
+      const hit = tlHitTest(t.clientX, t.clientY);
+      if (hit) { e.preventDefault(); showTip(hit, t.clientX, t.clientY); setTimeout(() => { tip.style.display = 'none'; }, 3500); }
+    }, { passive: false });
   }
 }
 
