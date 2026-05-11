@@ -824,16 +824,28 @@ function drawTimeline(recent, active, cutoff, now) {
   }
   // "Nu" marker on axis
   const nx = toX(now);
+  // Draw line only in the lower tick zone (below the colour band)
   ac.strokeStyle = '#ef4444';
   ac.lineWidth   = 2;
   ac.beginPath();
-  ac.moveTo(nx, 0);
+  ac.moveTo(nx, 15);          // start below the colour band
   ac.lineTo(nx, AXIS_H);
   ac.stroke();
-  ac.fillStyle   = '#ef4444';
-  ac.font        = 'bold 10px system-ui, sans-serif';
-  ac.textAlign   = 'center';
-  ac.fillText('NU', nx, 11);
+  // Draw "NU" label in a small red pill above the line
+  ac.font      = 'bold 9px system-ui, sans-serif';
+  ac.textAlign = 'center';
+  const nuW = ac.measureText('NU').width + 8;
+  const nuH = 13;
+  const nuY = 0;
+  // pill background
+  ac.fillStyle = '#ef4444';
+  const nuX = nx - nuW / 2;
+  ac.beginPath();
+  ac.roundRect(nuX, nuY, nuW, nuH, 3);
+  ac.fill();
+  // label
+  ac.fillStyle = '#ffffff';
+  ac.fillText('NU', nx, nuY + nuH - 3);
 
   // ── ROWS CANVAS (variable height, scrollable) ─────────────────────────
   if (!allRoutes.length) {
