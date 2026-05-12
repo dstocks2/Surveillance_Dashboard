@@ -43,6 +43,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;min-height:1
 .abtn-w:not(:disabled):hover{background:#e2e8f0}
 .hr{border:none;border-top:1px solid #e2e8f0;margin:16px 0}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.cards-done{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
 .card{border-radius:10px;padding:14px 16px;border:1px solid #e2e8f0;background:#fff}
 .card.ca{border-color:#ef4444;border-width:1.5px;background:#fef2f2}
 .card.cd{border-color:#16a34a;background:#f0fdf4}
@@ -95,6 +96,12 @@ input[type=text]:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px #d
   .btn-row{gap:6px}
   .selbar{padding:10px 12px;font-size:13px}
   .cards{grid-template-columns:1fr}
+  .cards-done{grid-template-columns:1fr 1fr !important;gap:8px}
+  .cards-done .card{padding:10px 12px}
+  .cards-done .cn{font-size:13px}
+  .cards-done .cr{font-size:13px}
+  .cards-done .ct{font-size:11px}
+  .cards-done .cst{font-size:10px}
   table{font-size:11px}
   th,td{padding:8px 8px}
   .tl-toggle-btn{display:flex !important}
@@ -261,7 +268,8 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   <!-- LIVE -->
   <div id="pane-live" class="pane">
     <p class="lbl">Wie is er onderweg?</p>
-    <div class="cards" id="live-cards"></div>
+    <div class="cards" id="live-cards-active"></div>
+    <div class="cards cards-done" id="live-cards-done"></div>
     <div class="hr" style="margin-top:20px"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;margin-bottom:0">
       <p class="lbl" style="margin-bottom:0">Tijdslijn afgelopen 24 uur</p>
@@ -325,7 +333,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <div class="hr"></div>
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
     <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-      <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.6</span>
+      <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.7</span>
       <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
     </div>
   </div>
@@ -694,7 +702,9 @@ function personColor(name) {
 
 function renderLive() {
   clearInterval(S.tickL);
-  const el = document.getElementById('live-cards');
+  const elActive = document.getElementById('live-cards-active');
+  const elDone   = document.getElementById('live-cards-done');
+  const el = elActive; // keep compatibility
   const now = Date.now();
   const cutoff = now - 24 * 60 * 60 * 1000;
 
@@ -703,7 +713,8 @@ function renderLive() {
   const act = Object.entries(S.active);
 
   if (!act.length && !recent.length) {
-    el.innerHTML = '<div class="empty">Niemand is momenteel onderweg</div>';
+    elActive.innerHTML = '<div class="empty">Niemand is momenteel onderweg</div>';
+    elDone.innerHTML = '';
     drawTimeline([], [], cutoff, now);
     return;
   }
@@ -721,8 +732,8 @@ function renderLive() {
       .sort((a,b) => a.start - b.start)
       .map(g => groupCardHTML(g.route, g.start, g.members, true))
       .join('');
-    el.innerHTML = liveCards +
-      recent.slice(0, 6).map(row => `
+    elActive.innerHTML = liveCards;
+    elDone.innerHTML = recent.slice(0, 12).map(row => `
         <div class="card cd">
           <div class="cst"><span class="dot dot-g"></span><span style="color:#166534">Klaar</span></div>
           <div class="cr">${row.route}</div>
