@@ -12,8 +12,8 @@
 <title>Surveillance Dashboard</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;min-height:100vh;color:#1e293b}
-.header{background:#1e3a5c;padding:16px 24px;display:flex;align-items:center;gap:14px}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;min-height:100vh;color:#1e293b;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+.header{background:#1e3a5c;padding:max(16px,env(safe-area-inset-top)) 24px 16px;display:flex;align-items:center;gap:14px}
 .header-icon{width:40px;height:40px;background:#185FA5;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .header h1{font-size:17px;font-weight:600;color:#fff}
 .header p{font-size:11px;color:rgba(255,255,255,.6);margin-top:2px}
@@ -82,7 +82,7 @@ input[type=text]:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px #d
 .sm:hover{border-color:#2563eb;color:#1e3a5c}
 .sm.del{border-color:#fca5a5}
 .sm.del:hover{background:#fee2e2;color:#dc2626}
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(70px);background:#1e293b;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-family:inherit;transition:transform .25s ease;z-index:999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+.toast{position:fixed;bottom:max(20px,calc(env(safe-area-inset-bottom) + 12px));left:50%;transform:translateX(-50%) translateY(120px);background:#1e293b;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-family:inherit;transition:transform .25s ease;z-index:999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.2)}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .tbl-wrap{overflow-x:auto}
 @media(max-width:600px){
@@ -335,7 +335,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <div class="hr"></div>
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
     <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-      <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.14</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.16</span>
       <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
     </div>
   </div>
@@ -354,6 +354,27 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
+const APP_VERSION = '2.0.16';
+
+// V2: Central interval registry for clean teardown and debugging
+const TIMERS = {
+  _all: new Map(),
+  set(name, fn, ms) {
+    this.clear(name);
+    this._all.set(name, setInterval(fn, ms));
+  },
+  clear(name) {
+    if (this._all.has(name)) {
+      clearInterval(this._all.get(name));
+      this._all.delete(name);
+    }
+  },
+  clearAll() {
+    this._all.forEach(id => clearInterval(id));
+    this._all.clear();
+  }
+};
+
 const LS = {
   get: k => { try { return JSON.parse(localStorage.getItem(k)) } catch(e) { return null } },
   set: (k, v) => localStorage.setItem(k, JSON.stringify(v))
@@ -386,10 +407,20 @@ function fbSaveActive() {
 function setFbStatus(state) {
   const el = document.getElementById('fb-status');
   if (!el) return;
+  // V4: Show offline state if browser is offline, regardless of Firebase status
+  if (!navigator.onLine) {
+    el.textContent = '⚠ offline — geen verbinding';
+    el.style.color = '#fca5a5';
+    return;
+  }
   if (state === 'ok')    { el.textContent = '● gesynchroniseerd'; el.style.color = 'rgba(134,239,172,.9)'; }
   if (state === 'error') { el.textContent = '⚠ sync mislukt — check verbinding'; el.style.color = '#fca5a5'; }
   if (state === 'connecting') { el.textContent = '⏳ verbinden...'; el.style.color = 'rgba(255,255,255,.5)'; }
 }
+
+// V4: Listen for online/offline changes
+window.addEventListener('online',  () => setFbStatus('ok'));
+window.addEventListener('offline', () => setFbStatus('error'));
 
 function fbListen() {
   if (!window.fbDb) return;
@@ -493,8 +524,12 @@ function showToast(msg, duration) {
 }
 
 function goTab(id) {
-  // Pause active-card timer when leaving registratie tab, resume on return
-  if (id !== 'reg') { clearInterval(S.tick); S.tick = null; }
+  // B3: Clean up timers when leaving tabs
+  if (id !== 'reg')  { clearInterval(S.tick);   S.tick   = null; }
+  if (id !== 'live') {
+    clearInterval(S.tickL);  S.tickL  = null;
+    clearInterval(S.tickTL); S.tickTL = null;
+  }
   document.querySelectorAll('.tab').forEach((b,i) =>
     b.classList.toggle('on', ['reg','live','plan','dienst','cfg'][i] === id));
   document.querySelectorAll('.pane').forEach(p => p.classList.remove('on'));
@@ -514,8 +549,9 @@ function render() {
   renderOwnCard();
 }
 
+// S3: SINGLE SOURCE OF TRUTH for "names currently visible on registratie tab"
+// Always call this — never iterate S.names directly when filtering by dienst.
 function activeNames() {
-  // If dienst is set, only show those; otherwise all names
   return S.dienst.size > 0 ? S.names.filter(n => S.dienst.has(n)) : S.names;
 }
 
@@ -741,20 +777,22 @@ function renderLive() {
     return;
   }
 
-  const r = () => {
-    const nowT = Date.now();
-    // Group active by route+start for live cards
+  // Render active cards (updates duration every tick — runs every second)
+  const renderActiveCards = () => {
     const liveGroups = {};
     Object.entries(S.active).forEach(([n, a]) => {
       const key = a.route + '|' + a.start;
       if (!liveGroups[key]) liveGroups[key] = { route: a.route, start: a.start, members: [] };
       liveGroups[key].members.push([n, a]);
     });
-    const liveCards = Object.values(liveGroups)
+    elActive.innerHTML = Object.values(liveGroups)
       .sort((a,b) => a.start - b.start)
       .map(g => groupCardHTML(g.route, g.start, g.members, true))
       .join('');
-    elActive.innerHTML = liveCards;
+  };
+
+  // Render done cards (only on data change — not in tick)
+  const renderDoneCards = () => {
     const isMobile = window.innerWidth <= 600;
     const doneCards = recent.slice(0, isMobile ? 6 : 8);
     const doneLbl = document.getElementById('done-lbl');
@@ -769,10 +807,13 @@ function renderLive() {
           <div class="ct" style="margin-top:6px">Duur &nbsp;<span style="font-weight:500;color:#166534">${row.dur} min</span></div>
           <div class="ct">${fmtT(row.start)} &ndash; ${fmtT(row.end)}</div>
         </div>`).join('');
-    drawTimeline(recent, Object.entries(S.active), cutoff, nowT);
   };
-  r();
-  if (act.length) S.tickL = setInterval(r, 10000);
+
+  renderActiveCards();
+  renderDoneCards();
+  drawTimeline(recent, Object.entries(S.active), cutoff, now);
+  // Tick duration every second for live active cards
+  if (act.length) S.tickL = setInterval(renderActiveCards, 1000);
   // Auto-refresh timeline every 60s even when no active rondes
   clearInterval(S.tickTL);
   S.tickTL = setInterval(() => {
@@ -1223,11 +1264,17 @@ function pruneLog() {
   const cutoff = Date.now() - 24 * 60 * 60 * 1000;
   const before = S.log.length;
   S.log = S.log.filter(r => r.end && r.end >= cutoff).slice(0, 200);
-  if (S.log.length !== before) save();
+  // B6: log lives in fbSaveActive (not fbSave) — call both to persist properly
+  if (S.log.length !== before) {
+    LS.set('rn_names', S.names);
+    LS.set('rn_routes', S.routes);
+    LS.set('rn_dienst', [...S.dienst]);
+    fbSaveActive();
+  }
 }
 
 // Auto-prune every 30 minutes
-setInterval(pruneLog, 30 * 60 * 1000);
+TIMERS.set('prune', pruneLog, 30 * 60 * 1000);
 
 function checkActiveTimeout() {
   // Warn if someone has been active for more than 4 hours
@@ -1244,7 +1291,7 @@ function checkActiveTimeout() {
   });
 }
 // Check every 5 minutes
-setInterval(checkActiveTimeout, 5 * 60 * 1000);
+TIMERS.set('timeoutCheck', checkActiveTimeout, 5 * 60 * 1000);
 
 async function wisLog() {
   pruneLog();
@@ -1549,7 +1596,7 @@ function renderPlan() {
 }
 
 // Auto-refresh planning every minute
-setInterval(() => {
+TIMERS.set('planRefresh', () => {
   if (document.getElementById('pane-plan').classList.contains('on')) renderPlan();
 }, 60000);
 
@@ -1681,6 +1728,10 @@ function modalCancel() {
 }
 
 // Init
+// V8: Set version badge from APP_VERSION constant
+const _vb = document.getElementById('app-version-badge');
+if (_vb) _vb.textContent = 'v' + APP_VERSION;
+
 pruneLog();
 render();
 renderAllActive();
@@ -1697,6 +1748,26 @@ function initFirebase() {
 // Clear any stale active/log from localStorage on startup
 localStorage.removeItem('rn_active');
 localStorage.removeItem('rn_log');
+
+// B4: Redraw timeline on window resize (debounced) and hide tooltip
+let _resizeTm;
+window.addEventListener('resize', () => {
+  const tip = document.getElementById('tl-tooltip');
+  if (tip) tip.style.display = 'none';
+  clearTimeout(_resizeTm);
+  _resizeTm = setTimeout(() => {
+    if (document.getElementById('pane-live').classList.contains('on')) {
+      const nowT = Date.now();
+      const cut  = nowT - 86400000;
+      drawTimeline(S.log.filter(r => r.end && r.end >= cut), Object.entries(S.active), cut, nowT);
+    }
+  }, 250);
+});
+// Hide tooltip on scroll too
+window.addEventListener('scroll', () => {
+  const tip = document.getElementById('tl-tooltip');
+  if (tip) tip.style.display = 'none';
+}, true);
 
 if (window.firebaseReady) {
   initFirebase();
