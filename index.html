@@ -269,6 +269,8 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   <div id="pane-live" class="pane">
     <p class="lbl">Wie is er onderweg?</p>
     <div class="cards" id="live-cards-active"></div>
+    <div class="hr" id="done-hr" style="margin-top:16px;display:none"></div>
+    <p class="lbl" id="done-lbl" style="margin-bottom:8px;display:none">Recent afgerond</p>
     <div class="cards cards-done" id="live-cards-done"></div>
     <div class="hr" style="margin-top:20px"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;margin-bottom:0">
@@ -333,7 +335,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <div class="hr"></div>
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
     <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-      <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.7</span>
+      <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.8</span>
       <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
     </div>
   </div>
@@ -733,7 +735,12 @@ function renderLive() {
       .map(g => groupCardHTML(g.route, g.start, g.members, true))
       .join('');
     elActive.innerHTML = liveCards;
-    elDone.innerHTML = recent.slice(0, 12).map(row => `
+    const doneCards = recent.slice(0, 6);
+    const doneLbl = document.getElementById('done-lbl');
+    const doneHr  = document.getElementById('done-hr');
+    if (doneLbl) doneLbl.style.display = doneCards.length ? '' : 'none';
+    if (doneHr)  doneHr.style.display  = doneCards.length ? '' : 'none';
+    elDone.innerHTML = doneCards.map(row => `
         <div class="card cd">
           <div class="cst"><span class="dot dot-g"></span><span style="color:#166534">Klaar</span></div>
           <div class="cr">${row.route}</div>
