@@ -295,7 +295,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <div class="hr"></div>
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
     <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-      <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.4</span>
+      <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.5</span>
       <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
     </div>
   </div>
@@ -511,9 +511,16 @@ function selN(n) {
 }
 
 function selR(r) {
-  S.sr = r;
-  const el = document.getElementById('sr-val');
-  el.className = 'v'; el.textContent = r;
+  // Toggle: click same route again to deselect
+  if (S.sr === r) {
+    S.sr = null;
+    const el = document.getElementById('sr-val');
+    el.className = 'ph'; el.textContent = 'selecteer een ronde…';
+  } else {
+    S.sr = r;
+    const el = document.getElementById('sr-val');
+    el.className = 'v'; el.textContent = r;
+  }
   renderRouteBtns(); updBtn();
 }
 
