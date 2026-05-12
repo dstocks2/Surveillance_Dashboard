@@ -84,7 +84,27 @@ input[type=text]:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px #d
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(70px);background:#1e293b;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-family:inherit;transition:transform .25s ease;z-index:999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.2)}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .tbl-wrap{overflow-x:auto}
-@media(max-width:600px){.content{padding:14px 12px}.abtn{padding:10px 16px;font-size:12px}.nbtn{padding:8px 12px;font-size:12px}}
+@media(max-width:600px){
+  .content{padding:12px 10px}
+  .header{padding:12px 16px}
+  .header h1{font-size:15px}
+  .header p{font-size:10px}
+  .abtn{padding:13px 16px;font-size:13px;min-height:48px;flex:1}
+  .act-row{flex-direction:row;gap:6px}
+  .nbtn{padding:11px 12px;font-size:13px;min-height:44px}
+  .btn-row{gap:6px}
+  .selbar{padding:10px 12px;font-size:13px}
+  .cards{grid-template-columns:1fr}
+  table{font-size:11px}
+  th,td{padding:8px 8px}
+  .tl-toggle-btn{display:flex !important}
+  #timeline-outer{display:none}
+  #timeline-outer.tl-open{display:block}
+  #timeline-legend{display:none}
+  #timeline-legend.tl-open{display:flex !important}
+  .lbl{font-size:11px}
+  .toast{font-size:12px;padding:10px 16px;max-width:90vw;white-space:normal;text-align:center}
+}
 
 /* ── Touch / iPad optimisations ── */
 @media (max-width: 1024px) {
@@ -144,6 +164,11 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 /* Custom confirm dialog */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px}
 .modal-box{background:#fff;border-radius:12px;padding:24px 22px;max-width:340px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+@media(max-width:600px){
+  .modal-box{padding:20px 16px;border-radius:10px}
+  .nu-card{padding:14px 14px !important}
+  .plan-group{margin-bottom:10px !important}
+}
 .modal-msg{font-size:14px;color:#1e293b;line-height:1.5;margin-bottom:20px;font-family:inherit}
 .modal-btns{display:flex;gap:10px;justify-content:flex-end}
 .modal-btn{padding:10px 22px;border-radius:8px;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;min-width:70px;min-height:44px;transition:opacity .13s}
@@ -238,7 +263,12 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <p class="lbl">Wie is er onderweg?</p>
     <div class="cards" id="live-cards"></div>
     <div class="hr" style="margin-top:20px"></div>
-    <p class="lbl" style="margin-top:16px">Tijdslijn afgelopen 24 uur</p>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;margin-bottom:0">
+      <p class="lbl" style="margin-bottom:0">Tijdslijn afgelopen 24 uur</p>
+      <button class="tl-toggle-btn" onclick="toggleTimeline()" style="display:none;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;color:#64748b;font-size:12px;cursor:pointer;font-family:inherit" id="tl-toggle-btn">
+        <span id="tl-toggle-icon">▼</span> Toon tijdlijn
+      </button>
+    </div>
     <div id="timeline-outer" style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;background:#f8fafc">
       <div id="timeline-axis-wrap" style="overflow-x:hidden;" id="axwrap">
         <canvas id="timeline-axis" style="width:100%;display:block;background:#f8fafc;"></canvas>
@@ -295,7 +325,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <div class="hr"></div>
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
     <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-      <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.5</span>
+      <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.6</span>
       <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
     </div>
   </div>
@@ -522,6 +552,18 @@ function selR(r) {
     el.className = 'v'; el.textContent = r;
   }
   renderRouteBtns(); updBtn();
+}
+
+function toggleTimeline() {
+  const outer  = document.getElementById('timeline-outer');
+  const legend = document.getElementById('timeline-legend');
+  const btn    = document.getElementById('tl-toggle-btn');
+  const icon   = document.getElementById('tl-toggle-icon');
+  const isOpen = outer.classList.toggle('tl-open');
+  if (legend) legend.classList.toggle('tl-open', isOpen);
+  icon.textContent  = isOpen ? '▲' : '▼';
+  btn.innerHTML = '<span id="tl-toggle-icon">' + (isOpen ? '▲' : '▼') + '</span> ' + (isOpen ? 'Verberg tijdlijn' : 'Toon tijdlijn');
+  if (isOpen) setTimeout(() => drawTimeline(S.log.filter(r => r.end && r.end >= Date.now()-86400000), Object.entries(S.active), Date.now()-86400000, Date.now()), 50);
 }
 
 function updBtn() {
