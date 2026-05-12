@@ -335,7 +335,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <div class="hr"></div>
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
     <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-      <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.10</span>
+      <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.12</span>
       <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
     </div>
   </div>
@@ -379,8 +379,16 @@ function fbSaveActive() {
   updates['/dashboard/active'] = Object.keys(S.active).length ? S.active : null;
   updates['/dashboard/log']    = S.log.length ? S.log.slice(0, 200) : null;
   window.fbUpdate(window.fbRef(window.fbDb), updates)
-    .then(() => console.log('Firebase active saved OK'))
-    .catch(e => console.warn('Firebase active write error:', e));
+    .then(() => { setFbStatus('ok'); })
+    .catch(e => { console.warn('Firebase active write error:', e); setFbStatus('error'); });
+}
+
+function setFbStatus(state) {
+  const el = document.getElementById('fb-status');
+  if (!el) return;
+  if (state === 'ok')    { el.textContent = '● gesynchroniseerd'; el.style.color = 'rgba(134,239,172,.9)'; }
+  if (state === 'error') { el.textContent = '⚠ sync mislukt — check verbinding'; el.style.color = '#fca5a5'; }
+  if (state === 'connecting') { el.textContent = '⏳ verbinden...'; el.style.color = 'rgba(255,255,255,.5)'; }
 }
 
 function fbListen() {
@@ -402,16 +410,17 @@ function fbListen() {
     LS.set('rn_names',  S.names);
     LS.set('rn_routes', S.routes);
 
+    setFbStatus('ok');
     // Re-render everything
     renderNameBtns();
     renderRouteBtns();
     renderAllActive();
-    if (document.getElementById('pane-live').classList.contains('on'))   renderLive();
+    if (document.getElementById('pane-live').classList.contains('on'))   { renderLive(); }
     if (document.getElementById('pane-dienst').classList.contains('on')) renderDienst();
     if (document.getElementById('pane-plan').classList.contains('on'))   renderPlan();
     if (document.getElementById('pane-cfg').classList.contains('on'))    renderCfg();
     updBtn();
-  }, e => console.warn('Firebase read error:', e));
+  }, e => { console.warn('Firebase read error:', e); setFbStatus('error'); });
 }
 
 
@@ -469,11 +478,12 @@ function elaps(s) {
   return String(Math.floor(t/60)).padStart(2,'0') + ':' + String(t%60).padStart(2,'0');
 }
 
-function showToast(msg) {
+function showToast(msg, duration) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2600);
+  clearTimeout(window._tt);
+  window._tt = setTimeout(() => t.classList.remove('show'), duration || 2600);
 }
 
 function goTab(id) {
@@ -753,6 +763,15 @@ function renderLive() {
   };
   r();
   if (act.length) S.tickL = setInterval(r, 10000);
+  // Auto-refresh timeline every 60s even when no active rondes
+  clearInterval(S.tickTL);
+  S.tickTL = setInterval(() => {
+    if (document.getElementById('pane-live').classList.contains('on')) {
+      const nowT = Date.now();
+      const cut  = nowT - 86400000;
+      drawTimeline(S.log.filter(r => r.end && r.end >= cut), Object.entries(S.active), cut, nowT);
+    }
+  }, 60000);
 }
 
 function drawTimeline(recent, active, cutoff, now) {
@@ -776,7 +795,10 @@ function drawTimeline(recent, active, cutoff, now) {
   ])].sort((a, b) => (routeLastSeen[b] || 0) - (routeLastSeen[a] || 0));
 
   const DPR     = window.devicePixelRatio || 1;
-  const PAD_L   = 150;
+  // Measure the longest route label dynamically
+  const _measureCtx = document.createElement('canvas').getContext('2d');
+  _measureCtx.font = '13px system-ui, sans-serif';
+  const PAD_L = Math.ceil(Math.max(...allRoutes.map(r => _measureCtx.measureText(r).width), 60)) + 16;
   const PAD_R   = 16;
   const ROW_H   = 40;
   const AXIS_H  = 36; // fixed height for the axis bar
@@ -1187,12 +1209,32 @@ function roundRect(ctx, x, y, w, h, r) {
 }
 
 function pruneLog() {
-  // Remove entries older than 24 hours and save
+  // Remove entries older than 24 hours, keep max 200
   const cutoff = Date.now() - 24 * 60 * 60 * 1000;
   const before = S.log.length;
-  S.log = S.log.filter(r => r.end && r.end >= cutoff);
+  S.log = S.log.filter(r => r.end && r.end >= cutoff).slice(0, 200);
   if (S.log.length !== before) save();
 }
+
+// Auto-prune every 30 minutes
+setInterval(pruneLog, 30 * 60 * 1000);
+
+function checkActiveTimeout() {
+  // Warn if someone has been active for more than 4 hours
+  const now = Date.now();
+  const TIMEOUT_MS = 4 * 60 * 60 * 1000; // 4 hours
+  Object.entries(S.active).forEach(([name, a]) => {
+    const dur = now - a.start;
+    if (dur > TIMEOUT_MS && !a._warned) {
+      a._warned = true;
+      const hrs = Math.floor(dur / 3600000);
+      const mins = Math.floor((dur % 3600000) / 60000);
+      showToast('⚠ ' + name.split(' ')[0] + ' is al ' + hrs + 'u ' + mins + 'min onderweg — retour vergeten?', 6000);
+    }
+  });
+}
+// Check every 5 minutes
+setInterval(checkActiveTimeout, 5 * 60 * 1000);
 
 async function wisLog() {
   pruneLog();
