@@ -335,7 +335,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <div class="hr"></div>
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
     <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-      <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.12</span>
+      <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.14</span>
       <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
     </div>
   </div>
@@ -442,8 +442,14 @@ const DR = ['0-1 ronde','Alarm opvolging','Assistentie','Begeleiding',
             'Van Geuns','Verpleegronde','Vrije ronde'];
 
 if (LS.get('rn_version') !== VERSION) {
-  LS.set('rn_names',  DN);
-  LS.set('rn_routes', DR);
+  // On version update: MERGE existing names/routes with the new defaults
+  // so manually added names are never lost
+  const existingNames  = LS.get('rn_names')  || [];
+  const existingRoutes = LS.get('rn_routes') || [];
+  const mergedNames  = [...new Set([...DN, ...existingNames])].sort((a,b) => a.toLowerCase().localeCompare(b.toLowerCase(),'nl'));
+  const mergedRoutes = [...new Set([...DR, ...existingRoutes])].sort((a,b) => a.toLowerCase().localeCompare(b.toLowerCase(),'nl'));
+  LS.set('rn_names',  mergedNames);
+  LS.set('rn_routes', mergedRoutes);
   LS.set('rn_version', VERSION);
 }
 
@@ -487,10 +493,13 @@ function showToast(msg, duration) {
 }
 
 function goTab(id) {
+  // Pause active-card timer when leaving registratie tab, resume on return
+  if (id !== 'reg') { clearInterval(S.tick); S.tick = null; }
   document.querySelectorAll('.tab').forEach((b,i) =>
     b.classList.toggle('on', ['reg','live','plan','dienst','cfg'][i] === id));
   document.querySelectorAll('.pane').forEach(p => p.classList.remove('on'));
   document.getElementById('pane-' + id).classList.add('on');
+  if (id === 'reg')   renderAllActive();
   if (id === 'live')  { renderLive(); setTimeout(() => drawTimeline(
     S.log.filter(r => r.end && r.end >= Date.now()-86400000),
     Object.entries(S.active), Date.now()-86400000, Date.now()), 50); }
@@ -596,7 +605,7 @@ function updBtn() {
 }
 
 function resetSel() {
-  S.sn = S.sr = null;
+  S.sns = new Set(); S.sr = null;
   const sn = document.getElementById('sn-val');
   sn.className = 'ph'; sn.textContent = 'selecteer een naam\u2026';
   const sr = document.getElementById('sr-val');
@@ -641,7 +650,7 @@ function doRetour(name) {
   const a = S.active[n];
   const end = Date.now();
   const dur = Math.round((end - a.start) / 60000);
-  S.log.unshift({ id: S.log.length + 1, name: n, route: a.route, start: a.start, end, dur });
+  S.log.unshift({ id: Date.now().toString(36) + Math.random().toString(36).slice(2,6), name: n, route: a.route, start: a.start, end, dur });
   delete S.active[n];
   fbSaveActive();
   showToast(n.split(' ')[0] + ' terug! \u2014 ' + dur + ' min');
@@ -655,11 +664,11 @@ function renderOwnCard() {
 }
 
 function renderAllActive() {
-  clearInterval(S.tick);
   const el = document.getElementById('all-active-cards');
   if (!el) return;
   const entries = Object.entries(S.active);
   if (!entries.length) {
+    clearInterval(S.tick); S.tick = null;
     el.innerHTML = '<div class="empty">Nog niemand onderweg</div>';
     return;
   }
@@ -677,7 +686,8 @@ function renderAllActive() {
       .join('');
   };
   r();
-  S.tick = setInterval(r, 1000);
+  // Only (re)start timer if not already running — prevents hik when switching tabs
+  if (!S.tick) S.tick = setInterval(r, 1000);
 }
 
 function cardHTML(name, a, btn) {
@@ -1571,8 +1581,20 @@ function renderCfg() {
   });
 }
 
+
+function sanitizeInput(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/`/g, '&#x60;')
+    .trim();
+}
+
 function addName() {
-  const v = document.getElementById('inp-name').value.trim();
+  const v = sanitizeInput(document.getElementById('inp-name').value);
   if (!v) return;
   S.names.push(v);
   S.names.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase(), 'nl'));
@@ -1591,7 +1613,7 @@ async function rmName(i) {
 }
 
 function addRoute() {
-  const v = document.getElementById('inp-route').value.trim();
+  const v = sanitizeInput(document.getElementById('inp-route').value);
   if (!v) return;
   S.routes.push(v);
   S.routes.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase(), 'nl'));
