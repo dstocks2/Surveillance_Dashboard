@@ -335,7 +335,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <div class="hr"></div>
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
     <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-      <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.9</span>
+      <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.10</span>
       <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
     </div>
   </div>
@@ -1089,15 +1089,24 @@ function drawTimeline(recent, active, cutoff, now) {
   // ── TOOLTIP ──────────────────────────────────────────────────────────────
   const TL_HITS = [];
 
+  // Group recent bars by route+start so multiple people on same ronde share one tooltip
+  const recentGroups = {};
   recent.forEach(row => {
-    const i = allRoutes.indexOf(row.route);
+    const key = row.route + '|' + row.start;
+    if (!recentGroups[key]) recentGroups[key] = { route: row.route, start: row.start, end: row.end, names: [] };
+    recentGroups[key].names.push(row.name);
+    // Take the latest end time
+    if (row.end > recentGroups[key].end) recentGroups[key].end = row.end;
+  });
+  Object.values(recentGroups).forEach(g => {
+    const i = allRoutes.indexOf(g.route);
     if (i < 0) return;
     const y  = i * ROW_H + 4;
-    const x1 = toX(row.start);
-    const x2 = toX(row.end);
+    const x1 = toX(g.start);
+    const x2 = toX(g.end);
     const bh = ROW_H * 0.55;
     const by = y + (ROW_H - bh) / 2;
-    TL_HITS.push({ x1, x2, by, bh, route: row.route, name: row.name, start: row.start, end: row.end, isActive: false });
+    TL_HITS.push({ x1, x2, by, bh, route: g.route, name: g.names.join(', '), start: g.start, end: g.end, isActive: false });
   });
 
   Object.entries(activeByRoute).forEach(([route, members]) => {
