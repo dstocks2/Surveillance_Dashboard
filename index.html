@@ -295,7 +295,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <div class="hr"></div>
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
     <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-      <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.1</span>
+      <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.3</span>
       <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
     </div>
   </div>
@@ -1255,11 +1255,26 @@ function renderPlan() {
   const weekday = isWeekday();
   const todaySchema = SCHEMA.filter(s => !s.weekdagsOnly || weekday);
 
-  // Find current index
-  let curIdx = -1;
-  for (let i = 0; i < todaySchema.length; i++) {
-    if (todaySchema[i].h * 60 + todaySchema[i].m <= now) curIdx = i;
+  // nowMinsAdj() treats 00:00-06:59 as 24:00-30:59 so nacht items sort correctly.
+  // schemaAdj maps each item to the same scale as nowMinsAdj():
+  //   h >= 24  → already nacht-adjusted
+  //   h 0-6    → also nacht (add 24)
+  //   h 7-23   → normal, BUT if real clock is 0-6 these are tomorrow → add 24
+  const currentHour = new Date().getHours();
+  function schemaAdj(item) {
+    if (item.h >= 24) return item.h * 60 + item.m;          // nacht schema items
+    if (item.h < 7)   return (item.h + 24) * 60 + item.m;   // vroege ochtend (0-6) → nacht
+    if (currentHour < 7) return (item.h + 24) * 60 + item.m; // dag items are tomorrow
+    return item.h * 60 + item.m;
   }
+  // Sort schema by adjusted time so curIdx always points to the right position
+  const sortedSchema = [...todaySchema].sort((a, b) => schemaAdj(a) - schemaAdj(b));
+  let curIdx = -1;
+  for (let i = 0; i < sortedSchema.length; i++) {
+    if (schemaAdj(sortedSchema[i]) <= now) curIdx = i;
+  }
+  // Replace todaySchema references below with sortedSchema
+  const planSchema = sortedSchema;
 
   // ── NOW BLOCK ─────────────────────────────────────────────────────────
   const nuBlok = document.getElementById('nu-blok');
@@ -1270,8 +1285,8 @@ function renderPlan() {
 
   // Skip current slot if all its rondes have already been completed (end exists)
   if (curIdx >= 0) {
-    const cur = todaySchema[curIdx];
-    const sameTimeCheck = todaySchema.filter(s => s.h === cur.h && s.m === cur.m);
+    const cur = planSchema[curIdx];
+    const sameTimeCheck = planSchema.filter(s => s.h === cur.h && s.m === cur.m);
     const slotDoneTime = cur.h * 60 + cur.m;
     // A ronde at this slot is "done" if there's a log entry for it that started
     // at or after the slot time (in wall-clock adjusted minutes) and has ended.
@@ -1289,15 +1304,15 @@ function renderPlan() {
       })();
       return S.log.some(r => r.route === s.ronde && r.end && r.start >= slotMs);
     });
-    if (allDone && curIdx + 1 < todaySchema.length) {
+    if (allDone && curIdx + 1 < planSchema.length) {
       // Advance to next slot
-      const nextItem = todaySchema[curIdx + 1];
-      curIdx = todaySchema.findIndex(s => s.h === nextItem.h && s.m === nextItem.m);
+      const nextItem = planSchema[curIdx + 1];
+      curIdx = planSchema.findIndex(s => s.h === nextItem.h && s.m === nextItem.m);
     }
   }
 
   if (curIdx >= 0) {
-    const cur = todaySchema[curIdx];
+    const cur = planSchema[curIdx];
     // Collect all items at the same timestamp (parallel rondes)
     // Build route → runners map
     const routeRunners = {};
@@ -1306,7 +1321,7 @@ function renderPlan() {
       routeRunners[a.route].push(name);
     });
 
-    const sameTime = todaySchema.filter(s => s.h === cur.h && s.m === cur.m);
+    const sameTime = planSchema.filter(s => s.h === cur.h && s.m === cur.m);
 
     const taakHtml = sameTime.map(s => {
       const runners = s.ronde && routeRunners[s.ronde] ? routeRunners[s.ronde] : [];
@@ -1360,10 +1375,10 @@ function renderPlan() {
   const planLijst = document.getElementById('plan-lijst');
 
   // Group upcoming items by timestamp
-  const remaining = todaySchema.slice(curIdx + 1);
+  const remaining = planSchema.slice(curIdx + 1);
   const groups = [];
   remaining.forEach(item => {
-    const key = item.h * 60 + item.m;
+    const key = schemaAdj(item);
     const found = groups.find(g => g.key === key);
     if (found) { found.items.push(item); }
     else groups.push({ key, h: item.h, m: item.m, items: [item] });
