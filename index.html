@@ -338,7 +338,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <div class="hr"></div>
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
     <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.20</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.21</span>
       <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
     </div>
   </div>
@@ -357,7 +357,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.20';
+const APP_VERSION = '2.0.21';
 
 // V2: Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1385,19 +1385,22 @@ function isWeekday() {
   return day >= 1 && day <= 5;
 }
 
-function suggestSurveillant(ronde) {
+function suggestSurveillant(ronde, alreadySuggested) {
   // Returns best available person for a ronde, or null
   // Criteria (in priority order):
   // 1. Must be on dienst (if dienst set), else all names
   // 2. Must NOT currently be active (already running a ronde)
-  // 3. Prefer someone who has NOT run this specific ronde in last 8 hours
-  // 4. Prefer someone who has NOT run ANY ronde in last 30 minutes (just returned)
+  // 3. Must NOT already be suggested for another ronde in this render pass
+  // 4. Prefer someone who has NOT run this specific ronde in last 8 hours
+  // 5. Prefer someone who has NOT run ANY ronde in last 30 minutes (just returned)
+  // If all available are already suggested, fall back and allow repeats
 
   if (!ronde) return null;
   const candidates = activeNames(); // respects dienst filter
   const now = Date.now();
   const h8  = now - 8  * 60 * 60 * 1000; // 8 hours ago
   const m30 = now - 30 * 60 * 1000;       // 30 minutes ago
+  const excluded = alreadySuggested || new Set();
 
   // Who is currently active?
   const bezig = new Set(Object.keys(S.active));
@@ -1413,14 +1416,17 @@ function suggestSurveillant(ronde) {
   );
 
   // Score each candidate (lower = better)
+  const score = n => {
+    let s = 0;
+    if (excluded.has(n))      s += 3;   // already suggested this render — avoid if possible
+    if (ranThisRonde.has(n))  s += 10;  // already did this ronde recently
+    if (justReturned.has(n))  s += 5;   // just came back from something
+    return s;
+  };
+
   const scored = candidates
     .filter(n => !bezig.has(n))   // not currently running
-    .map(n => {
-      let score = 0;
-      if (ranThisRonde.has(n)) score += 10;  // already did this ronde recently
-      if (justReturned.has(n)) score += 5;   // just came back from something
-      return { name: n, score };
-    })
+    .map(n => ({ name: n, score: score(n) }))
     .sort((a, b) => a.score - b.score);
 
   return scored.length ? scored[0].name : null;
@@ -1511,12 +1517,14 @@ function renderPlan() {
 
     const sameTime = planSchema.filter(s => s.h === cur.h && s.m === cur.m);
 
+    const alreadySuggested = new Set(); // track who is suggested to spread across people
     const taakHtml = sameTime.map(s => {
       const runners = s.ronde && routeRunners[s.ronde] ? routeRunners[s.ronde] : [];
       const isActive = runners.length > 0;
 
-      // Suggestion logic
-      const suggested = !isActive ? suggestSurveillant(s.ronde) : null;
+      // Suggestion logic — pass alreadySuggested to avoid recommending same person twice
+      const suggested = !isActive ? suggestSurveillant(s.ronde, alreadySuggested) : null;
+      if (suggested) alreadySuggested.add(suggested);
 
       const rondeTag = s.ronde
         ? `<span style="background:${isActive?'#dcfce7':'#dbeafe'};color:${isActive?'#15803d':'#1d4ed8'};font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;margin-right:6px;white-space:nowrap">${s.ronde}</span>`
@@ -1578,6 +1586,7 @@ function renderPlan() {
     return;
   }
 
+  const alreadySuggestedUpcoming = new Set();
   planLijst.innerHTML = upcoming.map((grp, gi) => {
     const timeStr = fmtSchemaTime({ h: grp.h, m: grp.m });
     const isFirst = gi === 0;
