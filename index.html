@@ -300,6 +300,10 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
     <p class="lbl">Planning komende uren</p>
     <div id="plan-lijst"></div>
+    <div style="margin-top:20px;padding:12px 14px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;font-size:11px;color:#94a3b8;line-height:1.65">
+      Voorgestelde rondes zijn op basis van het surveillanceplan.<br>
+      Voorgestelde surveillant is op basis van: beschikbaarheid (niet onderweg), de afgelopen 8 uur deze ronde niet gelopen, en de afgelopen 30 minuten geen andere ronde gelopen.
+    </div>
   </div>
 
 
@@ -334,7 +338,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <div class="hr"></div>
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
     <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.17</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.20</span>
       <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
     </div>
   </div>
@@ -353,7 +357,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.17';
+const APP_VERSION = '2.0.20';
 
 // V2: Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1528,7 +1532,7 @@ function renderPlan() {
             <span style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#64748b">Voorgesteld aan</span>
             <div style="font-size:14px;font-weight:600;color:#1e293b;margin-top:2px">${suggested}</div>
           </div>
-          <button onclick="startRondeVoorgesteld(${JSON.stringify(s.ronde)}, ${JSON.stringify(suggested)})"
+          <button onclick='startRondeVoorgesteld(${JSON.stringify(s.ronde)}, ${JSON.stringify(suggested)})'
             style="padding:9px 16px;border-radius:8px;border:none;background:#1d4ed8;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;min-height:44px;transition:opacity .13s"
             onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
             ▶ Ronde starten
@@ -1549,7 +1553,6 @@ function renderPlan() {
           Nu — ${fmtSchemaTime(cur)}
         </div>
         <div>${taakHtml}</div>
-      <div style="margin-top:10px;font-size:10px;color:#94a3b8;font-style:italic">Dit voorstel is gebaseerd op het surveillanceplan.</div>
       </div>`;
   } else {
     nuBlok.innerHTML = `<div style="background:#f1f5f9;border-radius:10px;padding:14px;font-size:13px;color:#64748b;margin-bottom:16px">
