@@ -338,7 +338,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <div class="hr"></div>
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
     <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.21</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.24</span>
       <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
     </div>
   </div>
@@ -357,7 +357,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.21';
+const APP_VERSION = '2.0.24';
 
 // V2: Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1499,9 +1499,14 @@ function renderPlan() {
       return S.log.some(r => r.route === s.ronde && r.end && r.start >= slotMs);
     });
     if (allDone && curIdx + 1 < planSchema.length) {
-      // Advance to next slot
+      // Only advance if the next slot has also started (its time has passed)
       const nextItem = planSchema[curIdx + 1];
-      curIdx = planSchema.findIndex(s => s.h === nextItem.h && s.m === nextItem.m);
+      if (schemaAdj(nextItem) <= now) {
+        curIdx = planSchema.findIndex(s => s.h === nextItem.h && s.m === nextItem.m);
+      } else {
+        // Next slot is in the future — stay on current slot (show as done but not yet replaced)
+        curIdx = -1; // no current slot to show
+      }
     }
   }
 
@@ -1563,15 +1568,19 @@ function renderPlan() {
         <div>${taakHtml}</div>
       </div>`;
   } else {
-    nuBlok.innerHTML = `<div style="background:#f1f5f9;border-radius:10px;padding:14px;font-size:13px;color:#64748b;margin-bottom:16px">
-      Geen geplande taak gevonden voor dit moment.</div>`;
+    const d = new Date();
+    const nowStr = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    nuBlok.innerHTML = `<div style="background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#94a3b8;margin-bottom:8px">Nu — ${nowStr}</div>
+      <div style="font-size:13px;color:#64748b">Geen geplande taak gevonden voor dit moment.</div>
+    </div>`;
   }
 
   // ── UPCOMING LIST ─────────────────────────────────────────────────────
   const planLijst = document.getElementById('plan-lijst');
 
-  // Group upcoming items by timestamp
-  const remaining = planSchema.slice(curIdx + 1);
+  // Group upcoming items by timestamp — only show items strictly in the future
+  const remaining = planSchema.filter(item => schemaAdj(item) > now);
   const groups = [];
   remaining.forEach(item => {
     const key = schemaAdj(item);
