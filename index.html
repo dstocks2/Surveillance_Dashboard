@@ -187,6 +187,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, set, get, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyB9D09JXjLPp0Pdz-F3iIFHWdNCTKFtDOk",
@@ -200,19 +201,41 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
   const app   = initializeApp(firebaseConfig);
   const db    = getDatabase(app);
+  const auth  = getAuth(app);
 
   // Expose to global scope for use in non-module script
-  window.fbDb     = db;
-  window.fbRef    = ref;
-  window.fbSet    = set;
-  window.fbGet    = get;
+  window.fbDb      = db;
+  window.fbRef     = ref;
+  window.fbSet     = set;
+  window.fbGet     = get;
   window.fbOnValue = onValue;
-  window.fbUpdate = update;
-  window.fbRemove = remove;
-  window.firebaseReady = true;
-  
-  // Signal app to init after Firebase is ready
-  document.dispatchEvent(new Event('firebaseReady'));
+  window.fbUpdate  = update;
+  window.fbRemove  = remove;
+  window.fbAuth    = auth;
+  window.firebaseReady = false; // wait for auth before signalling ready
+
+  // Sign in anonymously — fully invisible to the user
+  // This ensures Firebase rules (auth != null) are satisfied
+  signInAnonymously(auth)
+    .then(() => {
+      window.firebaseReady = true;
+      document.dispatchEvent(new Event('firebaseReady'));
+    })
+    .catch(e => {
+      console.warn('Anonymous auth failed, trying without auth:', e);
+      // Fallback: still start app even if auth fails
+      window.firebaseReady = true;
+      document.dispatchEvent(new Event('firebaseReady'));
+    });
+
+  // Keep auth status visible in header
+  onAuthStateChanged(auth, user => {
+    const el = document.getElementById('fb-status');
+    if (el && !user) {
+      el.textContent = '⚠ niet verbonden';
+      el.style.color = '#fca5a5';
+    }
+  });
 </script>
 </head>
 <body>
@@ -338,7 +361,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <div class="hr"></div>
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
     <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.24</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.25</span>
       <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
     </div>
   </div>
@@ -357,7 +380,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.24';
+const APP_VERSION = '2.0.25';
 
 // V2: Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -425,19 +448,62 @@ function setFbStatus(state) {
 window.addEventListener('online',  () => setFbStatus('ok'));
 window.addEventListener('offline', () => setFbStatus('error'));
 
+// Sanitize a string coming from Firebase to prevent XSS
+function sanitizeFromFirebase(str) {
+  if (typeof str !== 'string') return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/`/g, '&#x60;')
+    .trim()
+    .slice(0, 200); // cap length to prevent huge strings
+}
+
+function sanitizeNames(arr) {
+  if (!Array.isArray(arr)) return [];
+  return arr.map(sanitizeFromFirebase).filter(Boolean);
+}
+
+function sanitizeActive(obj) {
+  if (!obj || typeof obj !== 'object') return {};
+  const clean = {};
+  Object.entries(obj).forEach(([k, v]) => {
+    if (typeof v !== 'object' || !v) return;
+    const name  = sanitizeFromFirebase(k);
+    const route = sanitizeFromFirebase(v.route || '');
+    const start = typeof v.start === 'number' ? v.start : 0;
+    if (name && route && start) clean[name] = { route, start };
+  });
+  return clean;
+}
+
+function sanitizeLog(arr) {
+  if (!Array.isArray(arr)) return [];
+  return arr.slice(0, 200).map(r => ({
+    id:    sanitizeFromFirebase(String(r.id || '')),
+    name:  sanitizeFromFirebase(r.name  || ''),
+    route: sanitizeFromFirebase(r.route || ''),
+    start: typeof r.start === 'number' ? r.start : 0,
+    end:   typeof r.end   === 'number' ? r.end   : 0,
+    dur:   typeof r.dur   === 'number' ? r.dur   : 0,
+  })).filter(r => r.name && r.route && r.start);
+}
+
 function fbListen() {
   if (!window.fbDb) return;
   window.fbOnValue(window.fbRef(window.fbDb, 'dashboard'), snap => {
     const d = snap.val();
     if (!d) return;
 
-    // Sync all shared data — Firebase is always source of truth
-    // Note: Firebase stores empty {} as null — handle both cases
-    S.active = (d.active && typeof d.active === 'object') ? d.active : {};
-    if (d.log    !== undefined) S.log    = Array.isArray(d.log)    ? d.log    : [];
-    if (d.dienst !== undefined) S.dienst = new Set(Array.isArray(d.dienst) ? d.dienst : []);
-    if (d.names  !== undefined && Array.isArray(d.names)  && d.names.length)  S.names  = d.names;
-    if (d.routes !== undefined && Array.isArray(d.routes) && d.routes.length) S.routes = d.routes;
+    // Sync all shared data — sanitize everything coming from Firebase
+    S.active = sanitizeActive(d.active);
+    if (d.log    !== undefined) S.log    = sanitizeLog(d.log);
+    if (d.dienst !== undefined) S.dienst = new Set(sanitizeNames(Array.isArray(d.dienst) ? d.dienst : []));
+    if (d.names  !== undefined && Array.isArray(d.names)  && d.names.length)  S.names  = sanitizeNames(d.names);
+    if (d.routes !== undefined && Array.isArray(d.routes) && d.routes.length) S.routes = sanitizeNames(d.routes);
 
     // Only back up settings to localStorage (not active/log)
     LS.set('rn_dienst', [...S.dienst]);
