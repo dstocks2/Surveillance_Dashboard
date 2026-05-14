@@ -139,7 +139,6 @@ input[type=text]:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px #d
   .cards { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
   .card { padding: 16px 18px; border-radius: 12px; }
   .cn { font-size: 16px; }
-  .cel { font-size: 26px; }
   .rbtn { padding: 10px; font-size: 13px; min-height: 44px; border-radius: 8px; }
   .btn-row { gap: 9px; }
   .act-row { gap: 10px; }
@@ -335,7 +334,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <div class="hr"></div>
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
     <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.16</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.17</span>
       <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
     </div>
   </div>
@@ -354,7 +353,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.16';
+const APP_VERSION = '2.0.17';
 
 // V2: Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1550,6 +1549,7 @@ function renderPlan() {
           Nu — ${fmtSchemaTime(cur)}
         </div>
         <div>${taakHtml}</div>
+      <div style="margin-top:10px;font-size:10px;color:#94a3b8;font-style:italic">Dit voorstel is gebaseerd op het surveillanceplan.</div>
       </div>`;
   } else {
     nuBlok.innerHTML = `<div style="background:#f1f5f9;border-radius:10px;padding:14px;font-size:13px;color:#64748b;margin-bottom:16px">
@@ -1685,8 +1685,16 @@ function renderDienst() {
     btn.style.cssText = `padding:10px 16px;border-radius:8px;border:1.5px solid ${isOn?'#1e3a5c':'#cbd5e1'};background:${isOn?'#1e3a5c':'#fff'};color:${isOn?'#fff':'#334155'};font-size:13px;cursor:pointer;font-family:inherit;font-weight:${isOn?'600':'400'};transition:all .13s;display:flex;align-items:center;gap:6px`;
     btn.innerHTML = (isOn ? '<span style="font-size:14px">✓</span> ' : '') + n;
     btn.addEventListener('click', () => {
-      if (S.dienst.has(n)) S.dienst.delete(n);
-      else S.dienst.add(n);
+      if (S.dienst.has(n)) {
+        // Check if this person has an active ronde before removing from dienst
+        if (S.active[n]) {
+          showToast('⚠ ' + n.split(' ')[0] + ' heeft nog een actieve ronde (' + S.active[n].route + '). Meld eerst retour.', 4000);
+          return;
+        }
+        S.dienst.delete(n);
+      } else {
+        S.dienst.add(n);
+      }
       save();
       renderDienst();
       renderNameBtns();
