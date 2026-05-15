@@ -17,7 +17,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;min-height:1
 .header-icon{width:40px;height:40px;background:#185FA5;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .header h1{font-size:17px;font-weight:600;color:#fff}
 .header p{font-size:11px;color:rgba(255,255,255,.6);margin-top:2px}
-.tabs{background:#fff;border-bottom:1px solid #e2e8f0;display:flex;padding:0 12px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
+.tabs{background:#fff;border-bottom:1px solid #e2e8f0;display:flex;align-items:stretch;padding:0 12px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
+.tab-cfg{min-width:44px;display:flex;align-items:center;justify-content:center}
 .tab{padding:12px 14px;font-size:13px;cursor:pointer;color:#64748b;border-bottom:2px solid transparent;transition:all .14s;user-select:none;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit;white-space:nowrap;flex-shrink:0}
 .tab:hover{color:#1e293b}
 .tab.on{color:#1e3a5c;font-weight:600;border-bottom-color:#2563eb}
@@ -245,7 +246,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   <div style="width:1px;height:36px;background:rgba(255,255,255,.2);flex-shrink:0"></div>
   <div>
     <h1>Surveillance Dashboard</h1>
-    <p>Klik je naam &rarr; kies ronde &rarr; start &nbsp;|&nbsp; Bij terugkomst: naam &rarr; retour melden &nbsp;<span id="fb-status" style="font-size:10px;opacity:.7">⏳ verbinden...</span></p>
+    <p>Kies persoon &rarr; kies ronde &rarr; start &nbsp;|&nbsp; Bij terugkomst: naam &rarr; retour melden &nbsp;<span id="fb-status" style="font-size:10px;opacity:.7">⏳ verbinden...</span></p>
   </div>
 </div>
 
@@ -254,14 +255,15 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   <button class="tab" onclick="goTab('live')">Live overzicht</button>
   <button class="tab" onclick="goTab('plan')">Voorgestelde ronde</button>
   <button class="tab" onclick="goTab('dienst')">Op dienst</button>
-  <button class="tab" onclick="goTab('cfg')">Beheer</button>
+  <div style="flex:1"></div>
+  <button class="tab tab-cfg" onclick="goTab('cfg')" title="Instellingen" style="font-size:18px;padding:0 16px;letter-spacing:0">⚙</button>
 </div>
 
 <div class="content">
 
   <!-- REGISTRATIE -->
   <div id="pane-reg" class="pane on">
-    <p class="lbl">Stap 1 &mdash; Klik op jouw naam (meerdere mogelijk) <span id="dienst-ind" style="font-size:10px;background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:20px;font-weight:500;display:none;text-transform:none;letter-spacing:0"></span></p>
+    <p class="lbl">Stap 1 &mdash; Kies een persoon (meerdere mogelijk) <span id="dienst-ind" style="font-size:10px;background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:20px;font-weight:500;display:none;text-transform:none;letter-spacing:0"></span></p>
     <div class="btn-row" id="name-btns"></div>
     <div class="selbar"><span class="k">Naam:</span><span id="sn-val" class="ph">selecteer naam(men)&hellip;</span></div>
 
@@ -345,6 +347,8 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
   <!-- BEHEER -->
   <div id="pane-cfg" class="pane">
+
+    <!-- Medewerkers -->
     <p class="lbl">Medewerkers</p>
     <div class="tags" id="name-tags"></div>
     <div class="inp-row">
@@ -352,6 +356,8 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
       <button class="sm" onclick="addName()">+ Toevoegen</button>
     </div>
     <div class="hr"></div>
+
+    <!-- Rondes -->
     <p class="lbl">Rondes</p>
     <div class="tags" id="route-tags"></div>
     <div class="inp-row">
@@ -359,9 +365,59 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
       <button class="sm" onclick="addRoute()">+ Toevoegen</button>
     </div>
     <div class="hr"></div>
+
+    <!-- Schema: collapsible -->
+    <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onclick="toggleSchema()">
+      <p class="lbl" style="margin:0">Dagschema <span style="font-size:10px;font-weight:400;color:#94a3b8;text-transform:none;letter-spacing:0">— tijden en taken per dienst</span></p>
+      <span id="schema-toggle-icon" style="font-size:13px;color:#94a3b8;padding:4px 0">▼</span>
+    </div>
+    <div id="schema-collapse" style="display:none;margin-top:10px">
+      <div id="schema-list" style="margin-bottom:12px"></div>
+      <!-- Edit modal trigger row -->
+      <div id="schema-edit-form" style="display:none;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:10px">
+        <p style="font-size:12px;font-weight:600;color:#475569;margin-bottom:10px">Item wijzigen</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:11px;color:#64748b">Tijd</label>
+            <input type="time" id="inp-schema-edit-tijd" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:110px">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:140px">
+            <label style="font-size:11px;color:#64748b">Ronde (optioneel)</label>
+            <select id="inp-schema-edit-ronde" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit"></select>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;flex:2;min-width:200px">
+            <label style="font-size:11px;color:#64748b">Taakomschrijving</label>
+            <input type="text" id="inp-schema-edit-taak" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit">
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="sm" onclick="saveSchemaEdit()">💾 Opslaan</button>
+            <button class="sm" onclick="cancelSchemaEdit()" style="background:#f1f5f9;color:#64748b">Annuleren</button>
+          </div>
+        </div>
+      </div>
+      <!-- Add new item -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:11px;color:#64748b">Tijd</label>
+          <input type="time" id="inp-schema-tijd" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:110px">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:140px">
+          <label style="font-size:11px;color:#64748b">Ronde (optioneel)</label>
+          <select id="inp-schema-ronde" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit"></select>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;flex:2;min-width:200px">
+          <label style="font-size:11px;color:#64748b">Taakomschrijving</label>
+          <input type="text" id="inp-schema-taak" placeholder="Omschrijving van de taak" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit">
+        </div>
+        <button class="sm" onclick="addSchemaItem()" style="margin-bottom:1px">+ Toevoegen</button>
+      </div>
+    </div>
+    <div class="hr"></div>
+
+    <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
     <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.25</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.29</span>
       <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
     </div>
   </div>
@@ -380,7 +436,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.25';
+const APP_VERSION = '2.0.29';
 
 // V2: Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -556,6 +612,8 @@ if (LS.get('rn_version') !== VERSION) {
 let S = {
   names:  LS.get('rn_names')  || DN,
   routes: LS.get('rn_routes') || DR,
+  schema: LS.get('rn_schema') || null, // null = use hardcoded SCHEMA default
+  uiterlijk: LS.get('rn_uiterlijk') || null,
   active: {},   // always loaded from Firebase — never from localStorage
   log:    [],   // always loaded from Firebase — never from localStorage
   sns: new Set(), sr: null, dienst: new Set(LS.get('rn_dienst') || []),
@@ -1513,7 +1571,7 @@ function renderPlan() {
 
   // Filter schema for today (exclude weekday-only items in weekend)
   const weekday = isWeekday();
-  const todaySchema = SCHEMA.filter(s => !s.weekdagsOnly || weekday);
+  const todaySchema = (S.schema || SCHEMA).filter(s => !s.weekdagsOnly || weekday);
 
   // nowMinsAdj() treats 00:00-06:59 as 24:00-30:59 so nacht items sort correctly.
   // schemaAdj maps each item to the same scale as nowMinsAdj():
@@ -1713,6 +1771,165 @@ function renderCfg() {
     sp.appendChild(btn);
     rt.appendChild(sp);
   });
+
+  // Populate ronde dropdowns
+  const rondeOptions = ['', ...S.routes].map(r =>
+    `<option value="${r}">${r || '— geen ronde —'}</option>`
+  ).join('');
+  const addDropdown = document.getElementById('inp-schema-ronde');
+  const editDropdown = document.getElementById('inp-schema-edit-ronde');
+  if (addDropdown)  addDropdown.innerHTML  = rondeOptions;
+  if (editDropdown) editDropdown.innerHTML = rondeOptions;
+
+  // Render schema list
+  const sl = document.getElementById('schema-list');
+  const activeSchema = S.schema || SCHEMA;
+  if (sl) {
+    if (!activeSchema.length) {
+      sl.innerHTML = '<div style="font-size:13px;color:#94a3b8;padding:8px 0">Geen schema-items.</div>';
+    } else {
+      sl.innerHTML = activeSchema.map((item, i) => {
+        const hDisp = item.h % 24;
+        const timeStr = String(hDisp).padStart(2,'0') + ':' + String(item.m).padStart(2,'0');
+        const isNacht = item.h >= 24;
+        return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid #f1f5f9;font-size:12px">
+          <span style="font-weight:600;color:#475569;width:44px;flex-shrink:0">${timeStr}${isNacht ? '<span style="font-size:9px;color:#818cf8;margin-left:2px">nacht</span>' : ''}</span>
+          ${item.ronde ? `<span style="background:#dbeafe;color:#1d4ed8;border-radius:20px;padding:1px 7px;font-size:11px;flex-shrink:0">${item.ronde}</span>` : ''}
+          <span style="color:#64748b;flex:1">${item.taak}</span>
+          <button onclick="editSchemaItem(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#94a3b8'">✎</button>
+          <button onclick="rmSchemaItem(${i})" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:14px;padding:0 4px;flex-shrink:0" title="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#cbd5e1'">✕</button>
+        </div>`;
+      }).join('');
+    }
+  }
+}
+
+function addSchemaItem() {
+  const tijdEl  = document.getElementById('inp-schema-tijd');
+  const rondeEl = document.getElementById('inp-schema-ronde');
+  const taakEl  = document.getElementById('inp-schema-taak');
+  const tijdVal = tijdEl.value;
+  const taakVal = taakEl.value.trim();
+  if (!tijdVal || !taakVal) { showToast('Vul minimaal een tijd en taakomschrijving in'); return; }
+  const [hh, mm] = tijdVal.split(':').map(Number);
+  // Auto-detect nacht: 00:00-06:59 = after midnight = h+24
+  const h = (hh >= 0 && hh < 7) ? hh + 24 : hh;
+  const newItem = { h, m: mm, ronde: rondeEl.value || null, taak: taakVal };
+  const activeSchema = S.schema ? [...S.schema] : [...SCHEMA];
+  activeSchema.push(newItem);
+  activeSchema.sort((a, b) => a.h * 60 + a.m - (b.h * 60 + b.m));
+  S.schema = activeSchema;
+  LS.set('rn_schema', S.schema);
+  tijdEl.value = ''; rondeEl.value = ''; taakEl.value = '';
+  showToast('Schema-item toegevoegd');
+  renderCfg();
+}
+
+// Edit schema item
+let _editIdx = null;
+function editSchemaItem(i) {
+  _editIdx = i;
+  const activeSchema = S.schema || SCHEMA;
+  const item = activeSchema[i];
+  const hDisp = item.h % 24;
+  const tijdStr = String(hDisp).padStart(2,'0') + ':' + String(item.m).padStart(2,'0');
+  document.getElementById('inp-schema-edit-tijd').value = tijdStr;
+  document.getElementById('inp-schema-edit-taak').value = item.taak;
+  const sel = document.getElementById('inp-schema-edit-ronde');
+  if (sel) sel.value = item.ronde || '';
+  document.getElementById('schema-edit-form').style.display = 'block';
+  document.getElementById('schema-edit-form').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function saveSchemaEdit() {
+  if (_editIdx === null) return;
+  const tijdVal = document.getElementById('inp-schema-edit-tijd').value;
+  const taakVal = document.getElementById('inp-schema-edit-taak').value.trim();
+  const rondeVal = document.getElementById('inp-schema-edit-ronde').value;
+  if (!tijdVal || !taakVal) { showToast('Vul minimaal een tijd en taakomschrijving in'); return; }
+  const [hh, mm] = tijdVal.split(':').map(Number);
+  const h = (hh >= 0 && hh < 7) ? hh + 24 : hh;
+  const activeSchema = S.schema ? [...S.schema] : [...SCHEMA];
+  activeSchema[_editIdx] = { h, m: mm, ronde: rondeVal || null, taak: taakVal };
+  activeSchema.sort((a, b) => a.h * 60 + a.m - (b.h * 60 + b.m));
+  S.schema = activeSchema;
+  LS.set('rn_schema', S.schema);
+  _editIdx = null;
+  document.getElementById('schema-edit-form').style.display = 'none';
+  showToast('Schema-item bijgewerkt');
+  renderCfg();
+}
+
+function cancelSchemaEdit() {
+  _editIdx = null;
+  document.getElementById('schema-edit-form').style.display = 'none';
+}
+
+function toggleSchema() {
+  const col = document.getElementById('schema-collapse');
+  const icon = document.getElementById('schema-toggle-icon');
+  const isOpen = col.style.display === 'none';
+  col.style.display = isOpen ? 'block' : 'none';
+  icon.textContent = isOpen ? '▲' : '▼';
+}
+
+function rmSchemaItem(i) {
+  const activeSchema = S.schema ? [...S.schema] : [...SCHEMA];
+  const item = activeSchema[i];
+  const hDisp = item.h % 24;
+  const tijdStr = String(hDisp).padStart(2,'0') + ':' + String(item.m).padStart(2,'0');
+  customConfirm(`Schema-item verwijderen: ${tijdStr} — ${item.taak}?`, () => {
+    activeSchema.splice(i, 1);
+    S.schema = activeSchema;
+    LS.set('rn_schema', S.schema);
+    showToast('Schema-item verwijderd');
+    renderCfg();
+  });
+}
+
+function applyUiterlijk(u) {
+  // Reset all to defaults first
+  const header = document.querySelector('.header');
+  if (header) header.style.background = '';
+  document.querySelectorAll('.tab.on').forEach(t => t.style.borderBottomColor = '');
+  document.querySelectorAll('.abtn-s').forEach(b => b.style.background = '');
+
+  if (!u) return;
+  // Header background colour — only if explicitly set and different from default
+  if (header && u.kleur && u.kleur !== '#1e3a5c') header.style.background = u.kleur;
+  // Accent colour — only if explicitly set and different from default
+  if (u.accent && u.accent !== '#2563eb') {
+    document.querySelectorAll('.tab.on').forEach(t => t.style.borderBottomColor = u.accent);
+    document.querySelectorAll('.abtn-s').forEach(b => b.style.background = u.accent);
+  }
+  // Org name in footer badge
+  if (u.naam) {
+    const badge = document.getElementById('app-version-badge');
+    if (badge && badge.nextElementSibling) {
+      badge.nextElementSibling.textContent = 'Surveillance Dashboard · ' + u.naam + ' · Made by Danny Stockschen';
+    }
+  }
+}
+
+function previewUiterlijk() {
+  const u = {
+    naam:   document.getElementById('cfg-org-naam').value.trim(),
+    kleur:  document.getElementById('cfg-kleur').value,
+    accent: document.getElementById('cfg-accent').value,
+  };
+  applyUiterlijk(u);
+}
+
+function slaUiterlijkOp() {
+  const u = {
+    naam:   sanitizeInput(document.getElementById('cfg-org-naam').value),
+    kleur:  document.getElementById('cfg-kleur').value,
+    accent: document.getElementById('cfg-accent').value,
+  };
+  S.uiterlijk = u;
+  LS.set('rn_uiterlijk', u);
+  applyUiterlijk(u);
+  showToast('Uiterlijk opgeslagen');
 }
 
 
@@ -1826,6 +2043,18 @@ function modalCancel() {
 // V8: Set version badge from APP_VERSION constant
 const _vb = document.getElementById('app-version-badge');
 if (_vb) _vb.textContent = 'v' + APP_VERSION;
+
+// Apply saved uiterlijk on load — but clear if it has default values (from old version)
+if (S.uiterlijk) {
+  const u = S.uiterlijk;
+  // If both colours are defaults, the uiterlijk was auto-saved and can be discarded
+  if (u.kleur === '#1e3a5c' && u.accent === '#2563eb' && !u.naam) {
+    S.uiterlijk = null;
+    LS.set('rn_uiterlijk', null);
+  } else {
+    applyUiterlijk(S.uiterlijk);
+  }
+}
 
 pruneLog();
 render();
