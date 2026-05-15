@@ -346,25 +346,56 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   </div>
 
   <!-- BEHEER -->
-  <div id="pane-cfg" class="pane">
+  <div id="pane-cfg" class="pane" style="position:relative">
 
-    <!-- Medewerkers -->
-    <p class="lbl">Medewerkers</p>
-    <div class="tags" id="name-tags"></div>
-    <div class="inp-row">
-      <input type="text" id="inp-name" placeholder="Naam toevoegen&hellip;" onkeydown="if(event.key==='Enter')addName()">
-      <button class="sm" onclick="addName()">+ Toevoegen</button>
+    <!-- PIN lock overlay -->
+    <div id="cfg-lock" style="display:none;position:absolute;inset:0;background:rgba(248,250,252,.97);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;border-radius:8px">
+      <div style="font-size:32px">🔒</div>
+      <div style="font-size:16px;font-weight:600;color:#1e293b">Instellingen vergrendeld</div>
+      <div style="font-size:13px;color:#64748b">Voer de pincode in om door te gaan</div>
+      <input type="password" id="cfg-pin-input" maxlength="8" placeholder="Pincode" autocomplete="off"
+        style="padding:10px 16px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:18px;text-align:center;width:160px;letter-spacing:.2em;font-family:monospace"
+        onkeydown="if(event.key==='Enter')checkPin()">
+      <button class="sm" onclick="checkPin()">Ontgrendelen</button>
+      <div id="cfg-pin-error" style="font-size:12px;color:#ef4444;display:none">Onjuiste pincode</div>
     </div>
-    <div class="hr"></div>
 
-    <!-- Rondes -->
-    <p class="lbl">Rondes</p>
-    <div class="tags" id="route-tags"></div>
-    <div class="inp-row">
-      <input type="text" id="inp-route" placeholder="Ronde toevoegen&hellip;" onkeydown="if(event.key==='Enter')addRoute()">
-      <button class="sm" onclick="addRoute()">+ Toevoegen</button>
-    </div>
-    <div class="hr"></div>
+    <!-- Unlocked content -->
+    <div id="cfg-content">
+      <!-- PIN change row -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:11px;color:#94a3b8">🔒 Instellingen zijn beveiligd met een pincode</span>
+        <button onclick="changePinDialog()" style="background:none;border:none;font-size:11px;color:#94a3b8;cursor:pointer;text-decoration:underline;padding:0">Pincode wijzigen</button>
+      </div>
+      <div class="hr" style="margin-top:8px"></div>
+
+      <!-- Medewerkers: collapsible -->
+      <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onclick="toggleSection('medewerkers')">
+        <p class="lbl" style="margin:0">Medewerkers</p>
+        <span id="medewerkers-toggle-icon" style="font-size:13px;color:#94a3b8;padding:4px 0">▼</span>
+      </div>
+      <div id="medewerkers-collapse" style="display:none;margin-top:10px">
+        <div class="tags" id="name-tags"></div>
+        <div class="inp-row">
+          <input type="text" id="inp-name" placeholder="Naam toevoegen&hellip;" onkeydown="if(event.key==='Enter')addName()">
+          <button class="sm" onclick="addName()">+ Toevoegen</button>
+        </div>
+      </div>
+      <div class="hr"></div>
+
+      <!-- Rondes: collapsible -->
+      <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onclick="toggleSection('rondes')">
+        <p class="lbl" style="margin:0">Rondes</p>
+        <span id="rondes-toggle-icon" style="font-size:13px;color:#94a3b8;padding:4px 0">▼</span>
+      </div>
+      <div id="rondes-collapse" style="display:none;margin-top:10px">
+        <div class="tags" id="route-tags"></div>
+        <div class="inp-row">
+          <input type="text" id="inp-route" placeholder="Ronde toevoegen&hellip;" onkeydown="if(event.key==='Enter')addRoute()">
+          <button class="sm" onclick="addRoute()">+ Toevoegen</button>
+        </div>
+      </div>
+      <div class="hr"></div>
 
     <!-- Schema: collapsible -->
     <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onclick="toggleSchema()">
@@ -416,10 +447,11 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
-    <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.29</span>
-      <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
-    </div>
+      <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.32</span>
+        <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
+      </div>
+    </div><!-- /cfg-content -->
   </div>
 
 </div>
@@ -436,7 +468,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.29';
+const APP_VERSION = '2.0.32';
 
 // V2: Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -470,8 +502,16 @@ function fbSave() {
   updates['/dashboard/dienst']  = [...S.dienst];
   updates['/dashboard/names']   = S.names;
   updates['/dashboard/routes']  = S.routes;
+  updates['/dashboard/pin']     = LS.get('rn_cfg_pin') || DEFAULT_PIN;
   window.fbUpdate(window.fbRef(window.fbDb), updates)
     .catch(e => console.warn('Firebase settings write error:', e));
+}
+
+function fbSavePin(pin) {
+  if (!window.fbDb) return;
+  window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/pin': pin })
+    .then(() => setFbStatus('ok'))
+    .catch(e => console.warn('Firebase pin write error:', e));
 }
 
 // Writes active + log atomically to Firebase — this is the ONLY place these are saved
@@ -560,6 +600,10 @@ function fbListen() {
     if (d.dienst !== undefined) S.dienst = new Set(sanitizeNames(Array.isArray(d.dienst) ? d.dienst : []));
     if (d.names  !== undefined && Array.isArray(d.names)  && d.names.length)  S.names  = sanitizeNames(d.names);
     if (d.routes !== undefined && Array.isArray(d.routes) && d.routes.length) S.routes = sanitizeNames(d.routes);
+    // Sync PIN from Firebase — always trust Firebase over localStorage
+    if (d.pin && typeof d.pin === 'string' && d.pin.length >= 4) {
+      LS.set('rn_cfg_pin', d.pin);
+    }
 
     // Only back up settings to localStorage (not active/log)
     LS.set('rn_dienst', [...S.dienst]);
@@ -667,7 +711,7 @@ function goTab(id) {
     Object.entries(S.active), Date.now()-86400000, Date.now()), 50); }
   if (id === 'plan')  renderPlan();
   if (id === 'dienst') renderDienst();
-  if (id === 'cfg')   renderCfg();
+  if (id === 'cfg')   { renderCfg(); checkCfgLock(); }
 }
 
 function render() {
@@ -1793,7 +1837,7 @@ function renderCfg() {
         const timeStr = String(hDisp).padStart(2,'0') + ':' + String(item.m).padStart(2,'0');
         const isNacht = item.h >= 24;
         return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid #f1f5f9;font-size:12px">
-          <span style="font-weight:600;color:#475569;width:44px;flex-shrink:0">${timeStr}${isNacht ? '<span style="font-size:9px;color:#818cf8;margin-left:2px">nacht</span>' : ''}</span>
+          <span style="font-weight:600;color:#475569;width:44px;flex-shrink:0">${timeStr}</span>
           ${item.ronde ? `<span style="background:#dbeafe;color:#1d4ed8;border-radius:20px;padding:1px 7px;font-size:11px;flex-shrink:0">${item.ronde}</span>` : ''}
           <span style="color:#64748b;flex:1">${item.taak}</span>
           <button onclick="editSchemaItem(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#94a3b8'">✎</button>
@@ -1871,6 +1915,76 @@ function toggleSchema() {
   const isOpen = col.style.display === 'none';
   col.style.display = isOpen ? 'block' : 'none';
   icon.textContent = isOpen ? '▲' : '▼';
+}
+
+function toggleSection(id) {
+  const col  = document.getElementById(id + '-collapse');
+  const icon = document.getElementById(id + '-toggle-icon');
+  if (!col) return;
+  const isOpen = col.style.display === 'none';
+  col.style.display = isOpen ? 'block' : 'none';
+  icon.textContent = isOpen ? '▲' : '▼';
+}
+
+// ── PIN LOCK ──────────────────────────────────────────────────────────────
+const CFG_PIN_KEY = 'rn_cfg_pin';
+const DEFAULT_PIN = '806910';
+
+function getCfgPin() {
+  return LS.get(CFG_PIN_KEY) || DEFAULT_PIN;
+}
+
+function showCfgLock() {
+  const lock = document.getElementById('cfg-lock');
+  const content = document.getElementById('cfg-content');
+  if (lock)    { lock.style.display = 'flex'; }
+  if (content) { content.style.display = 'none'; }
+  setTimeout(() => {
+    const inp = document.getElementById('cfg-pin-input');
+    if (inp) { inp.value = ''; inp.focus(); }
+  }, 50);
+}
+
+function hideCfgLock() {
+  const lock = document.getElementById('cfg-lock');
+  const content = document.getElementById('cfg-content');
+  if (lock)    lock.style.display = 'none';
+  if (content) content.style.display = 'block';
+}
+
+function checkPin() {
+  const inp = document.getElementById('cfg-pin-input');
+  const err = document.getElementById('cfg-pin-error');
+  if (!inp) return;
+  if (inp.value === getCfgPin()) {
+    err.style.display = 'none';
+    hideCfgLock();
+    LS.set('rn_cfg_unlocked', Date.now()); // remember for 30min
+  } else {
+    err.style.display = 'block';
+    inp.value = '';
+    inp.focus();
+  }
+}
+
+function changePinDialog() {
+  customConfirm('Pincode wijzigen? Voer daarna de nieuwe pincode in.', () => {
+    const newPin = prompt('Nieuwe pincode (minimaal 4 tekens):');
+    if (!newPin || newPin.length < 4) { showToast('Pincode moet minimaal 4 tekens zijn'); return; }
+    LS.set(CFG_PIN_KEY, newPin);
+    fbSavePin(newPin); // sync to Firebase so all devices get the new pin
+    showToast('Pincode opgeslagen en gesynchroniseerd');
+  });
+}
+
+function checkCfgLock() {
+  // Check if unlocked within last 30 minutes
+  const unlocked = LS.get('rn_cfg_unlocked');
+  if (unlocked && Date.now() - unlocked < 30 * 60 * 1000) {
+    hideCfgLock();
+  } else {
+    showCfgLock();
+  }
 }
 
 function rmSchemaItem(i) {
