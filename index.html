@@ -442,7 +442,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.38</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.39</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -462,7 +462,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.38';
+const APP_VERSION = '2.0.39';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -852,13 +852,40 @@ function doRetour(name) {
   const a = S.active[n];
   const end = Date.now();
   const dur = Math.round((end - a.start) / 60000);
-  S.log.unshift({ id: Date.now().toString(36) + Math.random().toString(36).slice(2,6), name: n, route: a.route, start: a.start, end, dur });
+  const logEntry = { id: Date.now().toString(36) + Math.random().toString(36).slice(2,6), name: n, route: a.route, start: a.start, end, dur };
+
+  // Optimistic update: remove locally first for snappy UI
+  S.log.unshift(logEntry);
   delete S.active[n];
-  fbSaveActive();
-  showToast(n.split(' ')[0] + ' terug! \u2014 ' + dur + ' min');
   renderAllActive();
   updBtn();
   if (document.getElementById('pane-live').classList.contains('on')) renderLive();
+
+  // Write to Firebase — on failure roll back and warn user
+  if (window.fbDb) {
+    const updates = {
+      '/dashboard/active': Object.keys(S.active).length ? S.active : null,
+      '/dashboard/log':    S.log.length ? S.log.slice(0, 200) : null
+    };
+    window.fbUpdate(window.fbRef(window.fbDb), updates)
+      .then(() => {
+        setFbStatus('ok');
+        showToast(n.split(' ')[0] + ' terug! \u2014 ' + dur + ' min');
+      })
+      .catch(e => {
+        console.warn('Firebase retour write error:', e);
+        // Roll back: restore active entry, remove log entry
+        S.active[n] = a;
+        S.log.shift();
+        setFbStatus('error');
+        renderAllActive();
+        updBtn();
+        if (document.getElementById('pane-live').classList.contains('on')) renderLive();
+        showToast('\u26a0 Retour mislukt \u2014 controleer verbinding en probeer opnieuw', 5000);
+      });
+  } else {
+    showToast(n.split(' ')[0] + ' terug! \u2014 ' + dur + ' min');
+  }
 }
 
 function renderOwnCard() {
