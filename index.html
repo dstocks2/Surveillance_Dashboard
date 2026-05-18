@@ -169,7 +169,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 #timeline-canvas { display: block; }
 
 /* Meldingen overlay */
-.bel-wrap{position:relative;cursor:pointer;padding:0 14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:none;border:none;border-bottom:2px solid transparent;transition:all .13s}
+.bel-wrap{position:relative;cursor:pointer;padding:0 14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:none;border:none;border-bottom:2px solid transparent;transition:all .13s;color:#64748b}
 .bel-wrap:hover{color:#1e293b;background:rgba(0,0,0,.04)}
 .bel-icon{font-size:18px;line-height:1}
 .bel-badge{position:absolute;top:6px;right:4px;background:#ef4444;color:#fff;font-size:9px;font-weight:700;border-radius:8px;min-width:15px;height:15px;display:none;align-items:center;justify-content:center;padding:0 3px;border:1.5px solid #fff}
@@ -399,15 +399,17 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   <div id="pane-cfg" class="pane" style="position:relative">
 
     <!-- PIN lock overlay -->
-    <div id="cfg-lock" style="display:none;position:fixed;inset:0;background:rgba(248,250,252,.97);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding-top:80px">
-      <div style="font-size:32px">🔒</div>
-      <div style="font-size:16px;font-weight:600;color:#1e293b">Instellingen vergrendeld</div>
-      <div style="font-size:13px;color:#64748b">Voer de pincode in om door te gaan</div>
-      <input type="password" id="cfg-pin-input" maxlength="8" placeholder="Pincode" autocomplete="off"
-        style="padding:10px 16px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:18px;text-align:center;width:160px;letter-spacing:.2em;font-family:monospace"
-        onkeydown="if(event.key==='Enter')checkPin()">
-      <button class="sm" onclick="checkPin()">Ontgrendelen</button>
-      <div id="cfg-pin-error" style="font-size:12px;color:#ef4444;display:none">Onjuiste pincode</div>
+    <div id="cfg-lock" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px">
+      <div style="background:#fff;border-radius:12px;padding:28px 24px;max-width:320px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2);display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="font-size:28px">🔒</div>
+        <div style="font-size:16px;font-weight:600;color:#1e293b">Instellingen vergrendeld</div>
+        <div style="font-size:13px;color:#64748b;text-align:center">Voer de pincode in om door te gaan</div>
+        <input type="password" id="cfg-pin-input" maxlength="8" placeholder="Pincode" autocomplete="off"
+          style="padding:10px 16px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:18px;text-align:center;width:160px;letter-spacing:.2em;font-family:monospace"
+          onkeydown="if(event.key==='Enter')checkPin()">
+        <button class="sm" onclick="checkPin()">Ontgrendelen</button>
+        <div id="cfg-pin-error" style="font-size:12px;color:#ef4444;display:none">Onjuiste pincode</div>
+      </div>
     </div>
 
     <!-- Unlocked content -->
@@ -498,7 +500,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.42</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.43</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -518,7 +520,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.42';
+const APP_VERSION = '2.0.43';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -927,6 +929,7 @@ function doRetour(name) {
       .then(() => {
         setFbStatus('ok');
         showToast(n.split(' ')[0] + ' terug! \u2014 ' + dur + ' min');
+        voegMeldingToe('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.', null, null);
       })
       .catch(e => {
         console.warn('Firebase retour write error:', e);
@@ -942,6 +945,7 @@ function doRetour(name) {
       });
   } else {
     showToast(n.split(' ')[0] + ' terug! \u2014 ' + dur + ' min');
+    voegMeldingToe('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.', null, null);
   }
 }
 
@@ -1056,6 +1060,11 @@ function renderLive() {
   renderActiveCards();
   renderDoneCards();
   drawTimeline(recent, Object.entries(S.active), cutoff, now);
+  // Event delegation: retour knoppen werken ook tijdens tick-updates
+  elActive.onclick = e => {
+    const btn = e.target.closest('.rbtn');
+    if (btn) doRetour(btn.getAttribute('data-name'));
+  };
   // Tick duration every second for live active cards
   if (act.length) S.tickL = setInterval(renderActiveCards, 1000);
   // Auto-refresh timeline every 60s even when no active rondes
