@@ -332,7 +332,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   <div id="pane-dienst" class="pane">
     <p class="lbl">Wie zijn er vandaag op dienst?</p>
     <p style="font-size:12px;color:#64748b;margin-bottom:16px">Vink de namen aan die vandaag werken. Alleen deze namen zie je bij de registratie.</p>
-    <div id="dienst-grid" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px"></div>
+    <div id="dienst-grid" style="margin-bottom:12px"></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="sm" onclick="dienstLeeg()">Selectie wissen</button>
     </div>
@@ -442,7 +442,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.37</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.38</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -462,7 +462,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.37';
+const APP_VERSION = '2.0.38';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -2054,28 +2054,53 @@ async function rmRoute(i) {
 function renderDienst() {
   const el = document.getElementById('dienst-grid');
   el.innerHTML = '';
+
+  // Group names by first letter, skip empty letters
+  const groepen = {};
   S.names.forEach(n => {
-    const isOn = S.dienst.has(n);
-    const btn = document.createElement('button');
-    btn.style.cssText = `padding:10px 16px;border-radius:8px;border:1.5px solid ${isOn?'#1e3a5c':'#cbd5e1'};background:${isOn?'#1e3a5c':'#fff'};color:${isOn?'#fff':'#334155'};font-size:13px;cursor:pointer;font-family:inherit;font-weight:${isOn?'600':'400'};transition:all .13s;display:flex;align-items:center;gap:6px`;
-    btn.innerHTML = (isOn ? '<span style="font-size:14px">✓</span> ' : '') + n;
-    btn.addEventListener('click', () => {
-      if (S.dienst.has(n)) {
-        // Check if this person has an active ronde before removing from dienst
-        if (S.active[n]) {
-          showToast('⚠ ' + n.split(' ')[0] + ' heeft nog een actieve ronde (' + S.active[n].route + '). Meld eerst retour.', 4000);
-          return;
-        }
-        S.dienst.delete(n);
-      } else {
-        S.dienst.add(n);
-      }
-      save();
-      renderDienst();
-      renderNameBtns();
-    });
-    el.appendChild(btn);
+    const l = n[0].toUpperCase();
+    if (!groepen[l]) groepen[l] = [];
+    groepen[l].push(n);
   });
+
+  Object.keys(groepen).sort().forEach(l => {
+    const groepEl = document.createElement('div');
+    groepEl.style.cssText = 'display:flex;align-items:baseline;gap:8px;margin-bottom:8px';
+
+    const letterEl = document.createElement('div');
+    letterEl.style.cssText = 'font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8;width:12px;flex-shrink:0';
+    letterEl.textContent = l;
+    groepEl.appendChild(letterEl);
+
+    const rij = document.createElement('div');
+    rij.style.cssText = 'display:flex;flex-wrap:wrap;gap:5px;flex:1';
+
+    groepen[l].forEach(n => {
+      const isOn = S.dienst.has(n);
+      const btn = document.createElement('button');
+      btn.style.cssText = `padding:5px 11px;border-radius:20px;border:1.5px solid ${isOn?'#1e3a5c':'#cbd5e1'};background:${isOn?'#1e3a5c':'#fff'};color:${isOn?'#fff':'#334155'};font-size:12px;cursor:pointer;font-family:inherit;font-weight:${isOn?'600':'400'};transition:all .13s`;
+      btn.textContent = (isOn ? '✓ ' : '') + n;
+      btn.addEventListener('click', () => {
+        if (S.dienst.has(n)) {
+          if (S.active[n]) {
+            showToast('⚠ ' + n.split(' ')[0] + ' heeft nog een actieve ronde (' + S.active[n].route + '). Meld eerst retour.', 4000);
+            return;
+          }
+          S.dienst.delete(n);
+        } else {
+          S.dienst.add(n);
+        }
+        save();
+        renderDienst();
+        renderNameBtns();
+      });
+      rij.appendChild(btn);
+    });
+
+    groepEl.appendChild(rij);
+    el.appendChild(groepEl);
+  });
+
   const st = document.getElementById('dienst-status');
   if (S.dienst.size === 0) {
     st.textContent = 'Geen selectie — alle ' + S.names.length + ' medewerkers worden getoond bij registratie.';
