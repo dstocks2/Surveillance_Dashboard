@@ -252,7 +252,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
 <div class="tabs">
   <button class="tab on" onclick="goTab('reg')">Registratie</button>
-  <button class="tab" onclick="goTab('live')">Live overzicht</button>
+  <button class="tab" onclick="goTab('live')">Overzicht</button>
   <button class="tab" onclick="goTab('plan')">Voorgestelde ronde</button>
   <button class="tab" onclick="goTab('dienst')">Op dienst</button>
   <div style="flex:1"></div>
@@ -349,7 +349,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   <div id="pane-cfg" class="pane" style="position:relative">
 
     <!-- PIN lock overlay -->
-    <div id="cfg-lock" style="display:none;position:absolute;inset:0;background:rgba(248,250,252,.97);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;border-radius:8px">
+    <div id="cfg-lock" style="display:none;position:fixed;inset:0;background:rgba(248,250,252,.97);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding-top:80px">
       <div style="font-size:32px">🔒</div>
       <div style="font-size:16px;font-weight:600;color:#1e293b">Instellingen vergrendeld</div>
       <div style="font-size:13px;color:#64748b">Voer de pincode in om door te gaan</div>
@@ -448,7 +448,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.32</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.36</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -468,7 +468,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.32';
+const APP_VERSION = '2.0.36';
 
 // V2: Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -590,37 +590,44 @@ function sanitizeLog(arr) {
 
 function fbListen() {
   if (!window.fbDb) return;
+
+  // Listener 1: active + log only — separate path prevents settings writes from
+  // overwriting active state and causing ghost-active entries after retour.
+  window.fbOnValue(window.fbRef(window.fbDb, 'dashboard/active'), snap => {
+    S.active = sanitizeActive(snap.val());
+    setFbStatus('ok');
+    renderAllActive();
+    if (document.getElementById('pane-live').classList.contains('on')) renderLive();
+    updBtn();
+  }, e => { console.warn('Firebase active read error:', e); setFbStatus('error'); });
+
+  window.fbOnValue(window.fbRef(window.fbDb, 'dashboard/log'), snap => {
+    const val = snap.val();
+    S.log = val ? sanitizeLog(val) : [];
+    if (document.getElementById('pane-live').classList.contains('on')) renderLive();
+  }, e => { console.warn('Firebase log read error:', e); });
+
+  // Listener 2: settings only — names, routes, dienst, pin
   window.fbOnValue(window.fbRef(window.fbDb, 'dashboard'), snap => {
     const d = snap.val();
     if (!d) return;
-
-    // Sync all shared data — sanitize everything coming from Firebase
-    S.active = sanitizeActive(d.active);
-    if (d.log    !== undefined) S.log    = sanitizeLog(d.log);
     if (d.dienst !== undefined) S.dienst = new Set(sanitizeNames(Array.isArray(d.dienst) ? d.dienst : []));
     if (d.names  !== undefined && Array.isArray(d.names)  && d.names.length)  S.names  = sanitizeNames(d.names);
     if (d.routes !== undefined && Array.isArray(d.routes) && d.routes.length) S.routes = sanitizeNames(d.routes);
-    // Sync PIN from Firebase — always trust Firebase over localStorage
     if (d.pin && typeof d.pin === 'string' && d.pin.length >= 4) {
       LS.set('rn_cfg_pin', d.pin);
     }
-
-    // Only back up settings to localStorage (not active/log)
+    // Back up settings to localStorage
     LS.set('rn_dienst', [...S.dienst]);
     LS.set('rn_names',  S.names);
     LS.set('rn_routes', S.routes);
 
-    setFbStatus('ok');
-    // Re-render everything
     renderNameBtns();
     renderRouteBtns();
-    renderAllActive();
-    if (document.getElementById('pane-live').classList.contains('on'))   { renderLive(); }
     if (document.getElementById('pane-dienst').classList.contains('on')) renderDienst();
     if (document.getElementById('pane-plan').classList.contains('on'))   renderPlan();
     if (document.getElementById('pane-cfg').classList.contains('on'))    renderCfg();
-    updBtn();
-  }, e => { console.warn('Firebase read error:', e); setFbStatus('error'); });
+  }, e => { console.warn('Firebase settings read error:', e); });
 }
 
 
