@@ -317,10 +317,6 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
   <!-- VOORGESTELDE RONDE -->
   <div id="pane-plan" class="pane">
-    <div id="dienst-bar" style="display:none">
-      <div id="dienst-label"></div>
-    </div>
-
     <div id="nu-blok" style="margin-bottom:20px"></div>
 
     <p class="lbl">Planning komende uren</p>
@@ -331,8 +327,6 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     </div>
   </div>
 
-
-  <!-- STATS -->
 
   <!-- OP DIENST -->
   <div id="pane-dienst" class="pane">
@@ -448,7 +442,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.36</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.37</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -468,9 +462,9 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.36';
+const APP_VERSION = '2.0.37';
 
-// V2: Central interval registry for clean teardown and debugging
+// Central interval registry for clean teardown and debugging
 const TIMERS = {
   _all: new Map(),
   set(name, fn, ms) {
@@ -502,7 +496,9 @@ function fbSave() {
   updates['/dashboard/dienst']  = [...S.dienst];
   updates['/dashboard/names']   = S.names;
   updates['/dashboard/routes']  = S.routes;
-  updates['/dashboard/pin']     = LS.get('rn_cfg_pin') || DEFAULT_PIN;
+  // PIN: only write if already hashed (64 char) — getCfgPinHash() handles migration async
+  const storedPin = LS.get('rn_cfg_pin');
+  if (storedPin && storedPin.length === 64) updates['/dashboard/pin'] = storedPin;
   window.fbUpdate(window.fbRef(window.fbDb), updates)
     .catch(e => console.warn('Firebase settings write error:', e));
 }
@@ -529,7 +525,7 @@ function fbSaveActive() {
 function setFbStatus(state) {
   const el = document.getElementById('fb-status');
   if (!el) return;
-  // V4: Show offline state if browser is offline, regardless of Firebase status
+  // Show offline state if browser is offline, regardless of Firebase status
   if (!navigator.onLine) {
     el.textContent = '⚠ offline — geen verbinding';
     el.style.color = '#fca5a5';
@@ -540,7 +536,7 @@ function setFbStatus(state) {
   if (state === 'connecting') { el.textContent = '⏳ verbinden...'; el.style.color = 'rgba(255,255,255,.5)'; }
 }
 
-// V4: Listen for online/offline changes
+// Listen for online/offline changes
 window.addEventListener('online',  () => setFbStatus('ok'));
 window.addEventListener('offline', () => setFbStatus('error'));
 
@@ -590,44 +586,37 @@ function sanitizeLog(arr) {
 
 function fbListen() {
   if (!window.fbDb) return;
-
-  // Listener 1: active + log only — separate path prevents settings writes from
-  // overwriting active state and causing ghost-active entries after retour.
-  window.fbOnValue(window.fbRef(window.fbDb, 'dashboard/active'), snap => {
-    S.active = sanitizeActive(snap.val());
-    setFbStatus('ok');
-    renderAllActive();
-    if (document.getElementById('pane-live').classList.contains('on')) renderLive();
-    updBtn();
-  }, e => { console.warn('Firebase active read error:', e); setFbStatus('error'); });
-
-  window.fbOnValue(window.fbRef(window.fbDb, 'dashboard/log'), snap => {
-    const val = snap.val();
-    S.log = val ? sanitizeLog(val) : [];
-    if (document.getElementById('pane-live').classList.contains('on')) renderLive();
-  }, e => { console.warn('Firebase log read error:', e); });
-
-  // Listener 2: settings only — names, routes, dienst, pin
   window.fbOnValue(window.fbRef(window.fbDb, 'dashboard'), snap => {
     const d = snap.val();
     if (!d) return;
+
+    // Sync all shared data — sanitize everything coming from Firebase
+    S.active = sanitizeActive(d.active);
+    if (d.log    !== undefined) S.log    = sanitizeLog(d.log);
     if (d.dienst !== undefined) S.dienst = new Set(sanitizeNames(Array.isArray(d.dienst) ? d.dienst : []));
     if (d.names  !== undefined && Array.isArray(d.names)  && d.names.length)  S.names  = sanitizeNames(d.names);
     if (d.routes !== undefined && Array.isArray(d.routes) && d.routes.length) S.routes = sanitizeNames(d.routes);
-    if (d.pin && typeof d.pin === 'string' && d.pin.length >= 4) {
+    // Sync PIN from Firebase — only accept hashed values (64 char SHA-256)
+    if (d.pin && typeof d.pin === 'string' && d.pin.length === 64) {
       LS.set('rn_cfg_pin', d.pin);
     }
-    // Back up settings to localStorage
+
+    // Only back up settings to localStorage (not active/log)
     LS.set('rn_dienst', [...S.dienst]);
     LS.set('rn_names',  S.names);
     LS.set('rn_routes', S.routes);
 
+    setFbStatus('ok');
+    // Re-render everything
     renderNameBtns();
     renderRouteBtns();
+    renderAllActive();
+    if (document.getElementById('pane-live').classList.contains('on'))   { renderLive(); }
     if (document.getElementById('pane-dienst').classList.contains('on')) renderDienst();
     if (document.getElementById('pane-plan').classList.contains('on'))   renderPlan();
     if (document.getElementById('pane-cfg').classList.contains('on'))    renderCfg();
-  }, e => { console.warn('Firebase settings read error:', e); });
+    updBtn();
+  }, e => { console.warn('Firebase read error:', e); setFbStatus('error'); });
 }
 
 
@@ -664,11 +653,10 @@ let S = {
   names:  LS.get('rn_names')  || DN,
   routes: LS.get('rn_routes') || DR,
   schema: LS.get('rn_schema') || null, // null = use hardcoded SCHEMA default
-  uiterlijk: LS.get('rn_uiterlijk') || null,
   active: {},   // always loaded from Firebase — never from localStorage
   log:    [],   // always loaded from Firebase — never from localStorage
   sns: new Set(), sr: null, dienst: new Set(LS.get('rn_dienst') || []),
-  tick: null, tickL: null
+  tick: null, tickL: null, tickTL: null
 };
 
 function save() {
@@ -702,7 +690,7 @@ function showToast(msg, duration) {
 }
 
 function goTab(id) {
-  // B3: Clean up timers when leaving tabs
+  // Clean up timers when leaving tabs
   if (id !== 'reg')  { clearInterval(S.tick);   S.tick   = null; }
   if (id !== 'live') {
     clearInterval(S.tickL);  S.tickL  = null;
@@ -727,7 +715,7 @@ function render() {
   renderOwnCard();
 }
 
-// S3: SINGLE SOURCE OF TRUTH for "names currently visible on registratie tab"
+// SINGLE SOURCE OF TRUTH for "names currently visible on registratie tab"
 // Always call this — never iterate S.names directly when filtering by dienst.
 function activeNames() {
   return S.dienst.size > 0 ? S.names.filter(n => S.dienst.has(n)) : S.names;
@@ -904,11 +892,6 @@ function renderAllActive() {
   if (!S.tick) S.tick = setInterval(r, 1000);
 }
 
-function cardHTML(name, a, btn) {
-  // Single-person card (used for live klaar cards etc.)
-  return groupCardHTML(a.route, a.start, [[name, a]], btn);
-}
-
 function groupCardHTML(route, start, members, btn) {
   // members = [[name, activeObj], ...]
   const names = members.map(([n]) => n);
@@ -940,7 +923,6 @@ function renderLive() {
   clearInterval(S.tickL);
   const elActive = document.getElementById('live-cards-active');
   const elDone   = document.getElementById('live-cards-done');
-  const el = elActive; // keep compatibility
   const now = Date.now();
   const cutoff = now - 24 * 60 * 60 * 1000;
 
@@ -1442,11 +1424,8 @@ function pruneLog() {
   const cutoff = Date.now() - 24 * 60 * 60 * 1000;
   const before = S.log.length;
   S.log = S.log.filter(r => r.end && r.end >= cutoff).slice(0, 200);
-  // B6: log lives in fbSaveActive (not fbSave) — call both to persist properly
+  // log lives in fbSaveActive — call to persist properly
   if (S.log.length !== before) {
-    LS.set('rn_names', S.names);
-    LS.set('rn_routes', S.routes);
-    LS.set('rn_dienst', [...S.dienst]);
     fbSaveActive();
   }
 }
@@ -1647,10 +1626,6 @@ function renderPlan() {
 
   // ── NOW BLOCK ─────────────────────────────────────────────────────────
   const nuBlok = document.getElementById('nu-blok');
-
-  // Hide dienst buttons and label — no longer needed
-  const dienstBar = document.getElementById('dienst-bar');
-  if (dienstBar) dienstBar.style.display = 'none';
 
   // Skip current slot if all its rondes have already been completed (end exists)
   if (curIdx >= 0) {
@@ -1937,8 +1912,27 @@ function toggleSection(id) {
 const CFG_PIN_KEY = 'rn_cfg_pin';
 const DEFAULT_PIN = '806910';
 
-function getCfgPin() {
-  return LS.get(CFG_PIN_KEY) || DEFAULT_PIN;
+// SHA-256 hash via Web Crypto API — PIN nooit plaintext opgeslagen of zichtbaar
+async function hashPin(pin) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pin));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function getCfgPinHash() {
+  const stored = LS.get(CFG_PIN_KEY);
+  // Migratie: als opgeslagen waarde geen 64-char hash is, is het plaintext — hashen en opslaan
+  if (!stored || stored.length !== 64) {
+    const plain = (stored && stored.length < 64) ? stored : DEFAULT_PIN;
+    const hash = await hashPin(plain);
+    LS.set(CFG_PIN_KEY, hash);
+    // Sync gehashte PIN naar Firebase (vervangt eventuele plaintext)
+    if (window.fbDb) {
+      window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/pin': hash })
+        .catch(e => console.warn('Firebase pin migrate error:', e));
+    }
+    return hash;
+  }
+  return stored;
 }
 
 function showCfgLock() {
@@ -1959,14 +1953,16 @@ function hideCfgLock() {
   if (content) content.style.display = 'block';
 }
 
-function checkPin() {
+async function checkPin() {
   const inp = document.getElementById('cfg-pin-input');
   const err = document.getElementById('cfg-pin-error');
   if (!inp) return;
-  if (inp.value === getCfgPin()) {
+  const entered = await hashPin(inp.value);
+  const stored  = await getCfgPinHash();
+  if (entered === stored) {
     err.style.display = 'none';
     hideCfgLock();
-    LS.set('rn_cfg_unlocked', Date.now()); // remember for 30min
+    LS.set('rn_cfg_unlocked', Date.now()); // onthoud 30 min
   } else {
     err.style.display = 'block';
     inp.value = '';
@@ -1974,14 +1970,14 @@ function checkPin() {
   }
 }
 
-function changePinDialog() {
-  customConfirm('Pincode wijzigen? Voer daarna de nieuwe pincode in.', () => {
-    const newPin = prompt('Nieuwe pincode (minimaal 4 tekens):');
-    if (!newPin || newPin.length < 4) { showToast('Pincode moet minimaal 4 tekens zijn'); return; }
-    LS.set(CFG_PIN_KEY, newPin);
-    fbSavePin(newPin); // sync to Firebase so all devices get the new pin
-    showToast('Pincode opgeslagen en gesynchroniseerd');
-  });
+async function changePinDialog() {
+  if (!await customConfirm('Pincode wijzigen?')) return;
+  const newPin = prompt('Nieuwe pincode (minimaal 4 tekens):');
+  if (!newPin || newPin.length < 4) { showToast('Pincode moet minimaal 4 tekens zijn'); return; }
+  const hash = await hashPin(newPin);
+  LS.set(CFG_PIN_KEY, hash);
+  fbSavePin(hash);
+  showToast('Pincode opgeslagen en gesynchroniseerd');
 }
 
 function checkCfgLock() {
@@ -2007,52 +2003,6 @@ function rmSchemaItem(i) {
     renderCfg();
   });
 }
-
-function applyUiterlijk(u) {
-  // Reset all to defaults first
-  const header = document.querySelector('.header');
-  if (header) header.style.background = '';
-  document.querySelectorAll('.tab.on').forEach(t => t.style.borderBottomColor = '');
-  document.querySelectorAll('.abtn-s').forEach(b => b.style.background = '');
-
-  if (!u) return;
-  // Header background colour — only if explicitly set and different from default
-  if (header && u.kleur && u.kleur !== '#1e3a5c') header.style.background = u.kleur;
-  // Accent colour — only if explicitly set and different from default
-  if (u.accent && u.accent !== '#2563eb') {
-    document.querySelectorAll('.tab.on').forEach(t => t.style.borderBottomColor = u.accent);
-    document.querySelectorAll('.abtn-s').forEach(b => b.style.background = u.accent);
-  }
-  // Org name in footer badge
-  if (u.naam) {
-    const badge = document.getElementById('app-version-badge');
-    if (badge && badge.nextElementSibling) {
-      badge.nextElementSibling.textContent = 'Surveillance Dashboard · ' + u.naam + ' · Made by Danny Stockschen';
-    }
-  }
-}
-
-function previewUiterlijk() {
-  const u = {
-    naam:   document.getElementById('cfg-org-naam').value.trim(),
-    kleur:  document.getElementById('cfg-kleur').value,
-    accent: document.getElementById('cfg-accent').value,
-  };
-  applyUiterlijk(u);
-}
-
-function slaUiterlijkOp() {
-  const u = {
-    naam:   sanitizeInput(document.getElementById('cfg-org-naam').value),
-    kleur:  document.getElementById('cfg-kleur').value,
-    accent: document.getElementById('cfg-accent').value,
-  };
-  S.uiterlijk = u;
-  LS.set('rn_uiterlijk', u);
-  applyUiterlijk(u);
-  showToast('Uiterlijk opgeslagen');
-}
-
 
 function sanitizeInput(str) {
   return str
@@ -2161,23 +2111,12 @@ function modalCancel() {
 }
 
 // Init
-// V8: Set version badge from APP_VERSION constant
+// Set version badge from APP_VERSION constant
 const _vb = document.getElementById('app-version-badge');
 if (_vb) _vb.textContent = 'v' + APP_VERSION;
 
-// Apply saved uiterlijk on load — but clear if it has default values (from old version)
-if (S.uiterlijk) {
-  const u = S.uiterlijk;
-  // If both colours are defaults, the uiterlijk was auto-saved and can be discarded
-  if (u.kleur === '#1e3a5c' && u.accent === '#2563eb' && !u.naam) {
-    S.uiterlijk = null;
-    LS.set('rn_uiterlijk', null);
-  } else {
-    applyUiterlijk(S.uiterlijk);
-  }
-}
-
 pruneLog();
+getCfgPinHash(); // Migreer plaintext PIN naar SHA-256 hash bij eerste load
 render();
 renderAllActive();
 renderPlan();
@@ -2194,7 +2133,7 @@ function initFirebase() {
 localStorage.removeItem('rn_active');
 localStorage.removeItem('rn_log');
 
-// B4: Redraw timeline on window resize (debounced) and hide tooltip
+// Redraw timeline on window resize (debounced) and hide tooltip
 let _resizeTm;
 window.addEventListener('resize', () => {
   const tip = document.getElementById('tl-tooltip');
