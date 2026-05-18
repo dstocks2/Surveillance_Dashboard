@@ -399,8 +399,9 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   <div id="pane-cfg" class="pane" style="position:relative">
 
     <!-- PIN lock overlay -->
-    <div id="cfg-lock" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px">
+    <div id="cfg-lock" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this){hideCfgLock();goTab('reg');}">
       <div style="background:#fff;border-radius:12px;padding:28px 24px;max-width:320px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2);display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="display:flex;justify-content:flex-end;width:100%;margin-bottom:-8px"><button onclick="hideCfgLock();goTab('reg')" style="background:none;border:none;font-size:20px;cursor:pointer;color:#94a3b8;line-height:1" title="Sluiten">&times;</button></div>
         <div style="font-size:28px">🔒</div>
         <div style="font-size:16px;font-weight:600;color:#1e293b">Instellingen vergrendeld</div>
         <div style="font-size:13px;color:#64748b;text-align:center">Voer de pincode in om door te gaan</div>
@@ -500,7 +501,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.43</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.44</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -520,7 +521,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.43';
+const APP_VERSION = '2.0.44';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -884,7 +885,7 @@ function doStart() {
     started.push(n.split(' ')[0]);
   });
   fbSaveActive();
-  if (started.length) showToast(started.join(' & ') + ' gestart — ' + S.sr);
+  if (started.length) { showToast(started.join(' & ') + ' gestart — ' + S.sr); voegMeldingToe('grijs', started.join(' & ') + ' gestart', S.sr, null, null); }
   if (skipped.length) setTimeout(() => showToast(skipped.join(', ') + ' al onderweg, overgeslagen'), 2800);
   S.sns = new Set(); S.sr = null;
   document.getElementById('sn-val').className = 'ph';
@@ -1686,7 +1687,6 @@ function startRondeVoorgesteld(ronde, naam) {
   S.sr = ronde;
   S.sns = new Set([naam]);
   doStart();
-  showToast(naam.split(' ')[0] + ' gestart op ' + ronde);
   // Switch to reg tab to show active card
   goTab('reg');
 }
@@ -2179,6 +2179,7 @@ function renderDienst() {
         if (S.dienst.has(n)) {
           if (S.active[n]) {
             showToast('⚠ ' + n.split(' ')[0] + ' heeft nog een actieve ronde (' + S.active[n].route + '). Meld eerst retour.', 4000);
+            voegMeldingToe('oranje', 'Nog onderweg — ' + n.split(' ')[0], S.active[n].route + ' is nog actief. Meld retour voor verwijderen.', 'Retour melden', () => doRetour(n));
             return;
           }
           S.dienst.delete(n);
