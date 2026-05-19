@@ -495,7 +495,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.60</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.61</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -515,7 +515,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.60';
+const APP_VERSION = '2.0.61';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -553,10 +553,6 @@ function fbSave() {
   // PIN: only write if already hashed (64 char) — getCfgPinHash() handles migration async
   const storedPin = LS.get('rn_cfg_pin');
   if (storedPin && storedPin.length === 64) updates['/dashboard/pin'] = storedPin;
-  // Increment write counter — fbListen ignores the next echo for these fields
-  window._settingsWriteSeq = (window._settingsWriteSeq || 0) + 1;
-  const mySeq = window._settingsWriteSeq;
-  window._settingsEchoExpected = mySeq;
   window.fbUpdate(window.fbRef(window.fbDb), updates)
     .catch(e => { console.warn('Firebase settings write error:', e); });
 }
@@ -703,20 +699,25 @@ function fbListen() {
     // Sync all shared data — sanitize everything coming from Firebase
     S.active = sanitizeActive(d.active);
     if (d.log !== undefined) S.log = sanitizeLog(d.log);
-    // Skip settings fields for exactly one callback after own fbSave (our echo)
-    const skipSettingsEcho = window._settingsEchoExpected > 0;
-    if (skipSettingsEcho) {
-      window._settingsEchoExpected = 0; // consumed — next update is from another client
-      // Re-render with current local state so UI reflects the toggle immediately
-      renderNameBtns();
-      if (document.getElementById('pane-dienst').classList.contains('on')) renderDienst();
-    } else {
-      if (d.dienst !== undefined)
-        S.dienst = new Set(sanitizeNames(Array.isArray(d.dienst) ? d.dienst : []));
-      if (d.names !== undefined && Array.isArray(d.names) && d.names.length)
-        S.names = sanitizeNames(d.names);
-      if (d.routes !== undefined && Array.isArray(d.routes) && d.routes.length)
-        S.routes = sanitizeNames(d.routes);
+    // Only overwrite settings if the incoming value actually differs from local state.
+    // This prevents any Firebase trigger (own echo, meldingen write, etc.) from
+    // overwriting a just-toggled local value with stale data.
+    if (d.dienst !== undefined) {
+      const fbDienst = sanitizeNames(Array.isArray(d.dienst) ? d.dienst : []);
+      const localDienst = [...S.dienst].sort().join('|');
+      const remoteDienst = [...fbDienst].sort().join('|');
+      if (remoteDienst !== localDienst)
+        S.dienst = new Set(fbDienst);
+    }
+    if (d.names !== undefined && Array.isArray(d.names) && d.names.length) {
+      const fbNames = sanitizeNames(d.names);
+      if (fbNames.join('|') !== S.names.join('|'))
+        S.names = fbNames;
+    }
+    if (d.routes !== undefined && Array.isArray(d.routes) && d.routes.length) {
+      const fbRoutes = sanitizeNames(d.routes);
+      if (fbRoutes.join('|') !== S.routes.join('|'))
+        S.routes = fbRoutes;
     }
     // Sync PIN from Firebase — only accept hashed values (64 char SHA-256)
     if (d.pin && typeof d.pin === 'string' && d.pin.length === 64) {
