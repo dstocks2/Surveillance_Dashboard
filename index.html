@@ -522,7 +522,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.48';
+const APP_VERSION = '2.0.49';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -886,7 +886,7 @@ function doStart() {
     started.push(n.split(' ')[0]);
   });
   fbSaveActive();
-  if (started.length) { showToast(started.join(' & ') + ' gestart — ' + S.sr); voegMeldingToe('grijs', started.join(' & ') + ' gestart', S.sr, null, null); schrijfGedeeldeMelding('grijs', started.join(' & ') + ' gestart', S.sr); }
+  if (started.length) { showToast(started.join(' & ') + ' gestart — ' + S.sr); schrijfGedeeldeMelding('grijs', started.join(' & ') + ' gestart', S.sr); }
   if (skipped.length) setTimeout(() => showToast(skipped.join(', ') + ' al onderweg, overgeslagen'), 2800);
   // Check for duplicate route: others already on the same route with a different startTime (not running together)
   if (started.length > 0) {
@@ -942,7 +942,6 @@ function doRetour(name) {
       .then(() => {
         setFbStatus('ok');
         showToast(n.split(' ')[0] + ' terug! \u2014 ' + dur + ' min');
-        voegMeldingToe('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.', null, null);
         schrijfGedeeldeMelding('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.');
       })
       .catch(e => {
@@ -959,7 +958,6 @@ function doRetour(name) {
       });
   } else {
     showToast(n.split(' ')[0] + ' terug! \u2014 ' + dur + ' min');
-    voegMeldingToe('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.', null, null);
     schrijfGedeeldeMelding('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.');
   }
 }
