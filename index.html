@@ -495,7 +495,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.62</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.63</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -515,7 +515,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.62';
+const APP_VERSION = '2.0.63';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -550,6 +550,7 @@ function fbSave() {
   updates['/dashboard/dienst']  = [...S.dienst];
   updates['/dashboard/names']   = S.names;
   updates['/dashboard/routes']  = S.routes;
+  if (S.schema) updates['/dashboard/schema'] = S.schema;
   // PIN: only write if already hashed (64 char) — getCfgPinHash() handles migration async
   const storedPin = LS.get('rn_cfg_pin');
   if (storedPin && storedPin.length === 64) updates['/dashboard/pin'] = storedPin;
@@ -676,7 +677,7 @@ function sanitizeActive(obj) {
 
 function sanitizeLog(arr) {
   if (!Array.isArray(arr)) return [];
-  return arr.slice(0, 200).map(r => ({
+  return arr.slice(-200).map(r => ({
     id:    sanitizeFromFirebase(String(r.id || '')),
     name:  sanitizeFromFirebase(r.name  || ''),
     route: sanitizeFromFirebase(r.route || ''),
@@ -718,6 +719,15 @@ function fbListen() {
       const fbRoutes = sanitizeNames(d.routes);
       if (fbRoutes.join('|') !== S.routes.join('|'))
         S.routes = fbRoutes;
+    }
+    // Sync schema from Firebase — only accept valid arrays
+    if (d.schema !== undefined && Array.isArray(d.schema) && d.schema.length) {
+      const fbSchemaStr = JSON.stringify(d.schema);
+      const localSchemaStr = JSON.stringify(S.schema || SCHEMA);
+      if (fbSchemaStr !== localSchemaStr) {
+        S.schema = d.schema;
+        LS.set('rn_schema', S.schema);
+      }
     }
     // Sync PIN from Firebase — only accept hashed values (64 char SHA-256)
     if (d.pin && typeof d.pin === 'string' && d.pin.length === 64) {
@@ -1143,6 +1153,7 @@ function renderLive() {
     if (btn) doRetour(btn.getAttribute('data-name'));
   };
   // Tick duration every second for live active cards
+  clearInterval(S.tickL); S.tickL = null;
   if (act.length) S.tickL = setInterval(renderActiveCards, 1000);
   // Auto-refresh timeline every 60s even when no active rondes
   clearInterval(S.tickTL);
@@ -2046,6 +2057,7 @@ function addSchemaItem() {
   activeSchema.sort((a, b) => a.h * 60 + a.m - (b.h * 60 + b.m));
   S.schema = activeSchema;
   LS.set('rn_schema', S.schema);
+  fbSave();
   tijdEl.value = ''; rondeEl.value = ''; taakEl.value = '';
   showToast('Schema-item toegevoegd');
   renderCfg();
@@ -2080,6 +2092,7 @@ function saveSchemaEdit() {
   activeSchema.sort((a, b) => a.h * 60 + a.m - (b.h * 60 + b.m));
   S.schema = activeSchema;
   LS.set('rn_schema', S.schema);
+  fbSave();
   _editIdx = null;
   document.getElementById('schema-edit-form').style.display = 'none';
   showToast('Schema-item bijgewerkt');
@@ -2199,6 +2212,7 @@ function rmSchemaItem(i) {
     activeSchema.splice(i, 1);
     S.schema = activeSchema;
     LS.set('rn_schema', S.schema);
+    fbSave();
     showToast('Schema-item verwijderd');
     renderCfg();
   });
@@ -2325,9 +2339,12 @@ function dienstLeeg() {
 // ── Custom confirm (works on iPad/Safari) ─────────────────────────────────
 let _modalResolve = null;
 
+let _confirmOpen = false;
 function customConfirm(msg) {
+  if (_confirmOpen) return Promise.resolve(false); // prevent stacking
+  _confirmOpen = true;
   return new Promise(resolve => {
-    _modalResolve = resolve;
+    _modalResolve = (val) => { _confirmOpen = false; resolve(val); };
     document.getElementById('modal-msg').textContent = msg;
     document.getElementById('modal-overlay').style.display = 'flex';
   });
