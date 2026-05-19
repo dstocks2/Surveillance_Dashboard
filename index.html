@@ -14,10 +14,9 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;min-height:100vh;color:#1e293b;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
 .header{background:#1e3a5c;padding:max(16px,env(safe-area-inset-top)) 24px 16px;display:flex;align-items:center;gap:14px}
-.header-icon{width:40px;height:40px;background:#185FA5;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .header h1{font-size:17px;font-weight:600;color:#fff}
 .header p{font-size:11px;color:rgba(255,255,255,.6);margin-top:2px}
-.tabs{background:#fff;border-bottom:1px solid #e2e8f0;display:flex;align-items:stretch;padding:0 12px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
+.tabs{background:#fff;border-bottom:1px solid #e2e8f0;display:flex;align-items:stretch;padding:0 12px;overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
 .tab-cfg{min-width:44px;display:flex;align-items:center;justify-content:center;padding:0 14px !important;font-size:inherit !important;letter-spacing:0}
 .tab{padding:12px 14px;font-size:13px;cursor:pointer;color:#64748b;border-bottom:2px solid transparent;transition:all .14s;user-select:none;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit;white-space:nowrap;flex-shrink:0}
 .tab:hover{color:#1e293b}
@@ -60,7 +59,6 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;min-height:1
 .card.ca .cr{color:#991b1b}
 .card.cd .cr{color:#166534}
 .cel{font-size:11px;font-weight:400;color:#b0b8c8;font-variant-numeric:tabular-nums}
-.cdur{font-size:16px;font-weight:700;color:#15803d}
 .ct{font-size:11px;color:#94a3b8;margin-top:4px;font-weight:400;display:flex;align-items:center;gap:4px}
 .card.ca .ct{color:#c9a0a0}
 .card.cd .ct{color:#86a88e}
@@ -85,7 +83,6 @@ input[type=text]:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px #d
 .sm.del:hover{background:#fee2e2;color:#dc2626}
 .toast{position:fixed;bottom:max(20px,calc(env(safe-area-inset-bottom) + 12px));left:50%;transform:translateX(-50%) translateY(120px);background:#1e293b;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-family:inherit;transition:transform .25s ease;z-index:999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.2)}
 .toast.show{transform:translateX(-50%) translateY(0)}
-.tbl-wrap{overflow-x:auto}
 @media(max-width:600px){
   .content{padding:12px 10px}
   .header{padding:12px 16px}
@@ -153,7 +150,6 @@ input[type=text]:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px #d
 /* Prevent double-tap zoom on buttons */
 button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 /* Smooth scrolling on iOS */
-.content { -webkit-overflow-scrolling: touch; }
 /* Larger tap targets for small action buttons */
 @media (pointer: coarse) {
   .tag button { padding: 4px 8px; min-width: 28px; min-height: 28px; }
@@ -165,13 +161,12 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 #timeline-outer { margin-top: 8px; }
 #timeline-axis-wrap { overflow-x: hidden; }
 #timeline-axis { display: block; }
-#timeline-wrap { overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+#timeline-wrap { overflow-x: hidden; }
 #timeline-canvas { display: block; }
 
 /* Meldingen overlay */
 .bel-wrap{position:relative;cursor:pointer;padding:0 14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:none;border:none;border-bottom:2px solid transparent;transition:all .13s;color:#64748b}
 .bel-wrap:hover{color:#1e293b;background:rgba(0,0,0,.04)}
-.bel-icon{font-size:18px;line-height:1}
 .bel-badge{position:absolute;top:6px;right:4px;background:#ef4444;color:#fff;font-size:9px;font-weight:700;border-radius:8px;min-width:15px;height:15px;display:none;align-items:center;justify-content:center;padding:0 3px;border:1.5px solid #fff}
 .meld-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:8000;pointer-events:none}
 .meld-overlay.open{pointer-events:auto}
@@ -206,8 +201,6 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .modal-box{background:#fff;border-radius:12px;padding:24px 22px;max-width:340px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2)}
 @media(max-width:600px){
   .modal-box{padding:20px 16px;border-radius:10px}
-  .nu-card{padding:14px 14px !important}
-  .plan-group{margin-bottom:10px !important}
 }
 .modal-msg{font-size:14px;color:#1e293b;line-height:1.5;margin-bottom:20px;font-family:inherit}
 .modal-btns{display:flex;gap:10px;justify-content:flex-end}
@@ -357,14 +350,14 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;margin-bottom:0">
       <p class="lbl" style="margin-bottom:0">Tijdslijn afgelopen 24 uur</p>
       <button class="tl-toggle-btn" onclick="toggleTimeline()" style="display:none;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;color:#64748b;font-size:12px;cursor:pointer;font-family:inherit" id="tl-toggle-btn">
-        <span id="tl-toggle-icon">▼</span> Toon tijdlijn
+        <span id="tl-toggle-icon">▼</span> <span id="tl-toggle-label">Toon tijdlijn</span>
       </button>
     </div>
     <div id="timeline-outer" style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;background:#f8fafc">
-      <div id="timeline-axis-wrap" style="overflow-x:hidden;" id="axwrap">
+      <div id="timeline-axis-wrap" style="overflow-x:hidden;">
         <canvas id="timeline-axis" style="width:100%;display:block;background:#f8fafc;"></canvas>
       </div>
-      <div id="timeline-wrap" style="overflow-x:hidden;-webkit-overflow-scrolling:touch;max-height:320px;overflow-y:auto;">
+      <div id="timeline-wrap" style="overflow-x:hidden;max-height:320px;overflow-y:auto;">
         <canvas id="timeline-canvas" style="width:100%;display:block;background:#f8fafc;"></canvas>
       </div>
     </div>
@@ -400,7 +393,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   <div id="pane-cfg" class="pane" style="position:relative">
 
     <!-- PIN lock overlay -->
-    <div id="cfg-lock" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this){hideCfgLock();goTab('reg');}">
+    <div id="cfg-lock" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9500;flex-direction:column;align-items:center;justify-content:center;padding:20px;display:none" onclick="if(event.target===this){hideCfgLock();goTab('reg');}">
       <div style="background:#fff;border-radius:12px;padding:28px 24px;max-width:320px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2);display:flex;flex-direction:column;align-items:center;gap:14px">
         <div style="display:flex;justify-content:flex-end;width:100%;margin-bottom:-8px"><button onclick="hideCfgLock();goTab('reg')" style="background:none;border:none;font-size:20px;cursor:pointer;color:#94a3b8;line-height:1" title="Sluiten">&times;</button></div>
         <div style="font-size:28px">🔒</div>
@@ -502,7 +495,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.53</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.56</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -522,7 +515,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.53';
+const APP_VERSION = '2.0.56';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -551,6 +544,7 @@ const LS = {
 // ── Firebase sync ─────────────────────────────────────────────────────────
 function fbSave() {
   if (!window.fbDb) return;
+  if (window._appOutdated) { showUpdateBanner(); return; } // guard: never write with stale state
   // Only save settings — active/log only written via fbSaveActive()
   const updates = {};
   updates['/dashboard/dienst']  = [...S.dienst];
@@ -573,6 +567,7 @@ function fbSavePin(pin) {
 // Writes active + log atomically to Firebase — this is the ONLY place these are saved
 function fbSaveActive() {
   if (!window.fbDb) return;
+  if (window._appOutdated) { showUpdateBanner(); return; } // guard: never overwrite newer state
   const updates = {};
   // Use explicit null-safe values — empty object stays as {} not deleted
   updates['/dashboard/active'] = Object.keys(S.active).length ? S.active : null;
@@ -581,6 +576,53 @@ function fbSaveActive() {
     .then(() => { setFbStatus('ok'); })
     .catch(e => { console.warn('Firebase active write error:', e); setFbStatus('error'); voegMeldingToe('rood', 'Synchronisatie mislukt', 'Data kon niet worden opgeslagen. Controleer de verbinding.', null, null); });
 }
+
+// ── App version check ──────────────────────────────────────────────────────
+// Compares semver strings, returns true if remote > local
+function isNewerVersion(remote, local) {
+  if (!remote || typeof remote !== 'string') return false;
+  const r = remote.split('.').map(Number);
+  const l = local.split('.').map(Number);
+  for (let i = 0; i < 3; i++) {
+    if ((r[i]||0) > (l[i]||0)) return true;
+    if ((r[i]||0) < (l[i]||0)) return false;
+  }
+  return false;
+}
+
+function showUpdateBanner() {
+  if (document.getElementById('update-banner')) return; // already shown
+  const banner = document.createElement('div');
+  banner.id = 'update-banner';
+  banner.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:20px';
+  banner.innerHTML = `
+    <div style="background:#fff;border-radius:12px;padding:28px 24px;max-width:320px;width:100%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.25)">
+      <div style="font-size:32px;margin-bottom:12px">🔄</div>
+      <div style="font-size:16px;font-weight:600;color:#1e293b;margin-bottom:8px">Nieuwe versie beschikbaar</div>
+      <div style="font-size:13px;color:#64748b;margin-bottom:20px;line-height:1.5">Een andere tablet of telefoon gebruikt een nieuwere versie. Vernieuw de pagina om door te gaan.</div>
+      <button onclick="location.reload(true)"
+        style="width:100%;padding:13px;border-radius:8px;border:none;background:#1d4ed8;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
+        Pagina vernieuwen
+      </button>
+    </div>`;
+  document.body.appendChild(banner);
+  window._appOutdated = true;
+  setFbStatus('error');
+  const el = document.getElementById('fb-status');
+  if (el) { el.textContent = '⚠ verouderde versie'; el.style.color = '#fca5a5'; }
+}
+
+function checkAppVersion(remoteVersion) {
+  if (isNewerVersion(remoteVersion, APP_VERSION)) showUpdateBanner();
+}
+
+// Re-check version when tab comes back to foreground (catches background-stale tabs)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible' || !window.fbDb) return;
+  window.fbGet(window.fbRef(window.fbDb, 'dashboard/appVersion'))
+    .then(snap => { if (snap.exists()) checkAppVersion(snap.val()); })
+    .catch(() => {});
+});
 
 function setFbStatus(state) {
   const el = document.getElementById('fb-status');
@@ -649,6 +691,10 @@ function fbListen() {
   window.fbOnValue(window.fbRef(window.fbDb, 'dashboard'), snap => {
     const d = snap.val();
     if (!d) return;
+
+    // Version check — if Firebase has a newer version, block all writes and force reload
+    if (d.appVersion) checkAppVersion(d.appVersion);
+    if (window._appOutdated) return; // stop processing: don't overwrite state with stale data
 
     // Sync all shared data — sanitize everything coming from Firebase
     S.active = sanitizeActive(d.active);
@@ -852,8 +898,9 @@ function toggleTimeline() {
   const icon   = document.getElementById('tl-toggle-icon');
   const isOpen = outer.classList.toggle('tl-open');
   if (legend) legend.classList.toggle('tl-open', isOpen);
-  icon.textContent  = isOpen ? '▲' : '▼';
-  btn.innerHTML = '<span id="tl-toggle-icon">' + (isOpen ? '▲' : '▼') + '</span> ' + (isOpen ? 'Verberg tijdlijn' : 'Toon tijdlijn');
+  icon.textContent = isOpen ? '▲' : '▼';
+  const lbl = document.getElementById('tl-toggle-label');
+  if (lbl) lbl.textContent = isOpen ? 'Verberg tijdlijn' : 'Toon tijdlijn';
   if (isOpen) setTimeout(() => drawTimeline(S.log.filter(r => r.end && r.end >= Date.now()-86400000), Object.entries(S.active), Date.now()-86400000, Date.now()), 50);
 }
 
@@ -1780,11 +1827,18 @@ function renderPlan() {
 
     const sameTime = planSchema.filter(s => s.h === cur.h && s.m === cur.m);
     // Sort: open first, active (running) second, completed last
-    const _slotStart = schemaAdj(cur);
+    // _slotStartMs = real Unix ms timestamp for this slot today (or yesterday for nacht items)
+    const _slotStartMs = (() => {
+      const d = new Date();
+      const slotH = cur.h % 24;
+      const slotM = cur.m;
+      const base = new Date(d.getFullYear(), d.getMonth(), d.getDate(), slotH, slotM, 0, 0).getTime();
+      return cur.h >= 24 ? base - 86400000 : base;
+    })();
     sameTime.sort((a, b) => {
       const rank = s => {
         if (s.ronde && routeRunners[s.ronde]) return 1; // active
-        if (s.ronde && S.log.find(r => r.route === s.ronde && r.end && r.end >= _slotStart && r.start >= _slotStart)) return 2; // completed
+        if (s.ronde && S.log.find(r => r.route === s.ronde && r.end && r.start >= _slotStartMs)) return 2; // completed
         return 0; // open
       };
       return rank(a) - rank(b);
@@ -1795,8 +1849,8 @@ function renderPlan() {
       const runners = s.ronde && routeRunners[s.ronde] ? routeRunners[s.ronde] : [];
       const isActive = runners.length > 0;
 
-      // Check if this route was completed during the current schema slot
-      const completedEntry = s.ronde ? S.log.find(r => r.route === s.ronde && r.end && r.end >= _slotStart && r.start >= _slotStart) : null;
+      // Check if this route was completed during the current schema slot (today only)
+      const completedEntry = s.ronde ? S.log.find(r => r.route === s.ronde && r.end && r.start >= _slotStartMs) : null;
       const isCompleted = !!completedEntry && !isActive;
 
       // Suggestion logic — pass alreadySuggested to avoid recommending same person twice
@@ -2348,7 +2402,25 @@ function initFirebase() {
   fbListenConnected(); // listen for Firebase connectivity
   const fbSt = document.getElementById('fb-status');
   if (fbSt) fbSt.textContent = '● gesynchroniseerd';
-  console.log('Firebase verbonden — data wordt gesynchroniseerd');
+
+  // Write own version to Firebase so outdated tabs on other devices get notified
+  window.fbGet(window.fbRef(window.fbDb, 'dashboard/appVersion'))
+    .then(snap => {
+      const remote = snap.exists() ? snap.val() : null;
+      // Only write if our version is newer (avoid downgrading if multiple tabs open)
+      if (!remote || isNewerVersion(APP_VERSION, remote)) {
+        window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/appVersion': APP_VERSION })
+          .catch(e => console.warn('Version write error:', e));
+      } else {
+        // Remote is newer — we are the outdated tab
+        checkAppVersion(remote);
+      }
+    })
+    .catch(() => {
+      // Can't read version — write ours as fallback
+      window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/appVersion': APP_VERSION })
+        .catch(() => {});
+    });
 }
 
 // Track already-shown shared notification IDs to avoid duplicates
