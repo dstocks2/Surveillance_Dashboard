@@ -220,7 +220,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, set, get, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getDatabase, ref, set, get, onValue, update, remove, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
   const firebaseConfig = {
@@ -245,6 +245,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   window.fbOnValue = onValue;
   window.fbUpdate  = update;
   window.fbRemove  = remove;
+  window.fbPush    = push;
   window.fbAuth    = auth;
   window.firebaseReady = false; // wait for auth before signalling ready
 
@@ -521,7 +522,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.44';
+const APP_VERSION = '2.0.48';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -885,8 +886,19 @@ function doStart() {
     started.push(n.split(' ')[0]);
   });
   fbSaveActive();
-  if (started.length) { showToast(started.join(' & ') + ' gestart — ' + S.sr); voegMeldingToe('grijs', started.join(' & ') + ' gestart', S.sr, null, null); }
+  if (started.length) { showToast(started.join(' & ') + ' gestart — ' + S.sr); voegMeldingToe('grijs', started.join(' & ') + ' gestart', S.sr, null, null); schrijfGedeeldeMelding('grijs', started.join(' & ') + ' gestart', S.sr); }
   if (skipped.length) setTimeout(() => showToast(skipped.join(', ') + ' al onderweg, overgeslagen'), 2800);
+  // Check for duplicate route: others already on the same route with a different startTime (not running together)
+  if (started.length > 0) {
+    const sameRoute = Object.entries(S.active)
+      .filter(([nm, a]) => a.route === S.sr && !started.map(s => S.names.find(x => x.split(' ')[0] === s) || s).includes(nm) && a.start !== startTime);
+    if (sameRoute.length > 0) {
+      const anderen = sameRoute.map(([nm]) => nm.split(' ')[0]).join(' & ');
+      const nieuwen = started.join(' & ');
+      schrijfGedeeldeMelding('oranje', 'Dubbele ronde — ' + S.sr, nieuwen + ' gestart, maar ' + anderen + ' loopt deze ronde al.');
+      voegMeldingToe('oranje', 'Dubbele ronde — ' + S.sr, nieuwen + ' gestart, maar ' + anderen + ' loopt deze ronde al.', null, null);
+    }
+  }
   S.sns = new Set(); S.sr = null;
   document.getElementById('sn-val').className = 'ph';
   document.getElementById('sn-val').textContent = 'selecteer naam(men)…';
@@ -931,6 +943,7 @@ function doRetour(name) {
         setFbStatus('ok');
         showToast(n.split(' ')[0] + ' terug! \u2014 ' + dur + ' min');
         voegMeldingToe('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.', null, null);
+        schrijfGedeeldeMelding('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.');
       })
       .catch(e => {
         console.warn('Firebase retour write error:', e);
@@ -947,6 +960,7 @@ function doRetour(name) {
   } else {
     showToast(n.split(' ')[0] + ' terug! \u2014 ' + dur + ' min');
     voegMeldingToe('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.', null, null);
+    schrijfGedeeldeMelding('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.');
   }
 }
 
@@ -1539,6 +1553,7 @@ function checkActiveTimeout() {
       const mins = Math.floor((dur % 3600000) / 60000);
       const sub = a.route + ' loopt al ' + hrs + 'u ' + mins + 'min.';
       voegMeldingToe('oranje', 'Lange ronde \u2014 ' + name.split(' ')[0], sub, 'Retour melden', () => doRetour(name));
+      schrijfGedeeldeMelding('oranje', 'Lange ronde \u2014 ' + name.split(' ')[0], sub);
       showToast('\u26a0 ' + name.split(' ')[0] + ' is al ' + hrs + 'u ' + mins + 'min onderweg \u2014 retour vergeten?', 6000);
     }
   });
@@ -1766,6 +1781,12 @@ function renderPlan() {
     });
 
     const sameTime = planSchema.filter(s => s.h === cur.h && s.m === cur.m);
+    // Sort: open (not active) first, active (already running) last
+    sameTime.sort((a, b) => {
+      const aActive = a.ronde && routeRunners[a.ronde] ? 1 : 0;
+      const bActive = b.ronde && routeRunners[b.ronde] ? 1 : 0;
+      return aActive - bActive;
+    });
 
     const alreadySuggested = new Set(); // track who is suggested to spread across people
     const taakHtml = sameTime.map(s => {
@@ -2183,8 +2204,10 @@ function renderDienst() {
             return;
           }
           S.dienst.delete(n);
+          schrijfGedeeldeMelding('grijs', 'Einde dienst', n);
         } else {
           S.dienst.add(n);
+          schrijfGedeeldeMelding('grijs', 'Aanvang dienst', n);
         }
         save();
         renderDienst();
@@ -2308,9 +2331,74 @@ renderPlan();
 // Start Firebase when ready — Firebase is the ONLY source for active/log
 function initFirebase() {
   fbListen(); // this will populate S.active and S.log and trigger re-render
+  fbListenMeldingen(); // listen for shared notifications
+  fbListenConnected(); // listen for Firebase connectivity
   const fbSt = document.getElementById('fb-status');
   if (fbSt) fbSt.textContent = '● gesynchroniseerd';
   console.log('Firebase verbonden — data wordt gesynchroniseerd');
+}
+
+// Track already-shown shared notification IDs to avoid duplicates
+const _sharedMeldIds = new Set();
+
+function fbListenMeldingen() {
+  if (!window.fbDb) return;
+  window.fbOnValue(window.fbRef(window.fbDb, 'dashboard/meldingen'), snap => {
+    const data = snap.val();
+    if (!data) return;
+    // data is an object keyed by push-id: { type, naam, sub, tijdStr }
+    Object.entries(data).forEach(([key, m]) => {
+      if (_sharedMeldIds.has(key)) return; // already shown
+      _sharedMeldIds.add(key);
+      const tijdStr = sanitizeFromFirebase(m.tijdStr || '');
+      const naam    = sanitizeFromFirebase(m.naam || '');
+      const sub     = sanitizeFromFirebase(m.sub || '');
+      const type    = sanitizeFromFirebase(m.type || 'grijs');
+      // Only show grijs types (shared events); other types are local-only
+      if (type === 'grijs') {
+        MELDINGEN.unshift({ id: ++_meldId, type, naam, sub, tijdStr, actieLabel: null, actieFn: null });
+        renderMeldingen();
+      }
+    });
+    // Prune old entries (keep max 50)
+    if (Object.keys(data).length > 50 && window.fbRemove) {
+      const sorted = Object.keys(data).sort();
+      sorted.slice(0, sorted.length - 50).forEach(k => {
+        window.fbRemove(window.fbRef(window.fbDb, 'dashboard/meldingen/' + k)).catch(() => {});
+      });
+    }
+  }, e => { console.warn('Firebase meldingen listener error:', e); });
+}
+
+function fbListenConnected() {
+  if (!window.fbDb) return;
+  window.fbOnValue(window.fbRef(window.fbDb, '.info/connected'), snap => {
+    const connected = snap.val();
+    if (connected) {
+      setFbStatus('ok');
+      // Remove any existing connectivity-lost notification
+      const idx = MELDINGEN.findIndex(m => m._fbDisconnect);
+      if (idx >= 0) { MELDINGEN.splice(idx, 1); renderMeldingen(); }
+    } else {
+      setFbStatus('error');
+      // Only add once
+      if (!MELDINGEN.find(m => m._fbDisconnect)) {
+        const nu = new Date();
+        const tijdStr = String(nu.getHours()).padStart(2,'0') + ':' + String(nu.getMinutes()).padStart(2,'0');
+        const m = { id: ++_meldId, type: 'rood', naam: 'Firebase verbinding verbroken', sub: 'Synchronisatie gestopt — controleer netwerk.', tijdStr, actieLabel: null, actieFn: null, _fbDisconnect: true };
+        MELDINGEN.unshift(m);
+        renderMeldingen();
+      }
+    }
+  });
+}
+
+function schrijfGedeeldeMelding(type, naam, sub) {
+  if (!window.fbDb || !window.fbPush || !window.fbRef) return;
+  const nu = new Date();
+  const tijdStr = String(nu.getHours()).padStart(2,'0') + ':' + String(nu.getMinutes()).padStart(2,'0');
+  const ref = window.fbPush(window.fbRef(window.fbDb, 'dashboard/meldingen'));
+  window.fbSet(ref, { type, naam, sub, tijdStr, ts: Date.now() }).catch(e => console.warn('Melding schrijf fout:', e));
 }
 
 // Clear any stale active/log from localStorage on startup
