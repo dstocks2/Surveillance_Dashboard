@@ -502,7 +502,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.44</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.53</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -522,7 +522,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.52';
+const APP_VERSION = '2.0.53';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1780,11 +1780,11 @@ function renderPlan() {
 
     const sameTime = planSchema.filter(s => s.h === cur.h && s.m === cur.m);
     // Sort: open first, active (running) second, completed last
+    const _slotStart = schemaAdj(cur);
     sameTime.sort((a, b) => {
       const rank = s => {
         if (s.ronde && routeRunners[s.ronde]) return 1; // active
-        const done = s.ronde ? S.log.find(r => r.route === s.ronde && r.end && r.end >= schemaAdj(cur) && r.start >= schemaAdj(cur)) : null;
-        if (done) return 2; // completed
+        if (s.ronde && S.log.find(r => r.route === s.ronde && r.end && r.end >= _slotStart && r.start >= _slotStart)) return 2; // completed
         return 0; // open
       };
       return rank(a) - rank(b);
@@ -1796,10 +1796,7 @@ function renderPlan() {
       const isActive = runners.length > 0;
 
       // Check if this route was completed during the current schema slot
-      const slotStart = schemaAdj(cur);
-      const nextSlotIdx = planSchema.findIndex(x => schemaAdj(x) > schemaAdj(cur));
-      const slotEnd = nextSlotIdx >= 0 ? schemaAdj(planSchema[nextSlotIdx]) : slotStart + 3600000;
-      const completedEntry = s.ronde ? S.log.find(r => r.route === s.ronde && r.end && r.end >= slotStart && r.start >= slotStart) : null;
+      const completedEntry = s.ronde ? S.log.find(r => r.route === s.ronde && r.end && r.end >= _slotStart && r.start >= _slotStart) : null;
       const isCompleted = !!completedEntry && !isActive;
 
       // Suggestion logic — pass alreadySuggested to avoid recommending same person twice
