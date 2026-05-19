@@ -495,7 +495,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.64</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.65</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -515,7 +515,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.64';
+const APP_VERSION = '2.0.65';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -697,9 +697,30 @@ function fbListen() {
     if (d.appVersion) checkAppVersion(d.appVersion);
     if (window._appOutdated) return; // stop processing: don't overwrite state with stale data
 
-    // Sync all shared data — sanitize everything coming from Firebase
-    S.active = sanitizeActive(d.active);
-    if (d.log !== undefined) S.log = sanitizeLog(d.log);
+    // Sync active — only overwrite if Firebase value differs from local state.
+    // Prevents a meldingen/settings write triggering fbListen from wiping
+    // a just-started active entry that hasn't reached Firebase yet on this snapshot.
+    if (d.active !== undefined) {
+      const fbActive = sanitizeActive(d.active);
+      const fbActiveStr = JSON.stringify(fbActive);
+      const localActiveStr = JSON.stringify(S.active);
+      if (fbActiveStr !== localActiveStr) S.active = fbActive;
+    } else if (d.active === null || d.active === undefined) {
+      // Explicit null means Firebase has no active entries — only accept if local is also empty
+      if (Object.keys(S.active).length > 0) {
+        // Local has entries Firebase doesn't — could be a write still in flight, keep local
+        // But only keep for up to 10s to avoid stale ghost entries
+        if (!S._activeLocalTime) S._activeLocalTime = Date.now();
+        if (Date.now() - S._activeLocalTime > 10000) { S.active = {}; S._activeLocalTime = null; }
+      }
+    }
+    if (d.active !== null && d.active !== undefined) S._activeLocalTime = null;
+
+    // Sync log — only overwrite if Firebase value differs
+    if (d.log !== undefined && d.log !== null) {
+      const fbLog = sanitizeLog(d.log);
+      if (JSON.stringify(fbLog) !== JSON.stringify(S.log)) S.log = fbLog;
+    }
     // Only overwrite settings if the incoming value actually differs from local state.
     // This prevents any Firebase trigger (own echo, meldingen write, etc.) from
     // overwriting a just-toggled local value with stale data.
