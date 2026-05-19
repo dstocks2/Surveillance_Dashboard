@@ -495,7 +495,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.56</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.57</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -515,7 +515,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.56';
+const APP_VERSION = '2.0.57';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -553,8 +553,18 @@ function fbSave() {
   // PIN: only write if already hashed (64 char) — getCfgPinHash() handles migration async
   const storedPin = LS.get('rn_cfg_pin');
   if (storedPin && storedPin.length === 64) updates['/dashboard/pin'] = storedPin;
+  // Mark settings fields as pending so fbListen won't overwrite them with stale echo
+  window._fbPending = window._fbPending || {};
+  window._fbPending.dienst = window._fbPending.names = window._fbPending.routes = Date.now();
   window.fbUpdate(window.fbRef(window.fbDb), updates)
-    .catch(e => console.warn('Firebase settings write error:', e));
+    .then(() => {
+      // Write confirmed — clear pending flags so next remote update is accepted
+      if (window._fbPending) delete window._fbPending.dienst, delete window._fbPending.names, delete window._fbPending.routes;
+    })
+    .catch(e => {
+      if (window._fbPending) delete window._fbPending.dienst, delete window._fbPending.names, delete window._fbPending.routes;
+      console.warn('Firebase settings write error:', e);
+    });
 }
 
 function fbSavePin(pin) {
@@ -698,10 +708,16 @@ function fbListen() {
 
     // Sync all shared data — sanitize everything coming from Firebase
     S.active = sanitizeActive(d.active);
-    if (d.log    !== undefined) S.log    = sanitizeLog(d.log);
-    if (d.dienst !== undefined) S.dienst = new Set(sanitizeNames(Array.isArray(d.dienst) ? d.dienst : []));
-    if (d.names  !== undefined && Array.isArray(d.names)  && d.names.length)  S.names  = sanitizeNames(d.names);
-    if (d.routes !== undefined && Array.isArray(d.routes) && d.routes.length) S.routes = sanitizeNames(d.routes);
+    if (d.log !== undefined) S.log = sanitizeLog(d.log);
+    // Skip settings fields if own write is in-flight (prevents stale echo overwriting local state)
+    const p = window._fbPending || {};
+    const now_ms = Date.now();
+    if (d.dienst !== undefined && !(p.dienst && now_ms - p.dienst < 5000))
+      S.dienst = new Set(sanitizeNames(Array.isArray(d.dienst) ? d.dienst : []));
+    if (d.names !== undefined && Array.isArray(d.names) && d.names.length && !(p.names && now_ms - p.names < 5000))
+      S.names = sanitizeNames(d.names);
+    if (d.routes !== undefined && Array.isArray(d.routes) && d.routes.length && !(p.routes && now_ms - p.routes < 5000))
+      S.routes = sanitizeNames(d.routes);
     // Sync PIN from Firebase — only accept hashed values (64 char SHA-256)
     if (d.pin && typeof d.pin === 'string' && d.pin.length === 64) {
       LS.set('rn_cfg_pin', d.pin);
