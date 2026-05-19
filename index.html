@@ -495,7 +495,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.66</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.67</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -515,7 +515,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.66';
+const APP_VERSION = '2.0.67';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -685,14 +685,16 @@ function sanitizeActive(obj) {
 
 function sanitizeLog(arr) {
   if (!Array.isArray(arr)) return [];
-  return arr.slice(-200).map(r => ({
+  return arr.map(r => ({
     id:    sanitizeFromFirebase(String(r.id || '')),
     name:  sanitizeFromFirebase(r.name  || ''),
     route: sanitizeFromFirebase(r.route || ''),
     start: typeof r.start === 'number' ? r.start : 0,
     end:   typeof r.end   === 'number' ? r.end   : 0,
     dur:   typeof r.dur   === 'number' ? r.dur   : 0,
-  })).filter(r => r.name && r.route && r.start);
+  })).filter(r => r.name && r.route && r.start)
+     .sort((a, b) => (b.end || 0) - (a.end || 0))
+     .slice(0, 200);
 }
 
 function fbListen() {
@@ -705,19 +707,45 @@ function fbListen() {
     if (d.appVersion) checkAppVersion(d.appVersion);
     if (window._appOutdated) return; // stop processing: don't overwrite state with stale data
 
-    // Sync active — compare keys+startTimes only (ignores _warned flag and ordering noise).
-    // Only replace if Firebase has a genuinely different set of active entries.
+    // Sync active — merge Firebase state with pending local writes.
+    // Pending 'add': keep local entry even if Firebase snapshot doesn't have it yet (write in flight).
+    // Pending 'remove': drop the entry even if Firebase snapshot still has it (retour in flight).
+    // Preserve local-only flags (_warned) on entries that still exist.
     const fbActive = sanitizeActive(d.active || null);
-    const fbActiveKey = Object.entries(fbActive).sort(([a],[b])=>a.localeCompare(b)).map(([n,v])=>n+'|'+v.route+'|'+v.start).join(',');
-    const localActiveKey = Object.entries(S.active).sort(([a],[b])=>a.localeCompare(b)).map(([n,v])=>n+'|'+v.route+'|'+v.start).join(',');
-    if (fbActiveKey !== localActiveKey) S.active = fbActive;
+    const merged = {};
+    Object.entries(fbActive).forEach(([n, v]) => {
+      const pending = _pendingActive.get(n);
+      if (pending && pending.op === 'remove' && pending.entry && pending.entry.start === v.start) {
+        // We just retoured this exact entry; don't resurrect it
+        return;
+      }
+      merged[n] = v;
+      // Preserve _warned flag if previously set locally for same entry
+      if (S.active[n] && S.active[n].start === v.start && S.active[n]._warned) {
+        merged[n]._warned = true;
+      }
+    });
+    // Add pending 'add' entries that aren't in Firebase yet
+    for (const [n, p] of _pendingActive) {
+      if (p.op === 'add' && !merged[n] && p.entry) {
+        merged[n] = { route: p.entry.route, start: p.entry.start };
+      }
+    }
+    // Apply only if changed
+    const fbKey   = Object.entries(merged).sort(([a],[b])=>a.localeCompare(b)).map(([n,v])=>n+'|'+v.route+'|'+v.start).join(',');
+    const locKey  = Object.entries(S.active).sort(([a],[b])=>a.localeCompare(b)).map(([n,v])=>n+'|'+v.route+'|'+v.start).join(',');
+    if (fbKey !== locKey) S.active = merged;
 
-    // Sync log — compare by entry ids only (fast, order-independent)
+    // Sync log — merge: keep any pending log entries that haven't reached Firebase yet
     if (d.log !== undefined) {
       const fbLog = sanitizeLog(d.log || []);
-      const fbLogKey  = fbLog.map(r => r.id).join(',');
+      const fbIds = new Set(fbLog.map(r => r.id));
+      // Add any pending-local log entries that Firebase doesn't have yet
+      const pendingLocal = S.log.filter(r => _pendingLog.has(r.id) && !fbIds.has(r.id));
+      const mergedLog = [...pendingLocal, ...fbLog].slice(0, 200);
+      const fbLogKey  = mergedLog.map(r => r.id).join(',');
       const locLogKey = S.log.map(r => r.id).join(',');
-      if (fbLogKey !== locLogKey) S.log = fbLog;
+      if (fbLogKey !== locLogKey) S.log = mergedLog;
     }
     // Only overwrite settings if the incoming value actually differs from local state.
     // This prevents any Firebase trigger (own echo, meldingen write, etc.) from
@@ -810,6 +838,31 @@ let S = {
   sns: new Set(), sr: null, dienst: new Set(LS.get('rn_dienst') || []),
   tick: null, tickL: null, tickTL: null
 };
+
+// ── In-flight write tracking ──────────────────────────────────────────────
+// When a write is in flight, fbListen could receive a snapshot from BEFORE
+// our write and clobber our local state. Track pending writes by name+ts so
+// we can preserve them across listener snapshots.
+const _pendingActive = new Map();  // name -> { route, start, op: 'add'|'remove' }
+const _pendingLog = new Set();     // log entry ids we've just added
+
+function markActivePending(name, op, entry) {
+  _pendingActive.set(name, { op, entry, ts: Date.now() });
+}
+function clearActivePending(name) {
+  _pendingActive.delete(name);
+}
+function markLogPending(id) {
+  _pendingLog.add(id);
+  setTimeout(() => _pendingLog.delete(id), 15000); // auto-cleanup after 15s
+}
+// Auto-cleanup very old pending markers (safety net)
+setInterval(() => {
+  const cutoff = Date.now() - 15000;
+  for (const [name, p] of _pendingActive) {
+    if (p.ts < cutoff) _pendingActive.delete(name);
+  }
+}, 5000);
 
 function save() {
   // Only save settings to localStorage (names, routes, dienst)
@@ -994,6 +1047,12 @@ function doStart() {
   renderNameBtns(); renderRouteBtns(); updBtn(); renderAllActive();
   if (skipped.length) setTimeout(() => showToast(skipped.join(', ') + ' al onderweg, overgeslagen'), 2800);
 
+  // Mark pending so fbListen doesn't clobber these entries while write is in flight
+  started.forEach(s => {
+    const fullName = S.names.find(x => x.split(' ')[0] === s) || s;
+    markActivePending(fullName, 'add', { route, start: startTime });
+  });
+
   // Write to Firebase — melding only after confirmed write, rollback on failure
   if (window.fbDb) {
     const updates = {
@@ -1003,6 +1062,11 @@ function doStart() {
     window.fbUpdate(window.fbRef(window.fbDb), updates)
       .then(() => {
         setFbStatus('ok');
+        // Clear pending markers — Firebase now has our writes
+        started.forEach(s => {
+          const fullName = S.names.find(x => x.split(' ')[0] === s) || s;
+          clearActivePending(fullName);
+        });
         showToast(started.join(' & ') + ' gestart — ' + route);
         schrijfGedeeldeMelding('grijs', started.join(' & ') + ' gestart', route);
         // Duplicate route check only after confirmed write
@@ -1017,9 +1081,10 @@ function doStart() {
       })
       .catch(e => {
         console.warn('Firebase start write error:', e);
-        // Rollback: remove optimistically added active entries
+        // Rollback: clear pending markers AND remove optimistically added active entries
         started.forEach(s => {
           const fullName = S.names.find(x => x.split(' ')[0] === s) || s;
+          clearActivePending(fullName);
           if (S.active[fullName] && S.active[fullName].start === startTime) delete S.active[fullName];
         });
         setFbStatus('error');
@@ -1067,6 +1132,10 @@ function doRetour(name) {
   updBtn();
   if (document.getElementById('pane-live').classList.contains('on')) renderLive();
 
+  // Mark pending: this entry is being removed, log entry being added
+  markActivePending(n, 'remove', { route: a.route, start: a.start });
+  markLogPending(logEntry.id);
+
   // Write to Firebase — on failure roll back and warn user
   if (window.fbDb) {
     const updates = {
@@ -1076,12 +1145,15 @@ function doRetour(name) {
     window.fbUpdate(window.fbRef(window.fbDb), updates)
       .then(() => {
         setFbStatus('ok');
+        clearActivePending(n);
         showToast(n.split(' ')[0] + ' terug! \u2014 ' + dur + ' min');
         schrijfGedeeldeMelding('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.');
       })
       .catch(e => {
         console.warn('Firebase retour write error:', e);
-        // Roll back: restore active entry, remove log entry
+        // Roll back: clear pending, restore active entry, remove log entry
+        clearActivePending(n);
+        _pendingLog.delete(logEntry.id);
         S.active[n] = a;
         S.log.shift();
         setFbStatus('error');
@@ -1662,14 +1734,13 @@ function roundRect(ctx, x, y, w, h, r) {
 }
 
 function pruneLog() {
-  // Remove entries older than 24 hours, keep max 200
+  // Remove entries older than 24 hours, keep max 200, newest first
   const cutoff = Date.now() - 24 * 60 * 60 * 1000;
   const before = S.log.length;
-  S.log = S.log.filter(r => r.end && r.end >= cutoff).slice(0, 200);
-  // log lives in fbSaveActive — call to persist properly
-  if (S.log.length !== before) {
-    fbSaveActive();
-  }
+  S.log = S.log.filter(r => r.end && r.end >= cutoff)
+               .sort((a, b) => (b.end || 0) - (a.end || 0))
+               .slice(0, 200);
+  if (S.log.length !== before) fbSaveActive();
 }
 
 // Auto-prune every 30 minutes
@@ -2541,6 +2612,11 @@ function fbListenMeldingen() {
   if (!window.fbDb) return;
   window.fbOnValue(window.fbRef(window.fbDb, 'dashboard/meldingen'), snap => {
     const data = snap.val();
+    // Trim _sharedMeldIds: remove keys no longer in Firebase (prevents unbounded growth)
+    const currentKeys = new Set(data ? Object.keys(data) : []);
+    for (const key of _sharedMeldIds) {
+      if (!currentKeys.has(key)) _sharedMeldIds.delete(key);
+    }
     if (!data) return;
     const TTL = 8 * 60 * 60 * 1000; // 8 hours in ms
     const cutoff = Date.now() - TTL;
