@@ -495,7 +495,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.63</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.64</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -515,7 +515,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.63';
+const APP_VERSION = '2.0.64';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -953,32 +953,74 @@ function resetSel() {
 function doStart() {
   if (S.sns.size === 0 || !S.sr) return;
   const startTime = Date.now();
+  const route = S.sr;
   const started = [], skipped = [];
   [...S.sns].forEach(n => {
     if (S.active[n]) { skipped.push(n.split(' ')[0]); return; }
-    S.active[n] = { route: S.sr, start: startTime };
+    S.active[n] = { route, start: startTime };
     started.push(n.split(' ')[0]);
   });
-  fbSaveActive();
-  if (started.length) { showToast(started.join(' & ') + ' gestart — ' + S.sr); schrijfGedeeldeMelding('grijs', started.join(' & ') + ' gestart', S.sr); }
-  if (skipped.length) setTimeout(() => showToast(skipped.join(', ') + ' al onderweg, overgeslagen'), 2800);
-  // Check for duplicate route: others already on the same route with a different startTime (not running together)
-  if (started.length > 0) {
-    const sameRoute = Object.entries(S.active)
-      .filter(([nm, a]) => a.route === S.sr && !started.map(s => S.names.find(x => x.split(' ')[0] === s) || s).includes(nm) && a.start !== startTime);
-    if (sameRoute.length > 0) {
-      const anderen = sameRoute.map(([nm]) => nm.split(' ')[0]).join(' & ');
-      const nieuwen = started.join(' & ');
-      schrijfGedeeldeMelding('oranje', 'Dubbele ronde — ' + S.sr, nieuwen + ' gestart, maar ' + anderen + ' loopt deze ronde al.');
-      voegMeldingToe('oranje', 'Dubbele ronde — ' + S.sr, nieuwen + ' gestart, maar ' + anderen + ' loopt deze ronde al.', null, null);
-    }
+
+  if (!started.length) {
+    if (skipped.length) showToast(skipped.join(', ') + ' al onderweg, overgeslagen');
+    return;
   }
+
+  // Optimistic UI: reset selection immediately
   S.sns = new Set(); S.sr = null;
   document.getElementById('sn-val').className = 'ph';
   document.getElementById('sn-val').textContent = 'selecteer naam(men)…';
   document.getElementById('sr-val').className = 'ph';
   document.getElementById('sr-val').textContent = 'selecteer een ronde…';
   renderNameBtns(); renderRouteBtns(); updBtn(); renderAllActive();
+  if (skipped.length) setTimeout(() => showToast(skipped.join(', ') + ' al onderweg, overgeslagen'), 2800);
+
+  // Write to Firebase — melding only after confirmed write, rollback on failure
+  if (window.fbDb) {
+    const updates = {
+      '/dashboard/active': Object.keys(S.active).length ? S.active : null,
+      '/dashboard/log':    S.log.length ? S.log.slice(0, 200) : null
+    };
+    window.fbUpdate(window.fbRef(window.fbDb), updates)
+      .then(() => {
+        setFbStatus('ok');
+        showToast(started.join(' & ') + ' gestart — ' + route);
+        schrijfGedeeldeMelding('grijs', started.join(' & ') + ' gestart', route);
+        // Duplicate route check only after confirmed write
+        const startedFull = started.map(s => S.names.find(x => x.split(' ')[0] === s) || s);
+        const sameRoute = Object.entries(S.active)
+          .filter(([nm, a]) => a.route === route && !startedFull.includes(nm) && a.start !== startTime);
+        if (sameRoute.length > 0) {
+          const anderen = sameRoute.map(([nm]) => nm.split(' ')[0]).join(' & ');
+          schrijfGedeeldeMelding('oranje', 'Dubbele ronde — ' + route, started.join(' & ') + ' gestart, maar ' + anderen + ' loopt deze ronde al.');
+          voegMeldingToe('oranje', 'Dubbele ronde — ' + route, started.join(' & ') + ' gestart, maar ' + anderen + ' loopt deze ronde al.', null, null);
+        }
+      })
+      .catch(e => {
+        console.warn('Firebase start write error:', e);
+        // Rollback: remove optimistically added active entries
+        started.forEach(s => {
+          const fullName = S.names.find(x => x.split(' ')[0] === s) || s;
+          if (S.active[fullName] && S.active[fullName].start === startTime) delete S.active[fullName];
+        });
+        setFbStatus('error');
+        renderNameBtns(); renderRouteBtns(); updBtn(); renderAllActive();
+        voegMeldingToe('rood', 'Start mislukt — ' + started.join(' & '), route + ' kon niet worden opgeslagen. Controleer de verbinding.', 'Opnieuw proberen', () => {
+          // Restore selection so user can retry
+          started.forEach(s => {
+            const fullName = S.names.find(x => x.split(' ')[0] === s) || s;
+            S.sns.add(fullName);
+          });
+          S.sr = route;
+          renderNameBtns(); renderRouteBtns(); updBtn();
+        });
+        showToast('⚠ Start mislukt — controleer verbinding en probeer opnieuw', 5000);
+      });
+  } else {
+    // No Firebase — local only
+    showToast(started.join(' & ') + ' gestart — ' + route);
+    schrijfGedeeldeMelding('grijs', started.join(' & ') + ' gestart', route);
+  }
 }
 
 function doRetourBtn(btn) {
