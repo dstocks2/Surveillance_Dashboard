@@ -492,10 +492,37 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     </div>
     <div class="hr"></div>
 
+    <div class="hr"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <h3 style="margin:0;font-size:14px">Event log <span style="font-size:11px;color:#94a3b8;font-weight:normal">(auto-wis na 7 dagen)</span></h3>
+      <button class="sm" onclick="toggleEventLog()" id="event-log-toggle" style="font-size:11px;padding:4px 10px">Tonen</button>
+    </div>
+    <div id="event-log-section" style="display:none;margin-bottom:16px">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+        <select id="event-log-filter" onchange="renderEventLog()" style="padding:5px 8px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;font-family:inherit;background:#fff">
+          <option value="">Alle types</option>
+          <option value="start">start</option>
+          <option value="retour">retour</option>
+          <option value="dienst">dienst</option>
+          <option value="settings">settings</option>
+          <option value="auto">auto</option>
+          <option value="sync">sync</option>
+          <option value="system">system</option>
+          <option value="melding">melding</option>
+          <option value="pin">pin</option>
+          <option value="error">error</option>
+        </select>
+        <input type="text" id="event-log-search" placeholder="Zoeken..." oninput="renderEventLog()" style="flex:1;min-width:120px;padding:5px 8px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;font-family:inherit">
+        <button class="sm" onclick="renderEventLog()" style="font-size:11px;padding:4px 10px">↻</button>
+        <button class="sm" onclick="exportEventLog()" style="font-size:11px;padding:4px 10px">Export</button>
+      </div>
+      <div id="event-log-list" style="max-height:400px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;background:#fafafa;font-family:ui-monospace,Menlo,monospace;font-size:11px"></div>
+    </div>
+
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.68</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.69</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -515,7 +542,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.68';
+const APP_VERSION = '2.0.69';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -540,6 +567,82 @@ const LS = {
   get: k => { try { return JSON.parse(localStorage.getItem(k)) } catch(e) { return null } },
   set: (k, v) => localStorage.setItem(k, JSON.stringify(v))
 };
+
+// ── Event log (audit trail) ────────────────────────────────────────────────
+// Persistent device ID for distinguishing which client logged each event
+function _generateDeviceId() {
+  let id = LS.get('rn_device_id');
+  if (!id) {
+    id = 'dev-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+    LS.set('rn_device_id', id);
+  }
+  return id;
+}
+const DEVICE_ID = _generateDeviceId();
+const EVENT_LOG_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+let EVENT_LOG = []; // local cache for rendering, populated from Firebase
+
+function logEvent(type, msg, detail) {
+  // type: 'start'|'retour'|'dienst'|'settings'|'sync'|'auto'|'system'|'melding'|'pin'|'error'
+  const evt = {
+    ts: Date.now(),
+    type: String(type || 'system'),
+    msg: String(msg || ''),
+    detail: detail !== undefined && detail !== null ? (typeof detail === 'string' ? detail : JSON.stringify(detail).slice(0, 500)) : '',
+    deviceId: DEVICE_ID,
+    appVersion: typeof APP_VERSION === 'string' ? APP_VERSION : ''
+  };
+  // Always log locally first so we have a record even if Firebase is offline
+  EVENT_LOG.unshift(evt);
+  if (EVENT_LOG.length > 500) EVENT_LOG.length = 500;
+  // Persist to Firebase (fire-and-forget; never block app on this)
+  if (window.fbDb && window.fbPush && window.fbRef && window.fbSet) {
+    try {
+      const ref = window.fbPush(window.fbRef(window.fbDb, 'dashboard/eventLog'));
+      window.fbSet(ref, evt).catch(() => {}); // silent — never trigger user-facing errors
+    } catch (e) { /* silent */ }
+  }
+  // Re-render if cfg pane is showing event log
+  if (typeof renderEventLog === 'function') {
+    const pane = document.getElementById('pane-cfg');
+    const eventLogEl = document.getElementById('event-log-list');
+    if (pane && pane.classList.contains('on') && eventLogEl) renderEventLog();
+  }
+}
+
+function fbListenEventLog() {
+  if (!window.fbDb) return;
+  window.fbOnValue(window.fbRef(window.fbDb, 'dashboard/eventLog'), snap => {
+    const data = snap.val();
+    if (!data) { EVENT_LOG = []; return; }
+    const cutoff = Date.now() - EVENT_LOG_TTL_MS;
+    const items = [];
+    Object.entries(data).forEach(([key, e]) => {
+      // Auto-prune entries older than 7 days
+      if (e && e.ts && e.ts < cutoff) {
+        window.fbRemove(window.fbRef(window.fbDb, 'dashboard/eventLog/' + key)).catch(() => {});
+        return;
+      }
+      if (!e || !e.ts) return;
+      items.push({
+        _key: key,
+        ts: e.ts,
+        type: sanitizeFromFirebase(e.type || ''),
+        msg: sanitizeFromFirebase(e.msg || ''),
+        detail: sanitizeFromFirebase(e.detail || ''),
+        deviceId: sanitizeFromFirebase(e.deviceId || ''),
+        appVersion: sanitizeFromFirebase(e.appVersion || '')
+      });
+    });
+    items.sort((a, b) => b.ts - a.ts);
+    EVENT_LOG = items.slice(0, 1000); // cap render to 1000 newest
+    if (typeof renderEventLog === 'function') {
+      const pane = document.getElementById('pane-cfg');
+      const eventLogEl = document.getElementById('event-log-list');
+      if (pane && pane.classList.contains('on') && eventLogEl) renderEventLog();
+    }
+  }, e => { console.warn('eventLog listener error:', e); });
+}
 
 // ── Firebase sync ─────────────────────────────────────────────────────────
 function fbSave() {
@@ -583,7 +686,7 @@ function fbSaveActive() {
   updates['/dashboard/log']    = S.log.length ? S.log.slice(0, 200) : null;
   window.fbUpdate(window.fbRef(window.fbDb), updates)
     .then(() => { setFbStatus('ok'); })
-    .catch(e => { console.warn('Firebase active write error:', e); setFbStatus('error'); voegMeldingToe('rood', 'Synchronisatie mislukt', 'Data kon niet worden opgeslagen. Controleer de verbinding.', null, null); });
+    .catch(e => { console.warn('Firebase active write error:', e); setFbStatus('error'); logEvent('error', 'fbSaveActive MISLUKT', { error: String(e) }); voegMeldingToe('rood', 'Synchronisatie mislukt', 'Data kon niet worden opgeslagen. Controleer de verbinding.', null, null); });
 }
 
 // ── App version check ──────────────────────────────────────────────────────
@@ -617,6 +720,7 @@ function showUpdateBanner() {
   document.body.appendChild(banner);
   window._appOutdated = true;
   setFbStatus('error');
+  logEvent('system', 'Verouderde versie gedetecteerd — schrijfacties geblokkeerd', { localVersion: APP_VERSION });
   const el = document.getElementById('fb-status');
   if (el) { el.textContent = '⚠ verouderde versie'; el.style.color = '#fca5a5'; }
 }
@@ -1069,6 +1173,7 @@ function doStart() {
           const fullName = S.names.find(x => x.split(' ')[0] === s) || s;
           clearActivePending(fullName);
         });
+        logEvent('start', started.join(' & ') + ' gestart op ' + route, { names: started, route, ts: startTime });
         showToast(started.join(' & ') + ' gestart — ' + route);
         schrijfGedeeldeMelding('grijs', started.join(' & ') + ' gestart', route);
         // Duplicate route check only after confirmed write
@@ -1091,6 +1196,7 @@ function doStart() {
         });
         setFbStatus('error');
         renderNameBtns(); renderRouteBtns(); updBtn(); renderAllActive();
+        logEvent('error', 'Start MISLUKT — ' + started.join(' & ') + ' op ' + route, { error: String(e), names: started, route });
         voegMeldingToe('rood', 'Start mislukt — ' + started.join(' & '), route + ' kon niet worden opgeslagen. Controleer de verbinding.', 'Opnieuw proberen', () => {
           // Restore selection so user can retry
           started.forEach(s => {
@@ -1149,6 +1255,7 @@ function doRetour(name) {
         setFbStatus('ok');
         clearActivePending(n);
         opruimStaleLangeRondeMeldingen();
+        logEvent('retour', n.split(' ')[0] + ' retour van ' + a.route + ' (' + dur + ' min)', { name: n, route: a.route, start: a.start, end, dur, logId: logEntry.id });
         showToast(n.split(' ')[0] + ' terug! \u2014 ' + dur + ' min');
         schrijfGedeeldeMelding('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.');
       })
@@ -1163,6 +1270,7 @@ function doRetour(name) {
         renderAllActive();
         updBtn();
         if (document.getElementById('pane-live').classList.contains('on')) renderLive();
+        logEvent('error', 'Retour MISLUKT \u2014 ' + n.split(' ')[0] + ' van ' + a.route, { error: String(e), name: n, route: a.route });
         voegMeldingToe('rood', 'Retour mislukt \u2014 ' + n.split(' ')[0], a.route + ' kon niet worden opgeslagen. Controleer de verbinding.', 'Opnieuw proberen', () => doRetour(n));
         showToast('\u26a0 Retour mislukt \u2014 controleer verbinding en probeer opnieuw', 5000);
       });
@@ -1741,14 +1849,21 @@ function pruneLog() {
   // Only drop entries older than 48 hours IF we have more than 200.
   // This prevents log entries from disappearing overnight during long shifts.
   const before = S.log.length;
+  const beforeIds = new Set(S.log.map(r => r.id));
   const cutoff = Date.now() - 48 * 60 * 60 * 1000;
   const sorted = S.log.filter(r => r.end && r.start)
                       .sort((a, b) => (b.end || 0) - (a.end || 0));
   // Always keep newest 200, drop only what's both older than 48h AND beyond index 200
   S.log = sorted.filter((r, i) => i < 200 && r.end >= cutoff);
-  // If we still have >200 just take the newest 200
   if (S.log.length > 200) S.log = S.log.slice(0, 200);
-  if (S.log.length !== before) fbSaveActive();
+  if (S.log.length !== before) {
+    const afterIds = new Set(S.log.map(r => r.id));
+    const removed = [...beforeIds].filter(id => !afterIds.has(id));
+    const removedEntries = sorted.filter(r => removed.includes(r.id))
+                                 .map(r => ({ name: r.name, route: r.route, end: r.end, dur: r.dur }));
+    logEvent('auto', 'Log opgeschoond: ' + removed.length + ' entries verwijderd', { removed: removedEntries });
+    fbSaveActive();
+  }
 }
 
 // Auto-prune every 30 minutes
@@ -1765,6 +1880,7 @@ function checkActiveTimeout() {
       const hrs = Math.floor(dur / 3600000);
       const mins = Math.floor((dur % 3600000) / 60000);
       const sub = a.route + ' loopt al ' + hrs + 'u ' + mins + 'min.';
+      logEvent('auto', 'Lange-ronde waarschuwing voor ' + name + ' (' + hrs + 'u ' + mins + 'min)', { name, route: a.route, start: a.start, durationMin: Math.round(dur/60000) });
       voegMeldingToe('oranje', 'Lange ronde \u2014 ' + name.split(' ')[0], sub, 'Retour melden', () => doRetour(name), name);
       schrijfGedeeldeMelding('oranje', 'Lange ronde \u2014 ' + name.split(' ')[0], sub);
       showToast('\u26a0 ' + name.split(' ')[0] + ' is al ' + hrs + 'u ' + mins + 'min onderweg \u2014 retour vergeten?', 6000);
@@ -1777,11 +1893,14 @@ TIMERS.set('timeoutCheck', checkActiveTimeout, 5 * 60 * 1000);
 async function wisLog() {
   pruneLog();
   if (!await customConfirm('Weet je zeker dat je alle log-data wilt wissen?')) return;
+  const wipedLog = S.log.length;
+  const wipedActive = Object.keys(S.active);
   S.log = [];
   S.active = {};
   fbSaveActive();
   render();
   renderAllActive();
+  logEvent('system', 'Log handmatig gewist (' + wipedLog + ' entries, ' + wipedActive.length + ' actieve)', { entries: wipedLog, active: wipedActive });
   showToast('Log gewist');
 }
 
@@ -2198,6 +2317,7 @@ function addSchemaItem() {
   S.schema = activeSchema;
   LS.set('rn_schema', S.schema);
   fbSave();
+  logEvent('settings', 'Schema-item toegevoegd', { time: tijdEl.value, ronde: rondeEl.value, taak: taakEl.value });
   tijdEl.value = ''; rondeEl.value = ''; taakEl.value = '';
   showToast('Schema-item toegevoegd');
   renderCfg();
@@ -2233,6 +2353,7 @@ function saveSchemaEdit() {
   S.schema = activeSchema;
   LS.set('rn_schema', S.schema);
   fbSave();
+  logEvent('settings', 'Schema-item gewijzigd');
   _editIdx = null;
   document.getElementById('schema-edit-form').style.display = 'none';
   showToast('Schema-item bijgewerkt');
@@ -2278,6 +2399,7 @@ async function getCfgPinHash() {
     const plain = (stored && stored.length < 64) ? stored : DEFAULT_PIN;
     const hash = await hashPin(plain);
     LS.set(CFG_PIN_KEY, hash);
+    logEvent('pin', 'PIN gemigreerd naar SHA-256 hash');
     // Sync gehashte PIN naar Firebase (vervangt eventuele plaintext)
     if (window.fbDb) {
       window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/pin': hash })
@@ -2349,10 +2471,12 @@ function rmSchemaItem(i) {
   const hDisp = item.h % 24;
   const tijdStr = String(hDisp).padStart(2,'0') + ':' + String(item.m).padStart(2,'0');
   customConfirm(`Schema-item verwijderen: ${tijdStr} — ${item.taak}?`, () => {
+    const _rem = activeSchema[i];
     activeSchema.splice(i, 1);
     S.schema = activeSchema;
     LS.set('rn_schema', S.schema);
     fbSave();
+    logEvent('settings', 'Schema-item verwijderd', _rem);
     showToast('Schema-item verwijderd');
     renderCfg();
   });
@@ -2376,7 +2500,7 @@ function addName() {
   S.names.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase(), 'nl'));
   save();
   document.getElementById('inp-name').value = '';
-  renderCfg(); renderNameBtns(); showToast(v + ' toegevoegd');
+  logEvent('settings', 'Medewerker toegevoegd: ' + v); renderCfg(); renderNameBtns(); showToast(v + ' toegevoegd');
 }
 
 async function rmName(i) {
@@ -2395,13 +2519,13 @@ function addRoute() {
   S.routes.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase(), 'nl'));
   save();
   document.getElementById('inp-route').value = '';
-  renderCfg(); renderRouteBtns(); showToast(v + ' toegevoegd');
+  logEvent('settings', 'Ronde toegevoegd: ' + v); renderCfg(); renderRouteBtns(); showToast(v + ' toegevoegd');
 }
 
 async function rmRoute(i) {
   const ronde = S.routes[i];
   if (!await customConfirm('Weet je zeker dat je "' + ronde + '" wilt verwijderen?')) return;
-  S.routes.splice(i, 1); save(); renderCfg(); renderRouteBtns();
+  const _r = S.routes[i]; S.routes.splice(i, 1); save(); logEvent('settings', 'Ronde verwijderd: ' + _r); renderCfg(); renderRouteBtns();
   showToast(ronde + ' verwijderd');
 }
 
@@ -2445,12 +2569,14 @@ function renderDienst() {
           save();
           renderDienst();
           renderNameBtns();
+          logEvent('dienst', n + ' einde dienst');
           schrijfGedeeldeMelding('grijs', 'Einde dienst', n);
         } else {
           S.dienst.add(n);
           save();
           renderDienst();
           renderNameBtns();
+          logEvent('dienst', n + ' op dienst');
           schrijfGedeeldeMelding('grijs', 'Aanvang dienst', n);
         }
       });
@@ -2543,13 +2669,119 @@ function verwijderMelding(id) {
   renderMeldingen();
 }
 
+// ── Event log UI ──────────────────────────────────────────────────────────
+function toggleEventLog() {
+  const section = document.getElementById('event-log-section');
+  const btn = document.getElementById('event-log-toggle');
+  if (!section || !btn) return;
+  const open = section.style.display !== 'none';
+  section.style.display = open ? 'none' : 'block';
+  btn.textContent = open ? 'Tonen' : 'Verbergen';
+  if (!open) renderEventLog();
+}
+
+function _fmtEventTime(ts) {
+  const d = new Date(ts);
+  const dateStr = d.toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit' });
+  const timeStr = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  return dateStr + ' ' + timeStr;
+}
+
+function _eventTypeColor(type) {
+  switch (type) {
+    case 'start':    return '#059669';
+    case 'retour':   return '#1d4ed8';
+    case 'error':    return '#dc2626';
+    case 'sync':     return '#ea580c';
+    case 'auto':     return '#9333ea';
+    case 'dienst':   return '#0891b2';
+    case 'settings': return '#64748b';
+    case 'melding':  return '#7c3aed';
+    case 'pin':      return '#475569';
+    case 'system':   return '#334155';
+    default:         return '#475569';
+  }
+}
+
+function renderEventLog() {
+  const el = document.getElementById('event-log-list');
+  if (!el) return;
+  const filterType = document.getElementById('event-log-filter');
+  const searchInp = document.getElementById('event-log-search');
+  const tf = filterType ? filterType.value : '';
+  const sq = searchInp ? searchInp.value.trim().toLowerCase() : '';
+
+  let items = EVENT_LOG;
+  if (tf) items = items.filter(e => e.type === tf);
+  if (sq) items = items.filter(e =>
+    (e.msg || '').toLowerCase().includes(sq) ||
+    (e.detail || '').toLowerCase().includes(sq) ||
+    (e.deviceId || '').toLowerCase().includes(sq)
+  );
+
+  if (!items.length) {
+    el.innerHTML = '<div style="padding:16px;text-align:center;color:#94a3b8;font-size:12px">Geen events gevonden</div>';
+    return;
+  }
+
+  const myId = DEVICE_ID;
+  el.innerHTML = items.slice(0, 500).map(e => {
+    const color = _eventTypeColor(e.type);
+    const isMine = e.deviceId === myId;
+    const devLabel = isMine ? 'dit apparaat' : (e.deviceId ? e.deviceId.slice(0, 16) : '?');
+    const detailHtml = e.detail ? '<div style="color:#64748b;font-size:10px;margin-top:2px;word-break:break-word">' + sanitizeInput(e.detail) + '</div>' : '';
+    return '<div style="padding:6px 10px;border-bottom:1px solid #e2e8f0">' +
+           '<div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">' +
+             '<span style="color:#94a3b8;font-size:10px;white-space:nowrap">' + _fmtEventTime(e.ts) + '</span>' +
+             '<span style="background:' + color + ';color:#fff;font-size:9px;padding:1px 6px;border-radius:3px;font-weight:600;text-transform:uppercase;letter-spacing:.04em">' + sanitizeInput(e.type) + '</span>' +
+             '<span style="color:#1e293b;flex:1;min-width:140px">' + sanitizeInput(e.msg) + '</span>' +
+             '<span style="color:#94a3b8;font-size:9px;font-style:italic">' + sanitizeInput(devLabel) + (e.appVersion ? ' · v' + sanitizeInput(e.appVersion) : '') + '</span>' +
+           '</div>' +
+           detailHtml +
+         '</div>';
+  }).join('');
+}
+
+function exportEventLog() {
+  const filterType = document.getElementById('event-log-filter');
+  const tf = filterType ? filterType.value : '';
+  const items = tf ? EVENT_LOG.filter(e => e.type === tf) : EVENT_LOG;
+  const rows = [['timestamp', 'datetime', 'type', 'msg', 'detail', 'deviceId', 'appVersion']];
+  items.forEach(e => {
+    rows.push([
+      e.ts,
+      new Date(e.ts).toISOString(),
+      e.type,
+      (e.msg || '').replace(/[\r\n]+/g, ' '),
+      (e.detail || '').replace(/[\r\n]+/g, ' '),
+      e.deviceId,
+      e.appVersion
+    ]);
+  });
+  const csv = rows.map(r => r.map(c => {
+    const s = String(c == null ? '' : c);
+    return /[",;\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }).join(';')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'event-log-' + new Date().toISOString().slice(0, 10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+  logEvent('system', 'Event log geexporteerd (' + items.length + ' entries)');
+}
+
 function wisAlleMeldingen() {
+  const _cnt = MELDINGEN.length;
   MELDINGEN.length = 0;
   _sharedMeldIds.clear();
   // Also wipe Firebase so meldingen don't reappear on reload
   if (window.fbDb && window.fbRemove && window.fbRef) {
     window.fbRemove(window.fbRef(window.fbDb, 'dashboard/meldingen')).catch(() => {});
   }
+  logEvent('melding', 'Alle meldingen gewist (' + _cnt + ')');
   renderMeldingen();
 }
 
@@ -2613,6 +2845,8 @@ function initFirebase() {
   fbListen(); // this will populate S.active and S.log and trigger re-render
   fbListenMeldingen(); // listen for shared notifications
   fbListenConnected(); // listen for Firebase connectivity
+  fbListenEventLog();  // listen for audit log
+  logEvent('system', 'App geladen', { version: APP_VERSION, ua: navigator.userAgent.slice(0, 120) });
   const fbSt = document.getElementById('fb-status');
   if (fbSt) fbSt.textContent = '● gesynchroniseerd';
 
@@ -2681,7 +2915,7 @@ function fbListenConnected() {
       setFbStatus('ok');
       // Remove any existing connectivity-lost notification
       const idx = MELDINGEN.findIndex(m => m._fbDisconnect);
-      if (idx >= 0) { MELDINGEN.splice(idx, 1); renderMeldingen(); }
+      if (idx >= 0) { MELDINGEN.splice(idx, 1); renderMeldingen(); logEvent('sync', 'Firebase verbinding hersteld'); }
     } else {
       setFbStatus('error');
       // Only add once
@@ -2691,6 +2925,7 @@ function fbListenConnected() {
         const m = { id: ++_meldId, type: 'rood', naam: 'Firebase verbinding verbroken', sub: 'Synchronisatie gestopt — controleer netwerk.', tijdStr, actieLabel: null, actieFn: null, _fbDisconnect: true };
         MELDINGEN.unshift(m);
         renderMeldingen();
+        logEvent('sync', 'Firebase verbinding verbroken');
       }
     }
   });
