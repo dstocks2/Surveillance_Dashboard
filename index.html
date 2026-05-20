@@ -495,7 +495,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.67</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.68</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -515,7 +515,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.67';
+const APP_VERSION = '2.0.68';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -787,6 +787,8 @@ function fbListen() {
     LS.set('rn_routes', S.routes);
 
     setFbStatus('ok');
+    // Clean up stale long-round notifications whose person already returned
+    opruimStaleLangeRondeMeldingen();
     // Re-render everything
     renderNameBtns();
     renderRouteBtns();
@@ -854,15 +856,15 @@ function clearActivePending(name) {
 }
 function markLogPending(id) {
   _pendingLog.add(id);
-  setTimeout(() => _pendingLog.delete(id), 15000); // auto-cleanup after 15s
+  setTimeout(() => _pendingLog.delete(id), 60000); // auto-cleanup after 60s
 }
-// Auto-cleanup very old pending markers (safety net)
+// Auto-cleanup very old pending markers (safety net) — 60s window for slow networks
 setInterval(() => {
-  const cutoff = Date.now() - 15000;
+  const cutoff = Date.now() - 60000;
   for (const [name, p] of _pendingActive) {
     if (p.ts < cutoff) _pendingActive.delete(name);
   }
-}, 5000);
+}, 10000);
 
 function save() {
   // Only save settings to localStorage (names, routes, dienst)
@@ -1146,6 +1148,7 @@ function doRetour(name) {
       .then(() => {
         setFbStatus('ok');
         clearActivePending(n);
+        opruimStaleLangeRondeMeldingen();
         showToast(n.split(' ')[0] + ' terug! \u2014 ' + dur + ' min');
         schrijfGedeeldeMelding('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.');
       })
@@ -1734,12 +1737,17 @@ function roundRect(ctx, x, y, w, h, r) {
 }
 
 function pruneLog() {
-  // Remove entries older than 24 hours, keep max 200, newest first
-  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+  // Sort newest-first, keep max 200 entries.
+  // Only drop entries older than 48 hours IF we have more than 200.
+  // This prevents log entries from disappearing overnight during long shifts.
   const before = S.log.length;
-  S.log = S.log.filter(r => r.end && r.end >= cutoff)
-               .sort((a, b) => (b.end || 0) - (a.end || 0))
-               .slice(0, 200);
+  const cutoff = Date.now() - 48 * 60 * 60 * 1000;
+  const sorted = S.log.filter(r => r.end && r.start)
+                      .sort((a, b) => (b.end || 0) - (a.end || 0));
+  // Always keep newest 200, drop only what's both older than 48h AND beyond index 200
+  S.log = sorted.filter((r, i) => i < 200 && r.end >= cutoff);
+  // If we still have >200 just take the newest 200
+  if (S.log.length > 200) S.log = S.log.slice(0, 200);
   if (S.log.length !== before) fbSaveActive();
 }
 
@@ -1757,7 +1765,7 @@ function checkActiveTimeout() {
       const hrs = Math.floor(dur / 3600000);
       const mins = Math.floor((dur % 3600000) / 60000);
       const sub = a.route + ' loopt al ' + hrs + 'u ' + mins + 'min.';
-      voegMeldingToe('oranje', 'Lange ronde \u2014 ' + name.split(' ')[0], sub, 'Retour melden', () => doRetour(name));
+      voegMeldingToe('oranje', 'Lange ronde \u2014 ' + name.split(' ')[0], sub, 'Retour melden', () => doRetour(name), name);
       schrijfGedeeldeMelding('oranje', 'Lange ronde \u2014 ' + name.split(' ')[0], sub);
       showToast('\u26a0 ' + name.split(' ')[0] + ' is al ' + hrs + 'u ' + mins + 'min onderweg \u2014 retour vergeten?', 6000);
     }
@@ -2499,11 +2507,25 @@ if (_vb) _vb.textContent = 'v' + APP_VERSION;
 const MELDINGEN = [];
 let _meldId = 0;
 
-function voegMeldingToe(type, naam, sub, actieLabel, actieFn) {
+
+function opruimStaleLangeRondeMeldingen() {
+  // Remove any orange "Lange ronde" meldingen whose naam is no longer active
+  let changed = false;
+  for (let i = MELDINGEN.length - 1; i >= 0; i--) {
+    const m = MELDINGEN[i];
+    if (m.type === 'oranje' && m._naamRef && !S.active[m._naamRef]) {
+      MELDINGEN.splice(i, 1);
+      changed = true;
+    }
+  }
+  if (changed) renderMeldingen();
+}
+
+function voegMeldingToe(type, naam, sub, actieLabel, actieFn, naamRef) {
   const id = ++_meldId;
   const nu = new Date();
   const tijdStr = String(nu.getHours()).padStart(2,'0') + ':' + String(nu.getMinutes()).padStart(2,'0');
-  MELDINGEN.unshift({ id, type, naam, sub, tijdStr, actieLabel: actieLabel || null, actieFn: actieFn || null });
+  MELDINGEN.unshift({ id, type, naam, sub, tijdStr, actieLabel: actieLabel || null, actieFn: actieFn || null, _naamRef: naamRef || null });
   renderMeldingen();
 }
 
@@ -2560,7 +2582,16 @@ function renderMeldingen() {
 
 function meldActie(id) {
   const m = MELDINGEN.find(x => x.id === id);
-  if (m && m.actieFn) { m.actieFn(); verwijderMelding(id); }
+  if (!m || !m.actieFn) return;
+  // Guard: if the action is "Retour melden" for a name no longer active,
+  // the entry was already returned (perhaps on another device). Just clean up.
+  if (m._naamRef && !S.active[m._naamRef]) {
+    verwijderMelding(id);
+    showToast(m._naamRef.split(' ')[0] + ' is al retour gemeld');
+    return;
+  }
+  m.actieFn();
+  verwijderMelding(id);
 }
 
 function toggleMeldingen() {
