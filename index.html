@@ -522,7 +522,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.69</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.70</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -542,7 +542,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.69';
+const APP_VERSION = '2.0.70';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -2887,9 +2887,12 @@ function fbListenMeldingen() {
     const cutoff = Date.now() - TTL;
     // data is an object keyed by push-id: { type, naam, sub, tijdStr, ts }
     Object.entries(data).forEach(([key, m]) => {
-      // Delete entries older than 8h from Firebase and skip them
+      // Delete entries older than 8h from Firebase and remove local copy
       if (m.ts && m.ts < cutoff) {
         window.fbRemove(window.fbRef(window.fbDb, 'dashboard/meldingen/' + key)).catch(() => {});
+        const localIdx = MELDINGEN.findIndex(x => x._fbKey === key);
+        if (localIdx >= 0) { MELDINGEN.splice(localIdx, 1); renderMeldingen(); }
+        _sharedMeldIds.delete(key);
         return;
       }
       if (_sharedMeldIds.has(key)) return; // already shown
