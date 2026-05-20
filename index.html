@@ -522,7 +522,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.70</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.71</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -542,7 +542,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.70';
+const APP_VERSION = '2.0.71';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -801,6 +801,15 @@ function sanitizeLog(arr) {
      .slice(0, 200);
 }
 
+// Filter log-entries voor de 24u-view: alleen ronden waarvan zowel start als
+// end binnen de window vallen. Een vergeten retour met start van gisteren en
+// end van nu (dur ~22u) hoort niet op de dagelijkse tijdlijn — die had de
+// stale-active cleanup of de retour-bevestiging moeten vangen, maar als die
+// faalden vangt deze filter het laatste vangnet op.
+function logInWindow(cutoff) {
+  return S.log.filter(r => r.end && r.end >= cutoff && r.start && r.start >= cutoff);
+}
+
 function fbListen() {
   if (!window.fbDb) return;
   window.fbOnValue(window.fbRef(window.fbDb, 'dashboard'), snap => {
@@ -1013,7 +1022,7 @@ function goTab(id) {
   document.getElementById('pane-' + id).classList.add('on');
   if (id === 'reg')   renderAllActive();
   if (id === 'live')  { renderLive(); setTimeout(() => drawTimeline(
-    S.log.filter(r => r.end && r.end >= Date.now()-86400000),
+    logInWindow(Date.now()-86400000),
     Object.entries(S.active), Date.now()-86400000, Date.now()), 50); }
   if (id === 'plan')  renderPlan();
   if (id === 'dienst') renderDienst();
@@ -1106,7 +1115,7 @@ function toggleTimeline() {
   icon.textContent = isOpen ? '▲' : '▼';
   const lbl = document.getElementById('tl-toggle-label');
   if (lbl) lbl.textContent = isOpen ? 'Verberg tijdlijn' : 'Toon tijdlijn';
-  if (isOpen) setTimeout(() => drawTimeline(S.log.filter(r => r.end && r.end >= Date.now()-86400000), Object.entries(S.active), Date.now()-86400000, Date.now()), 50);
+  if (isOpen) setTimeout(() => drawTimeline(logInWindow(Date.now()-86400000), Object.entries(S.active), Date.now()-86400000, Date.now()), 50);
 }
 
 function updBtn() {
@@ -1219,7 +1228,7 @@ function doRetourBtn(btn) {
   doRetour(btn.getAttribute('data-name'));
 }
 
-function doRetour(name) {
+async function doRetour(name) {
   const n = name || (S.sns.size === 1 ? [...S.sns][0] : null);
   if (!n) {
     if (S.sns.size > 1) { showToast('Selecteer één naam voor retour'); return; }
@@ -1231,6 +1240,22 @@ function doRetour(name) {
   const a = S.active[n];
   const end = Date.now();
   const dur = Math.round((end - a.start) / 60000);
+
+  // Sanity check: ronde > 6u is bijna altijd een vergeten retour van een vorige dienst.
+  // Vraag bevestiging zodat per ongeluk gedrukte retour-knoppen geen krankzinnige
+  // log-entries produceren die de 24u-tijdlijn vervuilen.
+  if (dur > 360) {
+    const hrs = Math.floor(dur / 60);
+    const mins = dur % 60;
+    const startStr = new Date(a.start).toLocaleString('nl-NL', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+    const ok = await customConfirm(
+      n.split(' ')[0] + ' staat al ' + hrs + 'u ' + mins + 'min op ' + a.route +
+      ' (gestart ' + startStr + ').\n\nDit is waarschijnlijk een vergeten retour van een vorige dienst. ' +
+      'Toch retour melden met deze duur?'
+    );
+    if (!ok) { showToast('Retour geannuleerd'); return; }
+  }
+
   const logEntry = { id: Date.now().toString(36) + Math.random().toString(36).slice(2,6), name: n, route: a.route, start: a.start, end, dur };
 
   // Optimistic update: remove locally first for snappy UI
@@ -1346,7 +1371,7 @@ function renderLive() {
   const cutoff = now - 24 * 60 * 60 * 1000;
 
   // Filter log to last 24 hours
-  const recent = S.log.filter(r => r.end && r.end >= cutoff);
+  const recent = logInWindow(cutoff);
   const act = Object.entries(S.active);
 
   if (!act.length && !recent.length) {
@@ -1405,7 +1430,7 @@ function renderLive() {
     if (document.getElementById('pane-live').classList.contains('on')) {
       const nowT = Date.now();
       const cut  = nowT - 86400000;
-      drawTimeline(S.log.filter(r => r.end && r.end >= cut), Object.entries(S.active), cut, nowT);
+      drawTimeline(logInWindow(cut), Object.entries(S.active), cut, nowT);
     }
   }, 60000);
 }
@@ -1868,6 +1893,35 @@ function pruneLog() {
 
 // Auto-prune every 30 minutes
 TIMERS.set('prune', pruneLog, 30 * 60 * 1000);
+
+// Cleanup van stale active entries — ronden die langer dan 12u actief zijn
+// zijn bijna altijd vergeten retours uit een vorige dienst. Die laten staan
+// veroorzaakt false-positive lange-ronde waarschuwingen én — bij retour —
+// 22u-log-entries die de 24u-tijdlijn vervuilen. We dumpen ze uit S.active
+// zonder log-entry te maken; het feit van de opruiming gaat in de eventLog.
+function pruneStaleActive() {
+  if (window._appOutdated) return;
+  const now = Date.now();
+  const STALE_MS = 12 * 60 * 60 * 1000;
+  const stale = [];
+  Object.entries(S.active).forEach(([name, a]) => {
+    if (a && a.start && (now - a.start) > STALE_MS) {
+      stale.push({ name, route: a.route, start: a.start, ageH: Math.round((now - a.start) / 3600000 * 10) / 10 });
+    }
+  });
+  if (!stale.length) return;
+  stale.forEach(s => { delete S.active[s.name]; });
+  // Schrijf naar Firebase + log per entry
+  fbSaveActive();
+  stale.forEach(s => {
+    logEvent('auto', 'Stale ronde opgeruimd: ' + s.name + ' — ' + s.route + ' (' + s.ageH + 'u)', s);
+    voegMeldingToe('grijs', 'Stale ronde opgeruimd', s.name.split(' ')[0] + ' — ' + s.route + ' (' + s.ageH + 'u, vergeten retour)', null, null);
+  });
+  renderAllActive();
+  if (document.getElementById('pane-live').classList.contains('on')) renderLive();
+}
+// Check elke 30 minuten + bij elke app-load (zie init onderaan)
+TIMERS.set('staleCheck', pruneStaleActive, 30 * 60 * 1000);
 
 function checkActiveTimeout() {
   // Warn if someone has been active for more than 4 hours
@@ -2850,6 +2904,9 @@ function initFirebase() {
   const fbSt = document.getElementById('fb-status');
   if (fbSt) fbSt.textContent = '● gesynchroniseerd';
 
+  // Stale-active cleanup 5s na init zodat fbListen tijd heeft S.active te vullen
+  setTimeout(pruneStaleActive, 5000);
+
   // Write own version to Firebase so outdated tabs on other devices get notified
   window.fbGet(window.fbRef(window.fbDb, 'dashboard/appVersion'))
     .then(snap => {
@@ -2956,7 +3013,7 @@ window.addEventListener('resize', () => {
     if (document.getElementById('pane-live').classList.contains('on')) {
       const nowT = Date.now();
       const cut  = nowT - 86400000;
-      drawTimeline(S.log.filter(r => r.end && r.end >= cut), Object.entries(S.active), cut, nowT);
+      drawTimeline(logInWindow(cut), Object.entries(S.active), cut, nowT);
     }
   }, 250);
 });
