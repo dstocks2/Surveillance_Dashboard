@@ -100,6 +100,13 @@ input[type=text]:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px #d
   .cards-done .cr{font-size:13px}
   .cards-done .ct{font-size:11px}
   .cards-done .cst{font-size:10px}
+  /* Compact active cards on mobile */
+  #live-cards-active .card{padding:10px 12px}
+  #live-cards-active .cst{font-size:9px;margin-bottom:4px}
+  #live-cards-active .cr{font-size:13px;margin-bottom:4px}
+  #live-cards-active .cn{font-size:14px}
+  #live-cards-active .ct{font-size:10px;margin-top:2px}
+  #live-cards-active .rbtn{margin-top:7px;padding:6px;font-size:11px}
   table{font-size:11px}
   th,td{padding:8px 8px}
   .tl-toggle-btn{display:flex !important}
@@ -542,7 +549,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.73';
+const APP_VERSION = '2.0.74';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
