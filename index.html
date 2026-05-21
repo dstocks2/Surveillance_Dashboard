@@ -100,13 +100,14 @@ input[type=text]:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px #d
   .cards-done .cr{font-size:13px}
   .cards-done .ct{font-size:11px}
   .cards-done .cst{font-size:10px}
-  /* Compact active cards on mobile */
-  #live-cards-active .card{padding:10px 12px}
-  #live-cards-active .cst{font-size:9px;margin-bottom:4px}
-  #live-cards-active .cr{font-size:13px;margin-bottom:4px}
-  #live-cards-active .cn{font-size:14px}
-  #live-cards-active .ct{font-size:10px;margin-top:2px}
-  #live-cards-active .rbtn{margin-top:7px;padding:6px;font-size:11px}
+  /* Compact active cards on mobile — 2 columns */
+  #all-active-cards,#live-cards-active{grid-template-columns:1fr 1fr !important;gap:8px}
+  #all-active-cards .card,#live-cards-active .card{padding:10px 12px}
+  #all-active-cards .cst,#live-cards-active .cst{font-size:9px;margin-bottom:4px}
+  #all-active-cards .cr,#live-cards-active .cr{font-size:13px;margin-bottom:4px}
+  #all-active-cards .cn,#live-cards-active .cn{font-size:14px}
+  #all-active-cards .ct,#live-cards-active .ct{font-size:10px;margin-top:2px}
+  #all-active-cards .rbtn,#live-cards-active .rbtn{margin-top:7px;padding:6px;font-size:11px}
   table{font-size:11px}
   th,td{padding:8px 8px}
   .tl-toggle-btn{display:flex !important}
@@ -451,6 +452,63 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
       </div>
       <div class="hr"></div>
 
+      <!-- Dagdelen: collapsible -->
+      <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onclick="toggleSection('dagdelen')">
+        <p class="lbl" style="margin:0">Dagdelen <span style="font-size:10px;font-weight:400;color:#94a3b8;text-transform:none;letter-spacing:0">— diensten: naam, tijdvak en kleur</span></p>
+        <span id="dagdelen-toggle-icon" style="font-size:13px;color:#94a3b8;padding:4px 0">▼</span>
+      </div>
+      <div id="dagdelen-collapse" style="display:none;margin-top:10px">
+        <div id="dagdelen-list" style="margin-bottom:12px"></div>
+        <!-- Edit form -->
+        <div id="dagdeel-edit-form" style="display:none;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:10px">
+          <p style="font-size:12px;font-weight:600;color:#475569;margin-bottom:10px">Dagdeel wijzigen</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+            <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:120px">
+              <label style="font-size:11px;color:#64748b">Naam</label>
+              <input type="text" id="inp-dagdeel-edit-naam" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <label style="font-size:11px;color:#64748b">Start</label>
+              <input type="time" id="inp-dagdeel-edit-start" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:110px">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <label style="font-size:11px;color:#64748b">Eind</label>
+              <input type="time" id="inp-dagdeel-edit-eind" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:110px">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <label style="font-size:11px;color:#64748b">Kleur</label>
+              <input type="color" id="inp-dagdeel-edit-kleur" style="padding:2px;border:1px solid #cbd5e1;border-radius:6px;width:48px;height:36px;cursor:pointer;background:#fff">
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="sm" onclick="saveDagdeelEdit()">💾 Opslaan</button>
+              <button class="sm" onclick="cancelDagdeelEdit()" style="background:#f1f5f9;color:#64748b">Annuleren</button>
+            </div>
+          </div>
+        </div>
+        <!-- Add new dagdeel -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px">
+          <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:120px">
+            <label style="font-size:11px;color:#64748b">Naam</label>
+            <input type="text" id="inp-dagdeel-naam" placeholder="Bv. vroeg" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:11px;color:#64748b">Start</label>
+            <input type="time" id="inp-dagdeel-start" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:110px">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:11px;color:#64748b">Eind</label>
+            <input type="time" id="inp-dagdeel-eind" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:110px">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:11px;color:#64748b">Kleur</label>
+            <input type="color" id="inp-dagdeel-kleur" value="#fef9c3" style="padding:2px;border:1px solid #cbd5e1;border-radius:6px;width:48px;height:36px;cursor:pointer;background:#fff">
+          </div>
+          <button class="sm" onclick="addDagdeel()" style="margin-bottom:1px">+ Toevoegen</button>
+        </div>
+        <div style="font-size:10px;color:#94a3b8;padding:4px 0">Tip: een dagdeel mag middernacht overschrijden (bv. nacht 23:00 → 07:00). Tijdvakken mogen niet overlappen.</div>
+      </div>
+      <div class="hr"></div>
+
     <!-- Schema: collapsible -->
     <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onclick="toggleSchema()">
       <p class="lbl" style="margin:0">Dagschema <span style="font-size:10px;font-weight:400;color:#94a3b8;text-transform:none;letter-spacing:0">— tijden en taken per dienst</span></p>
@@ -529,7 +587,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.72</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.79</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -549,7 +607,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.74';
+const APP_VERSION = '2.0.79';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -661,6 +719,7 @@ function fbSave() {
   updates['/dashboard/names']   = S.names;
   updates['/dashboard/routes']  = S.routes;
   if (S.schema) updates['/dashboard/schema'] = S.schema;
+  if (S.dagdelen) updates['/dashboard/dagdelen'] = S.dagdelen;
   // PIN: only write if already hashed (64 char) — getCfgPinHash() handles migration async
   const storedPin = LS.get('rn_cfg_pin');
   if (storedPin && storedPin.length === 64) updates['/dashboard/pin'] = storedPin;
@@ -898,6 +957,15 @@ function fbListen() {
         LS.set('rn_schema', S.schema);
       }
     }
+    // Sync dagdelen from Firebase — only accept valid arrays
+    if (d.dagdelen !== undefined && Array.isArray(d.dagdelen) && d.dagdelen.length) {
+      const fbDagdelenStr = JSON.stringify(d.dagdelen);
+      const localDagdelenStr = JSON.stringify(S.dagdelen || DAGDELEN_DEFAULT);
+      if (fbDagdelenStr !== localDagdelenStr) {
+        S.dagdelen = d.dagdelen;
+        LS.set('rn_dagdelen', S.dagdelen);
+      }
+    }
     // Sync PIN from Firebase — only accept hashed values (64 char SHA-256)
     if (d.pin && typeof d.pin === 'string' && d.pin.length === 64) {
       LS.set('rn_cfg_pin', d.pin);
@@ -957,6 +1025,7 @@ let S = {
   names:  LS.get('rn_names')  || DN,
   routes: LS.get('rn_routes') || DR,
   schema: LS.get('rn_schema') || null, // null = use hardcoded SCHEMA default
+  dagdelen: LS.get('rn_dagdelen') || null, // null = use DAGDELEN_DEFAULT
   active: {},   // always loaded from Firebase — never from localStorage
   log:    [],   // always loaded from Firebase — never from localStorage
   sns: new Set(), sr: null, dienst: new Set(LS.get('rn_dienst') || []),
@@ -1495,53 +1564,28 @@ function drawTimeline(recent, active, cutoff, now) {
   ac.clearRect(0, 0, W, AXIS_H);
 
   // ── Dagdeel colour bands on axis ─────────────────────────────────────
+  //
+  // Bands are driven by S.dagdelen (or DAGDELEN_DEFAULT). Each dagdeel has
+  // a start "HH:MM" — boundaries within the 24h window are computed in
+  // dagdeelBoundariesInWindow(). For each segment between consecutive
+  // boundaries we paint the band of the dagdeel containing that interval.
 
-  // Draw dagdeel bands.
-  // Use the EXACT same x-coordinate reference as the hour tick marks:
-  //   tick h  →  x = toX(now - (24-h)*3600000)
-  // So shift boundaries (07:00, 15:00, 23:00) correspond to fractional h values.
-  // We find the x-pixel of each boundary directly via toX, then paint rectangles.
+  // Find boundaries from all dagdelen
+  const dagdeelBounds = dagdeelBoundariesInWindow(now, cutoff);
 
-  const shiftColorAt = hr => (hr >= 7 && hr < 15) ? '#fef9c3'
-                           : (hr >= 15 && hr < 23) ? '#dbeafe'
-                           :                         '#e8eaed';
-  const shiftLabelAt = hr => (hr >= 7 && hr < 15) ? 'vroeg'
-                           : (hr >= 15 && hr < 23) ? 'laat'
-                           :                         'nacht';
-
-  // The tick at integer h maps to now - (24-h)*3600000.
-  // We need the x-position of 07:00, 15:00, 23:00 in the last 24h window.
-  // For each shift boundary hour B, the timestamp is:
-  //   now - ((now_hours - B + 24) % 24) * 3600000  - now_mins*60000 - now_secs*1000 - now_ms
-  // i.e. the most recent occurrence of hour B at :00:00.000, going backwards from now.
-  function lastOccurrence(boundaryHour) {
-    const d = new Date(now);
-    // How many ms ago was the last boundaryHour:00:00?
-    const h = d.getHours(), m = d.getMinutes(), s = d.getSeconds(), ms = d.getMilliseconds();
-    const msFromBoundary = ((h - boundaryHour + 24) % 24) * 3600000 + m * 60000 + s * 1000 + ms;
-    return now - msFromBoundary;
-  }
-
-  // Build segment list from left (cutoff) to right (now) using boundary x-positions
-  const b7  = lastOccurrence(7);
-  const b15 = lastOccurrence(15);
-  const b23 = lastOccurrence(23);
-
-  // All candidate boundaries within window
-  const rawPts = [cutoff, now];
-  [b7 - 86400000, b15 - 86400000, b23 - 86400000, b7, b15, b23].forEach(t => {
-    if (t > cutoff && t < now) rawPts.push(t);
-  });
+  // Build raw point list: cutoff, all dagdeel boundaries, now
+  const rawPts = [cutoff, ...dagdeelBounds.map(b => b.t), now];
   rawPts.sort((a, b) => a - b);
 
   const merged = [];
   for (let i = 0; i < rawPts.length - 1; i++) {
-    const midT = rawPts[i] + 30000; // 30s into segment → correct hour
+    const midT = rawPts[i] + 30000; // 30s into segment → correct dagdeel
     const d    = new Date(midT);
-    const hr   = d.getHours();
-    const col  = shiftColorAt(hr);
-    const lbl  = shiftLabelAt(hr);
-    if (merged.length && merged[merged.length-1].color === col) {
+    const minOfDay = d.getHours() * 60 + d.getMinutes();
+    const dd   = dagdeelAtMinute(minOfDay);
+    const col  = dd.kleur;
+    const lbl  = dd.naam;
+    if (merged.length && merged[merged.length-1].color === col && merged[merged.length-1].label === lbl) {
       merged[merged.length-1].tTo = rawPts[i+1];
     } else {
       merged.push({ color: col, label: lbl, tFrom: rawPts[i], tTo: rawPts[i+1] });
@@ -1569,9 +1613,6 @@ function drawTimeline(recent, active, cutoff, now) {
 
   // Hour ticks + labels
   // Draw tick labels at the EXACT pixel of each whole clock-hour boundary.
-  // A clock-hour H in the 24h window has timestamp: lastOccurrence(H) or lastOccurrence(H)-24h
-  // Instead, compute per tick: find the timestamp where getHours()==h and mins/secs==0.
-  // This is simply: snap the tick timestamp to its own floor-hour.
   for (let h = 0; h <= 24; h++) {
     const t    = now - (24 - h) * 3600000;
     const d    = new Date(t);
@@ -1579,15 +1620,16 @@ function drawTimeline(recent, active, cutoff, now) {
     // Snap to exact hour boundary: subtract minutes/seconds/ms
     const tSnap = t - d.getMinutes()*60000 - d.getSeconds()*1000 - d.getMilliseconds();
     const xSnap = toX(tSnap);
-    // Colour tick by dagdeel
-    const bandColor = (hr >= 7 && hr < 15) ? '#ca8a04' : (hr >= 15 && hr < 23) ? '#3b82f6' : '#64748b';
+    // Colour tick by dagdeel — text colour auto-derived from background
+    const dd = dagdeelAtHour(hr);
+    const bandColor = dd.kleur && dd.naam ? autoTekstKleur(dd.kleur) : '#64748b';
     ac.strokeStyle = bandColor + '88';
     ac.lineWidth   = 1;
     ac.beginPath();
     ac.moveTo(xSnap, AXIS_H - 8);
     ac.lineTo(xSnap, AXIS_H);
     ac.stroke();
-    // Label only odd hours (1, 3, 5, 7, 9 … 23) — includes all 3 shift boundaries
+    // Label only odd hours (1, 3, 5, 7, 9 … 23)
     if (hr % 2 !== 0) {
       ac.fillStyle  = bandColor;
       ac.font       = 'bold 10px system-ui, sans-serif';
@@ -1968,6 +2010,169 @@ async function wisLog() {
 }
 
 
+// ── DAGDELEN — configurabele shifts (vroeg / laat / nacht) ────────────────
+// Per shift: naam, start "HH:MM", eind "HH:MM", kleur (achtergrond).
+// tekstKleur wordt automatisch afgeleid van de achtergrond via autoTekstKleur().
+// Shifts mogen middernacht overschrijden (eind < start = wraps to next day).
+const DAGDELEN_DEFAULT = [
+  { naam: 'vroeg', start: '07:00', eind: '15:00', kleur: '#fef9c3' },
+  { naam: 'laat',  start: '15:00', eind: '23:00', kleur: '#dbeafe' },
+  { naam: 'nacht', start: '23:00', eind: '07:00', kleur: '#e8eaed' }
+];
+
+// Convert "HH:MM" → minutes-of-day (0-1439). Returns NaN on invalid input.
+function hhmmToMin(s) {
+  if (typeof s !== 'string') return NaN;
+  const m = s.match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return NaN;
+  const h = +m[1], mm = +m[2];
+  if (h < 0 || h > 23 || mm < 0 || mm > 59) return NaN;
+  return h * 60 + mm;
+}
+
+// Derive a readable text colour from a background hex colour.
+// Strategy: take the background hue, darken it sharply for light backgrounds
+// (or lighten for dark backgrounds). This gives a natural "matching" tint
+// rather than harsh black/white contrast.
+function autoTekstKleur(hex) {
+  if (typeof hex !== 'string') return '#475569';
+  const m = hex.match(/^#?([0-9a-f]{6})$/i) || hex.match(/^#?([0-9a-f]{3})$/i);
+  if (!m) return '#475569';
+  let h = m[1];
+  if (h.length === 3) h = h.split('').map(c => c + c).join('');
+  const r = parseInt(h.slice(0,2), 16) / 255;
+  const g = parseInt(h.slice(2,4), 16) / 255;
+  const b = parseInt(h.slice(4,6), 16) / 255;
+  // Relative luminance (sRGB)
+  const lin = v => v <= 0.03928 ? v/12.92 : Math.pow((v + 0.055)/1.055, 2.4);
+  const L = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  // HSL conversion to preserve hue
+  const max = Math.max(r,g,b), min = Math.min(r,g,b);
+  let hue = 0, sat = 0;
+  const l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    sat = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: hue = ((g - b) / d + (g < b ? 6 : 0)); break;
+      case g: hue = ((b - r) / d + 2); break;
+      case b: hue = ((r - g) / d + 4); break;
+    }
+    hue *= 60;
+  }
+  // Pick a target lightness:
+  // - Light bg (L > 0.5)  → darken to ~28%, boost saturation a bit
+  // - Dark bg            → lighten to ~88%
+  const targetL = L > 0.5 ? 0.28 : 0.88;
+  const targetS = Math.min(1, sat < 0.15 ? 0 : sat * 1.2);
+  // HSL → RGB
+  const hslToRgb = (h, s, l) => {
+    if (s === 0) return [l, l, l];
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    const hk = h / 360;
+    const conv = t => {
+      if (t < 0) t += 1; if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    };
+    return [conv(hk + 1/3), conv(hk), conv(hk - 1/3)];
+  };
+  const [rr, gg, bb] = hslToRgb(hue, targetS, targetL);
+  const toHex = v => Math.round(Math.max(0, Math.min(255, v * 255))).toString(16).padStart(2, '0');
+  return '#' + toHex(rr) + toHex(gg) + toHex(bb);
+}
+
+// Find the dagdeel that contains a given hour (0-23) — used for canvas bands.
+// Returns the dagdeel object or a fallback if none match.
+function dagdeelAtHour(hr) {
+  const min = (hr % 24) * 60; // hour boundary, minute 0
+  return dagdeelAtMinute(min);
+}
+
+// Find the dagdeel that contains a given minute-of-day (0-1439).
+function dagdeelAtMinute(min) {
+  const list = S.dagdelen || DAGDELEN_DEFAULT;
+  for (const d of list) {
+    const s = hhmmToMin(d.start);
+    const e = hhmmToMin(d.eind);
+    if (isNaN(s) || isNaN(e)) continue;
+    if (s === e) continue;
+    if (s < e) {
+      // Normal: e.g. 07:00–15:00
+      if (min >= s && min < e) return d;
+    } else {
+      // Wraps midnight: e.g. 23:00–07:00 → match if min >= s OR min < e
+      if (min >= s || min < e) return d;
+    }
+  }
+  // No match — return a transparent fallback so canvas/lists still work
+  return { naam: '', start: '00:00', eind: '00:00', kleur: '#f8fafc' };
+}
+
+// Get boundary timestamps (Unix ms) for ALL dagdeel transitions within the
+// last 24h window ending at `now`. Returns sorted array of timestamps,
+// each tagged with the dagdeel that STARTS at that moment.
+function dagdeelBoundariesInWindow(now, cutoff) {
+  const list = S.dagdelen || DAGDELEN_DEFAULT;
+  const out = [];
+  // Helper: find most recent occurrence of a minute-of-day (0-1439) before now
+  const nowD = new Date(now);
+  const nowH = nowD.getHours(), nowM = nowD.getMinutes(), nowS = nowD.getSeconds(), nowMs = nowD.getMilliseconds();
+  const nowMinOfDay = nowH * 60 + nowM;
+  function lastOccurrence(minOfDay) {
+    let msAgo;
+    if (nowMinOfDay >= minOfDay) {
+      msAgo = (nowMinOfDay - minOfDay) * 60000 + nowS * 1000 + nowMs;
+    } else {
+      msAgo = (1440 - minOfDay + nowMinOfDay) * 60000 + nowS * 1000 + nowMs;
+    }
+    return now - msAgo;
+  }
+  list.forEach(d => {
+    const s = hhmmToMin(d.start);
+    const e = hhmmToMin(d.eind);
+    // Add BOTH start and end transitions as boundaries — otherwise gaps
+    // between dagdelen (e.g. vroeg 07-15 + laat 20-23) keep painting the
+    // previous colour past its end-time.
+    [s, e].forEach(minOfDay => {
+      if (isNaN(minOfDay)) return;
+      const last = lastOccurrence(minOfDay);
+      [last, last - 86400000].forEach(t => {
+        if (t > cutoff && t < now) out.push({ t, dagdeel: d });
+      });
+    });
+  });
+  out.sort((a, b) => a.t - b.t);
+  return out;
+}
+
+// Check if a candidate dagdeel (start/eind in minutes-of-day) overlaps with
+// any existing dagdeel in the list. Optionally skip an index (for edit mode).
+// Returns the conflicting dagdeel object, or null if no overlap.
+// Two intervals overlap if they share ANY minute. Both can wrap midnight.
+function findDagdeelOverlap(startMin, eindMin, list, skipIdx) {
+  // Expand a (possibly wrapping) interval into 1-2 non-wrapping segments [from, to).
+  const expand = (s, e) => (s < e) ? [[s, e]] : [[s, 1440], [0, e]];
+  const cand = expand(startMin, eindMin);
+  for (let i = 0; i < list.length; i++) {
+    if (i === skipIdx) continue;
+    const d = list[i];
+    const s = hhmmToMin(d.start);
+    const e = hhmmToMin(d.eind);
+    if (isNaN(s) || isNaN(e) || s === e) continue;
+    const exist = expand(s, e);
+    for (const [a1, a2] of cand) {
+      for (const [b1, b2] of exist) {
+        if (a1 < b2 && b1 < a2) return d; // overlap
+      }
+    }
+  }
+  return null;
+}
+
 // ── PLANNING — volledige dag op basis van klok ────────────────────────────
 // Één platte lijst van 24u: rondes op volgorde van tijd.
 // h = uren na middernacht (0-23). Meerdere rondes op zelfde tijdstip = parallel.
@@ -2340,23 +2545,90 @@ function renderCfg() {
   if (addDropdown)  addDropdown.innerHTML  = rondeOptions;
   if (editDropdown) editDropdown.innerHTML = rondeOptions;
 
-  // Render schema list
+  // Render schema list — grouped per dagdeel with coloured band
   const sl = document.getElementById('schema-list');
   const activeSchema = S.schema || SCHEMA;
   if (sl) {
     if (!activeSchema.length) {
       sl.innerHTML = '<div style="font-size:13px;color:#94a3b8;padding:8px 0">Geen schema-items.</div>';
     } else {
-      sl.innerHTML = activeSchema.map((item, i) => {
+      // Group items by which dagdeel they fall into. We preserve original
+      // schema order within each group AND keep the global index for edit/delete.
+      const dagdelenList = S.dagdelen || DAGDELEN_DEFAULT;
+      const groups = []; // { dagdeel, items: [{ item, origIdx }] }
+      // Initialise in dagdelen-order so the visual groups follow the configured order
+      dagdelenList.forEach(dd => groups.push({ dagdeel: dd, items: [] }));
+      const ungrouped = []; // items that don't match any dagdeel
+      activeSchema.forEach((item, i) => {
+        // Convert schema h (0-30) into minute-of-day for matching
+        const hDisp = item.h % 24;
+        const min = hDisp * 60 + item.m;
+        const dd = dagdeelAtMinute(min);
+        const g = groups.find(g => g.dagdeel === dd);
+        if (g) g.items.push({ item, origIdx: i });
+        else   ungrouped.push({ item, origIdx: i });
+      });
+
+      const renderItem = ({ item, origIdx }) => {
         const hDisp = item.h % 24;
         const timeStr = String(hDisp).padStart(2,'0') + ':' + String(item.m).padStart(2,'0');
-        const isNacht = item.h >= 24;
-        return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid #f1f5f9;font-size:12px">
+        return `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:0.5px solid rgba(148,163,184,.18);font-size:12px">
           <span style="font-weight:600;color:#475569;width:44px;flex-shrink:0">${timeStr}</span>
-          ${item.ronde ? `<span style="background:#dbeafe;color:#1d4ed8;border-radius:20px;padding:1px 7px;font-size:11px;flex-shrink:0">${item.ronde}</span>` : ''}
-          <span style="color:#64748b;flex:1">${item.taak}</span>
-          <button onclick="editSchemaItem(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#94a3b8'">✎</button>
-          <button onclick="rmSchemaItem(${i})" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:14px;padding:0 4px;flex-shrink:0" title="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#cbd5e1'">✕</button>
+          ${item.ronde ? `<span style="background:#fff;color:#1d4ed8;border:1px solid #dbeafe;border-radius:20px;padding:1px 7px;font-size:11px;flex-shrink:0">${item.ronde}</span>` : ''}
+          <span style="color:#475569;flex:1">${item.taak}</span>
+          <button onclick="editSchemaItem(${origIdx})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#94a3b8'">✎</button>
+          <button onclick="rmSchemaItem(${origIdx})" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:14px;padding:0 4px;flex-shrink:0" title="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#cbd5e1'">✕</button>
+        </div>`;
+      };
+
+      let html = '';
+      groups.filter(g => g.items.length).forEach(g => {
+        const dd = g.dagdeel;
+        const bg = dd.kleur || '#f1f5f9';
+        const tx = dd.naam ? autoTekstKleur(bg) : '#475569';
+        html += `<div style="background:${bg};border-radius:8px;margin-bottom:8px;overflow:hidden;border:1px solid rgba(148,163,184,.2)">
+          <div style="padding:6px 10px;font-size:11px;font-weight:700;color:${tx};text-transform:uppercase;letter-spacing:.06em;display:flex;justify-content:space-between;align-items:center">
+            <span>${dd.naam || '—'}</span>
+            <span style="font-weight:500;opacity:.8">${dd.start}–${dd.eind}</span>
+          </div>
+          ${g.items.map(renderItem).join('')}
+        </div>`;
+      });
+      if (ungrouped.length) {
+        html += `<div style="background:#f8fafc;border-radius:8px;margin-bottom:8px;overflow:hidden;border:1px dashed #cbd5e1">
+          <div style="padding:6px 10px;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em">Buiten dagdeel</div>
+          ${ungrouped.map(renderItem).join('')}
+        </div>`;
+      }
+      sl.innerHTML = html;
+    }
+  }
+
+  // Render dagdelen list — sorted by start time
+  const dl = document.getElementById('dagdelen-list');
+  if (dl) {
+    const dagdelenList = S.dagdelen || DAGDELEN_DEFAULT;
+    if (!dagdelenList.length) {
+      dl.innerHTML = '<div style="font-size:13px;color:#94a3b8;padding:8px 0">Geen dagdelen.</div>';
+    } else {
+      // Build display list with original indices preserved for edit/delete
+      const ordered = dagdelenList
+        .map((d, origIdx) => ({ d, origIdx }))
+        .sort((a, b) => {
+          const sa = hhmmToMin(a.d.start), sb = hhmmToMin(b.d.start);
+          if (isNaN(sa)) return 1;
+          if (isNaN(sb)) return -1;
+          return sa - sb;
+        });
+      dl.innerHTML = ordered.map(({ d, origIdx }) => {
+        const bg = d.kleur || '#f1f5f9';
+        const tx = autoTekstKleur(bg);
+        return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;margin-bottom:6px;background:${bg};font-size:12px">
+          <span style="font-weight:700;color:${tx};text-transform:uppercase;letter-spacing:.05em;font-size:11px;min-width:60px">${d.naam || '—'}</span>
+          <span style="color:${tx};font-family:monospace;font-size:12px;opacity:.85">${d.start} – ${d.eind}</span>
+          <span style="flex:1"></span>
+          <button onclick="editDagdeel(${origIdx})" style="background:none;border:none;cursor:pointer;color:${tx};opacity:.7;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen">✎</button>
+          <button onclick="rmDagdeel(${origIdx})" style="background:none;border:none;cursor:pointer;color:${tx};opacity:.7;font-size:14px;padding:0 4px;flex-shrink:0" title="Verwijderen">✕</button>
         </div>`;
       }).join('');
     }
@@ -2426,6 +2698,93 @@ function saveSchemaEdit() {
 function cancelSchemaEdit() {
   _editIdx = null;
   document.getElementById('schema-edit-form').style.display = 'none';
+}
+
+// ── DAGDELEN CRUD ─────────────────────────────────────────────────────────
+function addDagdeel() {
+  const naam  = sanitizeInput(document.getElementById('inp-dagdeel-naam').value || '').trim().slice(0, 24);
+  const start = document.getElementById('inp-dagdeel-start').value;
+  const eind  = document.getElementById('inp-dagdeel-eind').value;
+  const kleur = document.getElementById('inp-dagdeel-kleur').value || '#fef9c3';
+  if (!naam || !start || !eind) { showToast('Vul naam, start en eind in'); return; }
+  if (isNaN(hhmmToMin(start)) || isNaN(hhmmToMin(eind))) { showToast('Ongeldige tijd'); return; }
+  if (start === eind) { showToast('Start en eind mogen niet gelijk zijn'); return; }
+  const list = S.dagdelen ? [...S.dagdelen] : [...DAGDELEN_DEFAULT];
+  const conflict = findDagdeelOverlap(hhmmToMin(start), hhmmToMin(eind), list, -1);
+  if (conflict) { showToast(`Overlapt met "${conflict.naam}" (${conflict.start}–${conflict.eind})`); return; }
+  list.push({ naam, start, eind, kleur });
+  S.dagdelen = list;
+  LS.set('rn_dagdelen', S.dagdelen);
+  fbSave();
+  logEvent('settings', 'Dagdeel toegevoegd', { naam, start, eind });
+  document.getElementById('inp-dagdeel-naam').value = '';
+  document.getElementById('inp-dagdeel-start').value = '';
+  document.getElementById('inp-dagdeel-eind').value = '';
+  showToast('Dagdeel toegevoegd');
+  renderCfg();
+  // Hertekenen 24u-tijdlijn als die zichtbaar is
+  if (document.getElementById('pane-live').classList.contains('on')) renderLive();
+}
+
+let _dagdeelEditIdx = null;
+function editDagdeel(i) {
+  const list = S.dagdelen || DAGDELEN_DEFAULT;
+  const d = list[i];
+  if (!d) return;
+  _dagdeelEditIdx = i;
+  document.getElementById('inp-dagdeel-edit-naam').value = d.naam || '';
+  document.getElementById('inp-dagdeel-edit-start').value = d.start || '';
+  document.getElementById('inp-dagdeel-edit-eind').value = d.eind || '';
+  document.getElementById('inp-dagdeel-edit-kleur').value = d.kleur || '#fef9c3';
+  const f = document.getElementById('dagdeel-edit-form');
+  f.style.display = 'block';
+  f.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function saveDagdeelEdit() {
+  if (_dagdeelEditIdx === null) return;
+  const naam  = sanitizeInput(document.getElementById('inp-dagdeel-edit-naam').value || '').trim().slice(0, 24);
+  const start = document.getElementById('inp-dagdeel-edit-start').value;
+  const eind  = document.getElementById('inp-dagdeel-edit-eind').value;
+  const kleur = document.getElementById('inp-dagdeel-edit-kleur').value || '#fef9c3';
+  if (!naam || !start || !eind) { showToast('Vul naam, start en eind in'); return; }
+  if (isNaN(hhmmToMin(start)) || isNaN(hhmmToMin(eind))) { showToast('Ongeldige tijd'); return; }
+  if (start === eind) { showToast('Start en eind mogen niet gelijk zijn'); return; }
+  const list = S.dagdelen ? [...S.dagdelen] : [...DAGDELEN_DEFAULT];
+  const conflict = findDagdeelOverlap(hhmmToMin(start), hhmmToMin(eind), list, _dagdeelEditIdx);
+  if (conflict) { showToast(`Overlapt met "${conflict.naam}" (${conflict.start}–${conflict.eind})`); return; }
+  list[_dagdeelEditIdx] = { naam, start, eind, kleur };
+  S.dagdelen = list;
+  LS.set('rn_dagdelen', S.dagdelen);
+  fbSave();
+  logEvent('settings', 'Dagdeel gewijzigd', { idx: _dagdeelEditIdx, naam });
+  _dagdeelEditIdx = null;
+  document.getElementById('dagdeel-edit-form').style.display = 'none';
+  showToast('Dagdeel bijgewerkt');
+  renderCfg();
+  if (document.getElementById('pane-live').classList.contains('on')) renderLive();
+}
+
+function cancelDagdeelEdit() {
+  _dagdeelEditIdx = null;
+  document.getElementById('dagdeel-edit-form').style.display = 'none';
+}
+
+function rmDagdeel(i) {
+  const list = S.dagdelen ? [...S.dagdelen] : [...DAGDELEN_DEFAULT];
+  const d = list[i];
+  if (!d) return;
+  customConfirm(`Dagdeel "${d.naam}" verwijderen?`).then(ok => {
+    if (!ok) return;
+    list.splice(i, 1);
+    S.dagdelen = list.length ? list : null; // null = fall back to default
+    LS.set('rn_dagdelen', S.dagdelen);
+    fbSave();
+    logEvent('settings', 'Dagdeel verwijderd', { naam: d.naam });
+    showToast('Dagdeel verwijderd');
+    renderCfg();
+    if (document.getElementById('pane-live').classList.contains('on')) renderLive();
+  });
 }
 
 function toggleSchema() {
