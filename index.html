@@ -590,7 +590,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.86</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.88</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -610,7 +610,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.86';
+const APP_VERSION = '2.0.88';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1446,18 +1446,30 @@ function renderAllActive() {
   if (!S.tick) S.tick = setInterval(r, 1000);
 }
 
+// Report retour for multiple people sequentially (used by "Beide retour" button)
+async function doRetourAllen(names) {
+  for (const n of names) await doRetour(n);
+}
+
 function groupCardHTML(route, start, members, btn) {
   // members = [[name, activeObj], ...]
   const names = members.map(([n]) => n);
+  const namesEncoded = names.map(n => n.replace(/"/g,'&quot;'));
+  const bothBtn = btn && names.length > 1
+    ? `<button class="rbtn" onclick="doRetourAllen([${namesEncoded.map(n=>`'${n.replace(/'/g,"\\'")}'`).join(',')}])"
+        style="margin-top:8px;background:#1e3a5c;color:#fff;border-color:#1e3a5c;font-weight:600">
+        &#10003; Alle ${names.length} retour
+       </button>`
+    : '';
   return `<div class="card ca">
     <div class="cst"><span class="dot dot-r"></span><span style="color:#991b1b">Onderweg</span></div>
     <div class="cr">${route}</div>
     <div class="cn" style="margin-bottom:6px">${names.join(' &amp; ')}</div>
     <div class="ct" style="margin-bottom:2px">Gestart om ${fmtT(start)}</div>
     <div class="ct">Duur &nbsp;<span class="cel">${elaps(start)}</span></div>
-    ${btn ? names.map(n =>
-      `<button class="rbtn" data-name="${n.replace(/"/g,'&quot;')}" onclick="doRetourBtn(this)" style="margin-top:6px">&#10003; ${n.split(' ')[0]} retour</button>`
-    ).join('') : ''}
+    ${btn ? bothBtn + `<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">` + names.map(n =>
+      `<button class="rbtn" data-name="${n.replace(/"/g,'&quot;')}" onclick="doRetourBtn(this)" style="flex:1;min-width:0">&#10003; ${n.split(' ')[0]} retour</button>`
+    ).join('') + `</div>` : ''}
   </div>`;
 }
 
