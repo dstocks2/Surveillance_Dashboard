@@ -420,7 +420,10 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
       <!-- PIN change row -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
         <span style="font-size:11px;color:#94a3b8">🔒 Instellingen zijn beveiligd met een pincode</span>
-        <button onclick="changePinDialog()" style="background:none;border:none;font-size:11px;color:#94a3b8;cursor:pointer;text-decoration:underline;padding:0">Pincode wijzigen</button>
+        <div style="display:flex;gap:12px;align-items:center">
+          <button onclick="manualLockCfg()" style="background:none;border:none;font-size:11px;color:#94a3b8;cursor:pointer;text-decoration:underline;padding:0">Vergrendelen</button>
+          <button onclick="changePinDialog()" style="background:none;border:none;font-size:11px;color:#94a3b8;cursor:pointer;text-decoration:underline;padding:0">Pincode wijzigen</button>
+        </div>
       </div>
       <div class="hr" style="margin-top:8px"></div>
 
@@ -587,7 +590,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.83</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.86</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -607,7 +610,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.83';
+const APP_VERSION = '2.0.86';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -777,7 +780,7 @@ function showUpdateBanner() {
     <div style="background:#fff;border-radius:12px;padding:28px 24px;max-width:320px;width:100%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.25)">
       <div style="font-size:32px;margin-bottom:12px">🔄</div>
       <div style="font-size:16px;font-weight:600;color:#1e293b;margin-bottom:8px">Nieuwe versie beschikbaar</div>
-      <div style="font-size:13px;color:#64748b;margin-bottom:20px;line-height:1.5">Een andere tablet of telefoon gebruikt een nieuwere versie. Vernieuw de pagina om door te gaan.</div>
+      <div style="font-size:13px;color:#64748b;margin-bottom:20px;line-height:1.5">Er is een nieuwe versie van de webapplicatie. Vernieuw de pagina om door te gaan.</div>
       <button onclick="location.reload(true)"
         style="width:100%;padding:13px;border-radius:8px;border:none;background:#1d4ed8;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
         Pagina vernieuwen
@@ -2909,6 +2912,13 @@ function hideCfgLock() {
   if (content) content.style.display = 'block';
 }
 
+function manualLockCfg() {
+  // Clear the 30-min unlock cache so PIN is required again
+  localStorage.removeItem('rn_cfg_unlocked');
+  logEvent('pin', 'Instellingen handmatig vergrendeld');
+  showCfgLock();
+}
+
 async function checkPin() {
   const inp = document.getElementById('cfg-pin-input');
   const err = document.getElementById('cfg-pin-error');
@@ -2945,6 +2955,22 @@ function checkCfgLock() {
     showCfgLock();
   }
 }
+
+// Auto-lock: check every 60s whether the 30-min window has expired.
+// If cfg pane is open and cache expired, lock immediately.
+setInterval(() => {
+  const unlocked = LS.get('rn_cfg_unlocked');
+  if (!unlocked) return; // already locked
+  if (Date.now() - unlocked >= 30 * 60 * 1000) {
+    localStorage.removeItem('rn_cfg_unlocked');
+    // Only show the lock screen if the cfg pane is currently visible
+    const pane = document.getElementById('pane-cfg');
+    if (pane && pane.classList.contains('on')) {
+      logEvent('pin', 'Instellingen automatisch vergrendeld (30 min)');
+      showCfgLock();
+    }
+  }
+}, 60000);
 
 function rmSchemaItem(i) {
   const activeSchema = S.schema ? [...S.schema] : [...SCHEMA];
