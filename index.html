@@ -590,7 +590,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.88</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.89</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -610,7 +610,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.88';
+const APP_VERSION = '2.0.89';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1457,7 +1457,7 @@ function groupCardHTML(route, start, members, btn) {
   const namesEncoded = names.map(n => n.replace(/"/g,'&quot;'));
   const bothBtn = btn && names.length > 1
     ? `<button class="rbtn" onclick="doRetourAllen([${namesEncoded.map(n=>`'${n.replace(/'/g,"\\'")}'`).join(',')}])"
-        style="margin-top:8px;background:#1e3a5c;color:#fff;border-color:#1e3a5c;font-weight:600">
+        style="margin-top:8px;width:100%;font-weight:600">
         &#10003; Alle ${names.length} retour
        </button>`
     : '';
