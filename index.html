@@ -560,6 +560,57 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     </div>
     <div class="hr"></div>
 
+    <!-- Gedrag: collapsible -->
+    <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onclick="toggleSection('gedrag')">
+      <p class="lbl" style="margin:0">Gedrag <span style="font-size:10px;font-weight:400;color:#94a3b8;text-transform:none;letter-spacing:0">— tijdslimieten en vergrendelingsgedrag</span></p>
+      <span id="gedrag-toggle-icon" style="font-size:13px;color:#94a3b8;padding:4px 0">▼</span>
+    </div>
+    <div id="gedrag-collapse" style="display:none;margin-top:10px">
+      <div style="display:flex;flex-direction:column;gap:14px;padding:4px 0 8px">
+
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <div>
+            <div style="font-size:13px;font-weight:500;color:#1e293b">Lange-ronde waarschuwing</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:2px">Oranje melding als een ronde langer duurt dan dit aantal uur</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            <input type="number" id="inp-timeout-warn" min="1" max="24" step="1"
+              style="width:60px;padding:5px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;text-align:center;font-family:inherit"
+              oninput="saveGedrag()">
+            <span style="font-size:12px;color:#64748b">uur</span>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <div>
+            <div style="font-size:13px;font-weight:500;color:#1e293b">Gedeelde meldingen TTL</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:2px">Hoe lang gedeelde meldingen zichtbaar blijven voor alle apparaten</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            <input type="number" id="inp-melding-ttl" min="1" max="72" step="1"
+              style="width:60px;padding:5px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;text-align:center;font-family:inherit"
+              oninput="saveGedrag()">
+            <span style="font-size:12px;color:#64748b">uur</span>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <div>
+            <div style="font-size:13px;font-weight:500;color:#1e293b">PIN-cache duur</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:2px">Hoe lang instellingen ontgrendeld blijven na invoer van pincode</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            <input type="number" id="inp-pin-cache" min="5" max="480" step="5"
+              style="width:68px;padding:5px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;text-align:center;font-family:inherit"
+              oninput="saveGedrag()">
+            <span style="font-size:12px;color:#64748b">min</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="hr"></div>
+
     <div class="hr"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
       <h3 style="margin:0;font-size:14px">Audit log <span style="font-size:11px;color:#94a3b8;font-weight:normal">— systeem- en gebruikersacties (auto-wis na 7 dagen)</span></h3>
@@ -590,7 +641,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.89</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.90</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -610,7 +661,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.89';
+const APP_VERSION = '2.0.90';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -723,6 +774,7 @@ function fbSave() {
   updates['/dashboard/routes']  = S.routes;
   if (S.schema) updates['/dashboard/schema'] = S.schema;
   if (S.dagdelen) updates['/dashboard/dagdelen'] = S.dagdelen;
+  updates['/dashboard/gedrag'] = { timeoutWarn: S.timeoutWarn, meldingTTL: S.meldingTTL, pinCacheDur: S.pinCacheDur };
   // PIN: only write if already hashed (64 char) — getCfgPinHash() handles migration async
   const storedPin = LS.get('rn_cfg_pin');
   if (storedPin && storedPin.length === 64) updates['/dashboard/pin'] = storedPin;
@@ -986,6 +1038,19 @@ function fbListen() {
     if (d.pin && typeof d.pin === 'string' && d.pin.length === 64) {
       LS.set('rn_cfg_pin', d.pin);
     }
+    // Sync gedrag-instellingen from Firebase
+    if (d.gedrag && typeof d.gedrag === 'object') {
+      const g = d.gedrag;
+      if (typeof g.timeoutWarn === 'number' && g.timeoutWarn >= 1 && g.timeoutWarn <= 24 && g.timeoutWarn !== S.timeoutWarn) {
+        S.timeoutWarn = g.timeoutWarn; LS.set('rn_timeout_warn', g.timeoutWarn);
+      }
+      if (typeof g.meldingTTL === 'number' && g.meldingTTL >= 1 && g.meldingTTL <= 72 && g.meldingTTL !== S.meldingTTL) {
+        S.meldingTTL = g.meldingTTL; LS.set('rn_melding_ttl', g.meldingTTL);
+      }
+      if (typeof g.pinCacheDur === 'number' && g.pinCacheDur >= 5 && g.pinCacheDur <= 480 && g.pinCacheDur !== S.pinCacheDur) {
+        S.pinCacheDur = g.pinCacheDur; LS.set('rn_pin_cache_dur', g.pinCacheDur);
+      }
+    }
 
     // Only back up settings to localStorage (not active/log)
     LS.set('rn_dienst', [...S.dienst]);
@@ -1045,7 +1110,11 @@ let S = {
   active: {},   // always loaded from Firebase — never from localStorage
   log:    [],   // always loaded from Firebase — never from localStorage
   sns: new Set(), sr: null, dienst: new Set(LS.get('rn_dienst') || []),
-  tick: null, tickL: null, tickTL: null
+  tick: null, tickL: null, tickTL: null,
+  // Gedrag-instellingen (beheersbaar via instellingen-tab)
+  timeoutWarn:  LS.get('rn_timeout_warn')  ?? 4,   // uren: oranje melding bij lange ronde
+  meldingTTL:   LS.get('rn_melding_ttl')   ?? 8,   // uren: hoe lang gedeelde meldingen zichtbaar
+  pinCacheDur:  LS.get('rn_pin_cache_dur') ?? 30,  // minuten: hoe lang instellingen ontgrendeld blijven
 };
 
 // ── In-flight write tracking ──────────────────────────────────────────────
@@ -2030,7 +2099,7 @@ TIMERS.set('staleCheck', pruneStaleActive, 30 * 60 * 1000);
 function checkActiveTimeout() {
   // Warn if someone has been active for more than 4 hours
   const now = Date.now();
-  const TIMEOUT_MS = 4 * 60 * 60 * 1000;
+  const TIMEOUT_MS = S.timeoutWarn * 60 * 60 * 1000;
   Object.entries(S.active).forEach(([name, a]) => {
     const dur = now - a.start;
     if (dur > TIMEOUT_MS && !a._warned) {
@@ -2564,6 +2633,14 @@ TIMERS.set('planRefresh', () => {
 
 
 function renderCfg() {
+  // Vul gedrag-inputs in met huidige waarden
+  const inpTW = document.getElementById('inp-timeout-warn');
+  const inpMT = document.getElementById('inp-melding-ttl');
+  const inpPC = document.getElementById('inp-pin-cache');
+  if (inpTW && document.activeElement !== inpTW) inpTW.value = S.timeoutWarn;
+  if (inpMT && document.activeElement !== inpMT) inpMT.value = S.meldingTTL;
+  if (inpPC && document.activeElement !== inpPC) inpPC.value = S.pinCacheDur;
+
   const nt = document.getElementById('name-tags');
   nt.innerHTML = '';
   S.names.forEach((n, i) => {
@@ -2958,27 +3035,39 @@ async function changePinDialog() {
   showToast('Pincode opgeslagen en gesynchroniseerd');
 }
 
+// ── GEDRAG-INSTELLINGEN ────────────────────────────────────────────────────
+function saveGedrag() {
+  const tw  = parseInt(document.getElementById('inp-timeout-warn')?.value, 10);
+  const mt  = parseInt(document.getElementById('inp-melding-ttl')?.value, 10);
+  const pc  = parseInt(document.getElementById('inp-pin-cache')?.value, 10);
+  if (!isNaN(tw) && tw >= 1  && tw <= 24)  { S.timeoutWarn  = tw;  LS.set('rn_timeout_warn',  tw); }
+  if (!isNaN(mt) && mt >= 1  && mt <= 72)  { S.meldingTTL   = mt;  LS.set('rn_melding_ttl',   mt); }
+  if (!isNaN(pc) && pc >= 5  && pc <= 480) { S.pinCacheDur  = pc;  LS.set('rn_pin_cache_dur', pc); }
+  save();
+  logEvent('settings', 'Gedrag-instellingen gewijzigd', { timeoutWarn: S.timeoutWarn, meldingTTL: S.meldingTTL, pinCacheDur: S.pinCacheDur });
+}
+
 function checkCfgLock() {
-  // Check if unlocked within last 30 minutes
+  // Check if unlocked within configured window
   const unlocked = LS.get('rn_cfg_unlocked');
-  if (unlocked && Date.now() - unlocked < 30 * 60 * 1000) {
+  if (unlocked && Date.now() - unlocked < S.pinCacheDur * 60 * 1000) {
     hideCfgLock();
   } else {
     showCfgLock();
   }
 }
 
-// Auto-lock: check every 60s whether the 30-min window has expired.
+// Auto-lock: check every 60s whether the configured window has expired.
 // If cfg pane is open and cache expired, lock immediately.
 setInterval(() => {
   const unlocked = LS.get('rn_cfg_unlocked');
   if (!unlocked) return; // already locked
-  if (Date.now() - unlocked >= 30 * 60 * 1000) {
+  if (Date.now() - unlocked >= S.pinCacheDur * 60 * 1000) {
     localStorage.removeItem('rn_cfg_unlocked');
     // Only show the lock screen if the cfg pane is currently visible
     const pane = document.getElementById('pane-cfg');
     if (pane && pane.classList.contains('on')) {
-      logEvent('pin', 'Instellingen automatisch vergrendeld (30 min)');
+      logEvent('pin', 'Instellingen automatisch vergrendeld (' + S.pinCacheDur + ' min)');
       showCfgLock();
     }
   }
@@ -3435,7 +3524,7 @@ function fbListenMeldingen() {
       if (!currentKeys.has(key)) _sharedMeldIds.delete(key);
     }
     if (!data) return;
-    const TTL = 8 * 60 * 60 * 1000; // 8 hours in ms
+    const TTL = S.meldingTTL * 60 * 60 * 1000; // configureerbaar via instellingen
     const cutoff = Date.now() - TTL;
     // data is an object keyed by push-id: { type, naam, sub, tijdStr, ts }
     Object.entries(data).forEach(([key, m]) => {
