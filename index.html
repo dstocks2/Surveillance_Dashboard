@@ -587,7 +587,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.79</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.82</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -607,7 +607,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.79';
+const APP_VERSION = '2.0.82';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -931,9 +931,22 @@ function fbListen() {
     // Only overwrite settings if the incoming value actually differs from local state.
     // This prevents any Firebase trigger (own echo, meldingen write, etc.) from
     // overwriting a just-toggled local value with stale data.
+    //
+    // Race protection: _pendingDienst tracks recent local toggles for up to
+    // PENDING_DIENST_TTL ms. We merge the incoming Firebase value with our
+    // pending intents — adds force the name IN, removes force it OUT — so a
+    // stale snapshot can't undo a fresh local click.
     if (d.dienst !== undefined) {
-      const fbDienst = sanitizeNames(Array.isArray(d.dienst) ? d.dienst : []);
-      const localDienst = [...S.dienst].sort().join('|');
+      let fbDienst = sanitizeNames(Array.isArray(d.dienst) ? d.dienst : []);
+      if (_pendingDienst.size) {
+        const merged = new Set(fbDienst);
+        for (const [name, p] of _pendingDienst) {
+          if (p.op === 'add')    merged.add(name);
+          if (p.op === 'remove') merged.delete(name);
+        }
+        fbDienst = [...merged];
+      }
+      const localDienst  = [...S.dienst].sort().join('|');
       const remoteDienst = [...fbDienst].sort().join('|');
       if (remoteDienst !== localDienst)
         S.dienst = new Set(fbDienst);
@@ -1038,6 +1051,8 @@ let S = {
 // we can preserve them across listener snapshots.
 const _pendingActive = new Map();  // name -> { route, start, op: 'add'|'remove' }
 const _pendingLog = new Set();     // log entry ids we've just added
+const _pendingDienst = new Map();  // name -> { op: 'add'|'remove', ts: number }
+const PENDING_DIENST_TTL = 5000;   // 5s — long enough for slow networks
 
 function markActivePending(name, op, entry) {
   _pendingActive.set(name, { op, entry, ts: Date.now() });
@@ -1049,11 +1064,25 @@ function markLogPending(id) {
   _pendingLog.add(id);
   setTimeout(() => _pendingLog.delete(id), 60000); // auto-cleanup after 60s
 }
+function markDienstPending(name, op) {
+  _pendingDienst.set(name, { op, ts: Date.now() });
+  // Auto-clear after TTL so a permanently stuck pending can't block forever
+  setTimeout(() => {
+    const cur = _pendingDienst.get(name);
+    if (cur && cur.op === op && Date.now() - cur.ts >= PENDING_DIENST_TTL - 50) {
+      _pendingDienst.delete(name);
+    }
+  }, PENDING_DIENST_TTL);
+}
 // Auto-cleanup very old pending markers (safety net) — 60s window for slow networks
 setInterval(() => {
   const cutoff = Date.now() - 60000;
   for (const [name, p] of _pendingActive) {
     if (p.ts < cutoff) _pendingActive.delete(name);
+  }
+  const dienstCutoff = Date.now() - PENDING_DIENST_TTL;
+  for (const [name, p] of _pendingDienst) {
+    if (p.ts < dienstCutoff) _pendingDienst.delete(name);
   }
 }, 10000);
 
@@ -2569,6 +2598,27 @@ function renderCfg() {
         else   ungrouped.push({ item, origIdx: i });
       });
 
+      // Sort items within each group by CLOCK-time. For wrapping dagdelen
+      // (start > eind, e.g. nacht 23:00→07:00) we sort by "minutes since
+      // dagdeel-start" so 23:00 comes BEFORE 00:00 chronologically.
+      const sortGroup = (items, dd) => {
+        const ddStart = dd ? hhmmToMin(dd.start) : 0;
+        const ddEind  = dd ? hhmmToMin(dd.eind)  : 0;
+        const wraps   = dd && !isNaN(ddStart) && !isNaN(ddEind) && ddStart > ddEind;
+        const keyFor = item => {
+          const min = (item.h % 24) * 60 + item.m;
+          if (wraps) {
+            // Minutes since dagdeel-start, wrapping past midnight
+            return (min - ddStart + 1440) % 1440;
+          }
+          return min;
+        };
+        items.sort((a, b) => keyFor(a.item) - keyFor(b.item));
+      };
+      groups.forEach(g => sortGroup(g.items, g.dagdeel));
+      // Ungrouped: pure clock-time
+      ungrouped.sort((a, b) => ((a.item.h % 24) * 60 + a.item.m) - ((b.item.h % 24) * 60 + b.item.m));
+
       const renderItem = ({ item, origIdx }) => {
         const hDisp = item.h % 24;
         const timeStr = String(hDisp).padStart(2,'0') + ':' + String(item.m).padStart(2,'0');
@@ -2929,6 +2979,7 @@ async function rmName(i) {
   const naam = S.names[i];
   if (!await customConfirm('Weet je zeker dat je "' + naam + '" wilt verwijderen?')) return;
   S.names.splice(i, 1);
+  if (S.dienst.has(naam)) markDienstPending(naam, 'remove');
   S.dienst.delete(naam);
   save(); renderCfg(); renderNameBtns(); renderDienst();
   showToast(naam.split(' ')[0] + ' verwijderd');
@@ -2978,15 +3029,26 @@ function renderDienst() {
     groepen[l].forEach(n => {
       const isOn = S.dienst.has(n);
       const btn = document.createElement('button');
+      btn.setAttribute('data-dienst-name', n);
+      // If a recent toggle is still pending, show button as locked (prevents
+      // double-tap that would queue conflicting writes)
+      if (_pendingDienst.has(n)) {
+        btn.style.opacity = '0.55';
+        btn.style.pointerEvents = 'none';
+      }
       btn.style.cssText = `padding:5px 11px;border-radius:20px;border:1.5px solid ${isOn?'#1e3a5c':'#cbd5e1'};background:${isOn?'#1e3a5c':'#fff'};color:${isOn?'#fff':'#334155'};font-size:12px;cursor:pointer;font-family:inherit;font-weight:${isOn?'600':'400'};transition:all .13s`;
       btn.textContent = (isOn ? '✓ ' : '') + n;
       btn.addEventListener('click', () => {
+        // Debounce: ignore clicks while previous toggle still in flight
+        if (btn.disabled || btn._busy) return;
         if (S.dienst.has(n)) {
           if (S.active[n]) {
             showToast('⚠ ' + n.split(' ')[0] + ' heeft nog een actieve ronde (' + S.active[n].route + '). Meld eerst retour.', 4000);
             voegMeldingToe('oranje', 'Nog onderweg — ' + n.split(' ')[0], S.active[n].route + ' is nog actief. Meld retour voor verwijderen.', 'Retour melden', () => doRetour(n));
             return;
           }
+          // Mark intent BEFORE state change so any in-flight fbListen respects it
+          markDienstPending(n, 'remove');
           S.dienst.delete(n);
           save();
           renderDienst();
@@ -2994,6 +3056,7 @@ function renderDienst() {
           logEvent('dienst', n + ' einde dienst');
           schrijfGedeeldeMelding('grijs', 'Einde dienst', n);
         } else {
+          markDienstPending(n, 'add');
           S.dienst.add(n);
           save();
           renderDienst();
@@ -3001,6 +3064,20 @@ function renderDienst() {
           logEvent('dienst', n + ' op dienst');
           schrijfGedeeldeMelding('grijs', 'Aanvang dienst', n);
         }
+        // Temporarily lock this name's buttons across all instances (re-render
+        // recreates the DOM). We re-find buttons via data-name to apply the lock.
+        btn._busy = true;
+        document.querySelectorAll('[data-dienst-name="' + CSS.escape(n) + '"]').forEach(b => {
+          b.style.opacity = '0.55';
+          b.style.pointerEvents = 'none';
+        });
+        setTimeout(() => {
+          btn._busy = false;
+          document.querySelectorAll('[data-dienst-name="' + CSS.escape(n) + '"]').forEach(b => {
+            b.style.opacity = '';
+            b.style.pointerEvents = '';
+          });
+        }, 800);
       });
       rij.appendChild(btn);
     });
@@ -3019,6 +3096,9 @@ function renderDienst() {
 
 
 function dienstLeeg() {
+  // Mark every currently-on-dienst name as 'remove' pending so an in-flight
+  // Firebase snapshot can't undo the clear
+  for (const n of S.dienst) markDienstPending(n, 'remove');
   S.dienst = new Set();
   save(); renderDienst(); renderNameBtns();
 }
