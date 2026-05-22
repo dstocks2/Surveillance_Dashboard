@@ -583,7 +583,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
           <div>
-            <div style="font-size:13px;font-weight:500;color:#1e293b">Gedeelde meldingen TTL</div>
+            <div style="font-size:13px;font-weight:500;color:#1e293b">Melding duur</div>
             <div style="font-size:11px;color:#94a3b8;margin-top:2px">Hoe lang gedeelde meldingen zichtbaar blijven voor alle apparaten</div>
           </div>
           <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
@@ -596,7 +596,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
           <div>
-            <div style="font-size:13px;font-weight:500;color:#1e293b">PIN-cache duur</div>
+            <div style="font-size:13px;font-weight:500;color:#1e293b">Vergrendeling duur</div>
             <div style="font-size:11px;color:#94a3b8;margin-top:2px">Hoe lang instellingen ontgrendeld blijven na invoer van pincode</div>
           </div>
           <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
@@ -613,7 +613,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
     <div class="hr"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-      <h3 style="margin:0;font-size:14px">Audit log <span style="font-size:11px;color:#94a3b8;font-weight:normal">— systeem- en gebruikersacties (auto-wis na 7 dagen)</span></h3>
+      <h3 style="margin:0;font-size:14px;font-weight:normal">Audit log <span style="font-size:11px;color:#94a3b8">— systeem- en gebruikersacties (auto-wis na 7 dagen)</span></h3>
       <button class="sm" onclick="toggleEventLog()" id="event-log-toggle" style="font-size:11px;padding:4px 10px">Tonen</button>
     </div>
     <div id="event-log-section" style="display:none;margin-bottom:16px">
@@ -641,7 +641,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.90</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.91</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -661,7 +661,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.90';
+const APP_VERSION = '2.0.91';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
