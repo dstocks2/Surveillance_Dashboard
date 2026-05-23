@@ -647,7 +647,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.06</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.07</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -667,7 +667,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.06';
+const APP_VERSION = '2.1.07';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1041,8 +1041,8 @@ function fbListen() {
         LS.set('rn_dagdelen', S.dagdelen);
       }
     }
-    // Sync rollen from Firebase
-    {
+    // Sync rollen from Firebase — skip echo for 3s after a local write
+    if (Date.now() - _rollenWriteTs > 3000) {
       const fbRollen = (d.rollen && typeof d.rollen === 'object' && !Array.isArray(d.rollen)) ? d.rollen : {};
       const fbRollenStr = JSON.stringify(fbRollen);
       const localRollenStr = JSON.stringify(S.rollen || {});
@@ -1183,6 +1183,7 @@ function save() {
   LS.set('rn_routes', S.routes);
   LS.set('rn_dienst', [...S.dienst]);
   LS.set('rn_rollen', S.rollen || {});
+  _rollenWriteTs = Date.now();
   fbSave();
 }
 
@@ -3385,6 +3386,7 @@ function sanitizeInput(str) {
 }
 
 let _overlayMd = null; // tracks mousedown target to prevent drag-out-of-field closing overlays
+let _rollenWriteTs = 0; // timestamp of last local rollen write — suppresses fbListen echo for 3s
 let _medewerkerEditIdx = null; // null = nieuw, number = edit index
 
 function openMedewerkerModal(idx) {
