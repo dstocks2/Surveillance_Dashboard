@@ -519,43 +519,40 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     </div>
     <div id="schema-collapse" style="display:none;margin-top:10px">
       <div id="schema-list" style="margin-bottom:12px"></div>
-      <!-- Edit modal trigger row -->
-      <div id="schema-edit-form" style="display:none;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:10px">
-        <p style="font-size:12px;font-weight:600;color:#475569;margin-bottom:10px">Item wijzigen</p>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+      <button class="sm" onclick="openSchemaModal(null)" style="margin-bottom:8px">+ Nieuw schema-item</button>
+    </div>
+
+    <!-- Schema modal (add + edit) -->
+    <div id="schema-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9000;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeSchemaModal()">
+      <div style="background:#fff;border-radius:14px;padding:20px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.18);position:relative">
+        <button onclick="closeSchemaModal()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
+        <p id="schema-modal-title" style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 16px">Schema-item toevoegen</p>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <label style="font-size:11px;color:#64748b">Tijd</label>
+              <input type="time" id="inp-schema-modal-tijd" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:115px">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:150px">
+              <label style="font-size:11px;color:#64748b">Ronde (optioneel)</label>
+              <select id="inp-schema-modal-ronde" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:100%"></select>
+            </div>
+          </div>
           <div style="display:flex;flex-direction:column;gap:4px">
-            <label style="font-size:11px;color:#64748b">Tijd</label>
-            <input type="time" id="inp-schema-edit-tijd" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:110px">
-          </div>
-          <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:140px">
-            <label style="font-size:11px;color:#64748b">Ronde (optioneel)</label>
-            <select id="inp-schema-edit-ronde" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit"></select>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:4px;flex:2;min-width:200px">
             <label style="font-size:11px;color:#64748b">Taakomschrijving</label>
-            <input type="text" id="inp-schema-edit-taak" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit">
+            <input type="text" id="inp-schema-modal-taak" placeholder="Omschrijving van de taak" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:100%;box-sizing:border-box">
           </div>
-          <div style="display:flex;gap:6px">
-            <button class="sm" onclick="saveSchemaEdit()">💾 Opslaan</button>
-            <button class="sm" onclick="cancelSchemaEdit()" style="background:#f1f5f9;color:#64748b">Annuleren</button>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <label style="font-size:11px;color:#64748b">Zichtbaar op (leeg = alle dagen)</label>
+            <div style="display:flex;gap:6px;flex-wrap:wrap" id="schema-modal-dagen"></div>
           </div>
         </div>
-      </div>
-      <!-- Add new item -->
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px">
-        <div style="display:flex;flex-direction:column;gap:4px">
-          <label style="font-size:11px;color:#64748b">Tijd</label>
-          <input type="time" id="inp-schema-tijd" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:110px">
+        <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end">
+          <button class="sm" onclick="closeSchemaModal()" style="background:#f1f5f9;color:#64748b">Annuleren</button>
+          <button id="schema-modal-save-btn" class="sm" onclick="saveSchemaModal()" disabled style="opacity:.4;cursor:not-allowed">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Opslaan
+          </button>
         </div>
-        <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:140px">
-          <label style="font-size:11px;color:#64748b">Ronde (optioneel)</label>
-          <select id="inp-schema-ronde" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit"></select>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:4px;flex:2;min-width:200px">
-          <label style="font-size:11px;color:#64748b">Taakomschrijving</label>
-          <input type="text" id="inp-schema-taak" placeholder="Omschrijving van de taak" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit">
-        </div>
-        <button class="sm" onclick="addSchemaItem()" style="margin-bottom:1px">+ Toevoegen</button>
       </div>
     </div>
     <div class="hr"></div>
@@ -596,7 +593,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
           <div>
-            <div style="font-size:13px;font-weight:500;color:#1e293b">Vergrendeling duur</div>
+            <div style="font-size:13px;font-weight:500;color:#1e293b">Automatische vergrendeling instellingen</div>
             <div style="font-size:11px;color:#94a3b8;margin-top:2px">Hoe lang instellingen ontgrendeld blijven na invoer van pincode</div>
           </div>
           <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
@@ -641,7 +638,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.92</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.0.95</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -661,7 +658,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.0.92';
+const APP_VERSION = '2.0.95';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -2445,8 +2442,15 @@ function renderPlan() {
   const now = nowMinsAdj();
 
   // Filter schema for today (exclude weekday-only items in weekend)
+  const todayDow = ['zo','ma','di','wo','do','vr','za'][new Date().getDay()];
   const weekday = isWeekday();
-  const todaySchema = (S.schema || SCHEMA).filter(s => !s.weekdagsOnly || weekday);
+  const todaySchema = (S.schema || SCHEMA).filter(s => {
+    // New days array — empty/absent = show always
+    if (s.dagen && s.dagen.length) return s.dagen.includes(todayDow);
+    // Backward compat: weekdagsOnly
+    if (s.weekdagsOnly) return weekday;
+    return true;
+  });
 
   // nowMinsAdj() treats 00:00-06:59 as 24:00-30:59 so nacht items sort correctly.
   // schemaAdj maps each item to the same scale as nowMinsAdj():
@@ -2683,10 +2687,8 @@ function renderCfg() {
   const rondeOptions = ['', ...S.routes].map(r =>
     `<option value="${r}">${r || '— geen ronde —'}</option>`
   ).join('');
-  const addDropdown = document.getElementById('inp-schema-ronde');
-  const editDropdown = document.getElementById('inp-schema-edit-ronde');
-  if (addDropdown)  addDropdown.innerHTML  = rondeOptions;
-  if (editDropdown) editDropdown.innerHTML = rondeOptions;
+  const modalDropdown = document.getElementById('inp-schema-modal-ronde');
+  if (modalDropdown) modalDropdown.innerHTML = rondeOptions;
 
   // Render schema list — grouped per dagdeel with coloured band
   const sl = document.getElementById('schema-list');
@@ -2733,14 +2735,38 @@ function renderCfg() {
       // Ungrouped: pure clock-time
       ungrouped.sort((a, b) => ((a.item.h % 24) * 60 + a.item.m) - ((b.item.h % 24) * 60 + b.item.m));
 
+      // Compute compact day label for schema list:
+      // - all 7 or empty (with weekdagsOnly=false) → 'alle dagen'
+      // - ma-vr → 'ma–vr'
+      // - za-zo → 'weekend'
+      // - anything else → abbreviated list 'ma,wo,vr'
+      const WD_ALL = ['ma','di','wo','do','vr','za','zo'];
+      const WD_WEEK = ['ma','di','wo','do','vr'];
+      const WD_WEEKEND = ['za','zo'];
+      function dagenLabel(item) {
+        // Resolve effective dagen
+        let dagen = item.dagen && item.dagen.length ? item.dagen
+                  : item.weekdagsOnly ? WD_WEEK
+                  : WD_ALL;
+        // Sort to canonical order
+        const sorted = WD_ALL.filter(d => dagen.includes(d));
+        if (sorted.length === 7 || sorted.length === 0) return 'alle dagen';
+        if (sorted.join(',') === WD_WEEK.join(',')) return 'ma–vr';
+        if (sorted.join(',') === WD_WEEKEND.join(',')) return 'weekend';
+        return sorted.join(', ');
+      }
       const renderItem = ({ item, origIdx }) => {
         const hDisp = item.h % 24;
         const timeStr = String(hDisp).padStart(2,'0') + ':' + String(item.m).padStart(2,'0');
-        return `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:0.5px solid rgba(148,163,184,.18);font-size:12px">
+        const dl = dagenLabel(item);
+        const dlShort = dl === 'alle dagen'; // muted style for "alle dagen"
+        const dagenBadge = `<span style="flex-shrink:0;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:500;${dlShort ? 'color:#94a3b8;background:transparent;border:1px solid #e2e8f0' : 'color:#2563eb;background:#eff6ff;border:1px solid #bfdbfe'}">${dl}</span>`;
+        return `<div style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:0.5px solid rgba(148,163,184,.18);font-size:12px">
           <span style="font-weight:600;color:#475569;width:44px;flex-shrink:0">${timeStr}</span>
           ${item.ronde ? `<span style="background:#fff;color:#1d4ed8;border:1px solid #dbeafe;border-radius:20px;padding:1px 7px;font-size:11px;flex-shrink:0">${item.ronde}</span>` : ''}
-          <span style="color:#475569;flex:1">${item.taak}</span>
-          <button onclick="editSchemaItem(${origIdx})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#94a3b8'">✎</button>
+          <span style="color:#475569;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.taak}</span>
+          ${dagenBadge}
+          <button onclick="openSchemaModal(${origIdx})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#94a3b8'">✎</button>
           <button onclick="rmSchemaItem(${origIdx})" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:14px;padding:0 4px;flex-shrink:0" title="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#cbd5e1'">✕</button>
         </div>`;
       };
@@ -2799,69 +2825,157 @@ function renderCfg() {
   }
 }
 
-function addSchemaItem() {
-  const tijdEl  = document.getElementById('inp-schema-tijd');
-  const rondeEl = document.getElementById('inp-schema-ronde');
-  const taakEl  = document.getElementById('inp-schema-taak');
-  const tijdVal = tijdEl.value;
-  const taakVal = taakEl.value.trim();
-  if (!tijdVal || !taakVal) { showToast('Vul minimaal een tijd en taakomschrijving in'); return; }
-  const [hh, mm] = tijdVal.split(':').map(Number);
-  // Auto-detect nacht: 00:00-06:59 = after midnight = h+24
-  const h = (hh >= 0 && hh < 7) ? hh + 24 : hh;
-  const newItem = { h, m: mm, ronde: rondeEl.value || null, taak: taakVal };
-  const activeSchema = S.schema ? [...S.schema] : [...SCHEMA];
-  activeSchema.push(newItem);
-  activeSchema.sort((a, b) => a.h * 60 + a.m - (b.h * 60 + b.m));
-  S.schema = activeSchema;
-  LS.set('rn_schema', S.schema);
-  fbSave();
-  logEvent('settings', 'Schema-item toegevoegd', { time: tijdEl.value, ronde: rondeEl.value, taak: taakEl.value });
-  tijdEl.value = ''; rondeEl.value = ''; taakEl.value = '';
-  showToast('Schema-item toegevoegd');
-  renderCfg();
-}
+// ── SCHEMA MODAL ─────────────────────────────────────────────────────────
+const DAGEN_LABELS = [
+  { key: 'ma', label: 'Ma' },
+  { key: 'di', label: 'Di' },
+  { key: 'wo', label: 'Wo' },
+  { key: 'do', label: 'Do' },
+  { key: 'vr', label: 'Vr' },
+  { key: 'za', label: 'Za' },
+  { key: 'zo', label: 'Zo' },
+];
 
-// Edit schema item
-let _editIdx = null;
-function editSchemaItem(i) {
-  _editIdx = i;
+let _schemaModalIdx = null; // null = new item, number = edit index
+
+function openSchemaModal(idx) {
+  _schemaModalIdx = idx;
+  const isEdit = idx !== null;
   const activeSchema = S.schema || SCHEMA;
-  const item = activeSchema[i];
-  const hDisp = item.h % 24;
-  const tijdStr = String(hDisp).padStart(2,'0') + ':' + String(item.m).padStart(2,'0');
-  document.getElementById('inp-schema-edit-tijd').value = tijdStr;
-  document.getElementById('inp-schema-edit-taak').value = item.taak;
-  const sel = document.getElementById('inp-schema-edit-ronde');
-  if (sel) sel.value = item.ronde || '';
-  document.getElementById('schema-edit-form').style.display = 'block';
-  document.getElementById('schema-edit-form').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  const item = isEdit ? activeSchema[idx] : null;
+
+  document.getElementById('schema-modal-title').textContent = isEdit ? 'Schema-item wijzigen' : 'Schema-item toevoegen';
+
+  // Populate ronde dropdown
+  const rondeOptions = ['', ...S.routes].map(r =>
+    `<option value="${r}">${r || '— geen ronde —'}</option>`
+  ).join('');
+  document.getElementById('inp-schema-modal-ronde').innerHTML = rondeOptions;
+
+  // Populate fields
+  if (isEdit) {
+    const hDisp = item.h % 24;
+    document.getElementById('inp-schema-modal-tijd').value =
+      String(hDisp).padStart(2,'0') + ':' + String(item.m).padStart(2,'0');
+    document.getElementById('inp-schema-modal-taak').value = item.taak || '';
+    document.getElementById('inp-schema-modal-ronde').value = item.ronde || '';
+  } else {
+    document.getElementById('inp-schema-modal-tijd').value = '';
+    document.getElementById('inp-schema-modal-taak').value = '';
+    document.getElementById('inp-schema-modal-ronde').value = '';
+  }
+
+  // Render day checkboxes
+  const selectedDagen = item ? (item.dagen || (item.weekdagsOnly ? ['ma','di','wo','do','vr'] : [])) : [];
+  const dagenContainer = document.getElementById('schema-modal-dagen');
+  dagenContainer.innerHTML = DAGEN_LABELS.map(({ key, label }) => {
+    const checked = selectedDagen.includes(key);
+    const style = checked
+      ? 'background:#2563eb;color:#fff;border-color:#2563eb'
+      : 'background:#f8fafc;color:#475569;border-color:#cbd5e1';
+    return `<label style="cursor:pointer;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:600;border:1px solid;user-select:none;transition:background .15s;${style}">
+      <input type="checkbox" name="schema-dag" value="${key}"${checked ? ' checked' : ''} style="display:none" onchange="updateDagenCheckbox(this)">
+      ${label}
+    </label>`;
+  }).join('');
+
+  const overlay = document.getElementById('schema-modal-overlay');
+  overlay.style.display = 'flex';
+
+  // Dirty-check: store initial snapshot and enable save only when changed
+  function schemaModalSnapshot() {
+    const dagen = [...document.querySelectorAll('#schema-modal-dagen input[type=checkbox]:checked')]
+      .map(el => el.value).sort().join(',');
+    return [
+      document.getElementById('inp-schema-modal-tijd').value,
+      document.getElementById('inp-schema-modal-ronde').value,
+      document.getElementById('inp-schema-modal-taak').value.trim(),
+      dagen
+    ].join('|');
+  }
+  let _smsInitial = schemaModalSnapshot();
+  function schemaModalCheckDirty() {
+    const btn = document.getElementById('schema-modal-save-btn');
+    const dirty = schemaModalSnapshot() !== _smsInitial;
+    btn.disabled = !dirty;
+    btn.style.opacity = dirty ? '1' : '.4';
+    btn.style.cursor = dirty ? 'pointer' : 'not-allowed';
+  }
+  // Wire change listeners to all modal inputs
+  ['inp-schema-modal-tijd','inp-schema-modal-ronde','inp-schema-modal-taak'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.oninput = schemaModalCheckDirty; el.onchange = schemaModalCheckDirty; }
+  });
+  // For dag checkboxes — delegate via container
+  document.getElementById('schema-modal-dagen').addEventListener('change', schemaModalCheckDirty);
+
+  // For new items: save button enabled immediately when fields filled
+  if (!isEdit) {
+    ['inp-schema-modal-tijd','inp-schema-modal-taak'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.oninput = () => {
+        const filled = document.getElementById('inp-schema-modal-tijd').value &&
+                       document.getElementById('inp-schema-modal-taak').value.trim();
+        const btn = document.getElementById('schema-modal-save-btn');
+        btn.disabled = !filled;
+        btn.style.opacity = filled ? '1' : '.4';
+        btn.style.cursor = filled ? 'pointer' : 'not-allowed';
+      };
+    });
+    _smsInitial = ''; // ensure dirty from start when user fills something
+  }
 }
 
-function saveSchemaEdit() {
-  if (_editIdx === null) return;
-  const tijdVal = document.getElementById('inp-schema-edit-tijd').value;
-  const taakVal = document.getElementById('inp-schema-edit-taak').value.trim();
-  const rondeVal = document.getElementById('inp-schema-edit-ronde').value;
+function updateDagenCheckbox(el) {
+  const label = el.parentElement;
+  if (el.checked) {
+    label.style.background = '#2563eb';
+    label.style.color = '#fff';
+    label.style.borderColor = '#2563eb';
+  } else {
+    label.style.background = '#f8fafc';
+    label.style.color = '#475569';
+    label.style.borderColor = '#cbd5e1';
+  }
+}
+
+function closeSchemaModal() {
+  document.getElementById('schema-modal-overlay').style.display = 'none';
+  _schemaModalIdx = null;
+}
+
+function saveSchemaModal() {
+  const tijdVal  = document.getElementById('inp-schema-modal-tijd').value;
+  const taakVal  = sanitizeInput(document.getElementById('inp-schema-modal-taak').value || '').trim();
+  const rondeVal = document.getElementById('inp-schema-modal-ronde').value;
   if (!tijdVal || !taakVal) { showToast('Vul minimaal een tijd en taakomschrijving in'); return; }
+
   const [hh, mm] = tijdVal.split(':').map(Number);
   const h = (hh >= 0 && hh < 7) ? hh + 24 : hh;
+
+  // Collect selected days
+  const dagenChecked = [...document.querySelectorAll('#schema-modal-dagen input[type=checkbox]:checked')]
+    .map(el => el.value);
+
+  const newItem = { h, m: mm, ronde: rondeVal || null, taak: taakVal };
+  if (dagenChecked.length) newItem.dagen = dagenChecked;
+
   const activeSchema = S.schema ? [...S.schema] : [...SCHEMA];
-  activeSchema[_editIdx] = { h, m: mm, ronde: rondeVal || null, taak: taakVal };
+  if (_schemaModalIdx !== null) {
+    activeSchema[_schemaModalIdx] = newItem;
+  } else {
+    activeSchema.push(newItem);
+  }
   activeSchema.sort((a, b) => a.h * 60 + a.m - (b.h * 60 + b.m));
   S.schema = activeSchema;
   LS.set('rn_schema', S.schema);
   fbSave();
-  logEvent('settings', 'Schema-item gewijzigd');
-  _editIdx = null;
-  document.getElementById('schema-edit-form').style.display = 'none';
-  showToast('Schema-item bijgewerkt');
-  renderCfg();
-}
+  logEvent('settings', _schemaModalIdx !== null ? 'Schema-item gewijzigd' : 'Schema-item toegevoegd',
+    { time: tijdVal, ronde: rondeVal, taak: taakVal, dagen: dagenChecked });
 
-function cancelSchemaEdit() {
-  _editIdx = null;
-  document.getElementById('schema-edit-form').style.display = 'none';
+  closeSchemaModal();
+  showToast('Schema opgeslagen');
+  renderCfg();
 }
 
 // ── DAGDELEN CRUD ─────────────────────────────────────────────────────────
