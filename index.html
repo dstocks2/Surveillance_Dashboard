@@ -647,7 +647,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.07</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.08</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -667,7 +667,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.07';
+const APP_VERSION = '2.1.08';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -754,7 +754,7 @@ function fbListenEventLog() {
         ts: e.ts,
         type: sanitizeFromFirebase(e.type || ''),
         msg: sanitizeFromFirebase(e.msg || ''),
-        detail: sanitizeFromFirebase(e.detail || ''),
+        detail: typeof e.detail === 'string' ? e.detail.trim().slice(0, 500) : '',
         deviceId: sanitizeFromFirebase(e.deviceId || ''),
         appVersion: sanitizeFromFirebase(e.appVersion || '')
       });
@@ -3704,7 +3704,8 @@ function renderEventLog() {
     const color = _eventTypeColor(e.type);
     const isMine = e.deviceId === myId;
     const devLabel = isMine ? 'dit apparaat' : (e.deviceId ? e.deviceId.slice(0, 16) : '?');
-    const detailHtml = e.detail ? '<div style="color:#64748b;font-size:10px;margin-top:2px;word-break:break-word">' + sanitizeInput(e.detail) + '</div>' : '';
+    const _safeDetail = e.detail ? e.detail.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : '';
+    const detailHtml = _safeDetail ? '<div style="color:#64748b;font-size:10px;margin-top:2px;word-break:break-word">' + _safeDetail + '</div>' : '';
     return '<div style="padding:6px 10px;border-bottom:1px solid #e2e8f0">' +
            '<div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">' +
              '<span style="color:#94a3b8;font-size:10px;white-space:nowrap">' + _fmtEventTime(e.ts) + '</span>' +
