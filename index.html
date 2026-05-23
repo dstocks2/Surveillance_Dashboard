@@ -258,8 +258,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
       document.dispatchEvent(new Event('firebaseReady'));
     })
     .catch(e => {
-      console.warn('Anonymous auth failed, trying without auth:', e);
-      // Fallback: still start app even if auth fails
+      console.warn('Anonymous auth failed:', e);
       window.firebaseReady = true;
       document.dispatchEvent(new Event('firebaseReady'));
     });
@@ -267,9 +266,8 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   // Keep auth status visible in header
   onAuthStateChanged(auth, user => {
     const el = document.getElementById('fb-status');
-    if (el && !user) {
-      el.textContent = '⚠ niet verbonden';
-      el.style.color = '#fca5a5';
+    if (!user) {
+      if (el) { el.textContent = '⚠ niet verbonden'; el.style.color = '#fca5a5'; }
     }
   });
 </script>
@@ -647,7 +645,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.13</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.16</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -667,7 +665,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.13';
+const APP_VERSION = '2.1.16';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -785,7 +783,8 @@ function fbSave() {
   const storedPin = LS.get('rn_cfg_pin');
   if (storedPin && storedPin.length === 64) updates['/dashboard/pin'] = storedPin;
   window.fbUpdate(window.fbRef(window.fbDb), updates)
-    .catch(e => { console.warn('Firebase settings write error:', e); });
+    .then(() => logEvent('sync', 'fbSave OK', { keys: Object.keys(updates).join(',') }))
+    .catch(e => { console.warn('Firebase settings write error:', e); logEvent('error', 'Firebase write mislukt', String(e && e.message || e)); });
 }
 
 function fbSaveRollen() {
@@ -793,7 +792,7 @@ function fbSaveRollen() {
   if (window._appOutdated) { logEvent('error', 'fbSaveRollen geblokkeerd: verouderde versie'); return; }
   const updates = {};
   updates['/dashboard/rollen'] = S.rollen || {};
-  window.fbUpdate(window.fbRef(window.fbDb), updates).catch(e => console.warn('fbSaveRollen error:', e));
+  window.fbUpdate(window.fbRef(window.fbDb), updates).catch(e => { console.warn('fbSaveRollen error:', e); logEvent('error', 'Firebase rollen write mislukt', String(e && e.message || e)); });
 }
 
 function fbSavePin(pin) {
