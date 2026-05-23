@@ -647,7 +647,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.09</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.10</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -667,7 +667,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.09';
+const APP_VERSION = '2.1.10';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -3237,6 +3237,7 @@ function toggleSection(id) {
   const isOpen = col.style.display === 'none';
   col.style.display = isOpen ? 'block' : 'none';
   icon.textContent = isOpen ? '▲' : '▼';
+  if (isOpen) renderCfg(); // re-render on open so content is always fresh
 }
 
 // ── PIN LOCK ──────────────────────────────────────────────────────────────
