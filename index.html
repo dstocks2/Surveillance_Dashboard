@@ -647,7 +647,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.05</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.06</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -667,7 +667,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.05';
+const APP_VERSION = '2.1.06';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1042,11 +1042,12 @@ function fbListen() {
       }
     }
     // Sync rollen from Firebase
-    if (d.rollen && typeof d.rollen === 'object' && !Array.isArray(d.rollen)) {
-      const fbRollenStr = JSON.stringify(d.rollen);
+    {
+      const fbRollen = (d.rollen && typeof d.rollen === 'object' && !Array.isArray(d.rollen)) ? d.rollen : {};
+      const fbRollenStr = JSON.stringify(fbRollen);
       const localRollenStr = JSON.stringify(S.rollen || {});
       if (fbRollenStr !== localRollenStr) {
-        S.rollen = d.rollen;
+        S.rollen = fbRollen;
         LS.set('rn_rollen', S.rollen);
       }
     }
@@ -1181,6 +1182,7 @@ function save() {
   LS.set('rn_names',  S.names);
   LS.set('rn_routes', S.routes);
   LS.set('rn_dienst', [...S.dienst]);
+  LS.set('rn_rollen', S.rollen || {});
   fbSave();
 }
 
@@ -3437,7 +3439,6 @@ function saveMedewerkerModal() {
     showToast(naam.split(' ')[0] + ' toegevoegd' + (rol ? ` (${rol})` : ''));
   }
   save();
-  LS.set('rn_rollen', S.rollen);
   closeMedewerkerModal();
   renderCfg(); renderNameBtns();
 }
@@ -3448,7 +3449,7 @@ async function rmName(i) {
   const naam = S.names[i];
   if (!await customConfirm('Weet je zeker dat je "' + naam + '" wilt verwijderen?')) return;
   S.names.splice(i, 1);
-  if (S.rollen && S.rollen[naam]) { delete S.rollen[naam]; LS.set('rn_rollen', S.rollen); }
+  if (S.rollen && S.rollen[naam]) { delete S.rollen[naam]; }
   if (S.dienst.has(naam)) markDienstPending(naam, 'remove');
   S.dienst.delete(naam);
   save(); renderCfg(); renderNameBtns(); renderDienst();
