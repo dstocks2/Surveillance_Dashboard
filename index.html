@@ -401,7 +401,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   <div id="pane-cfg" class="pane" style="position:relative">
 
     <!-- PIN lock overlay -->
-    <div id="cfg-lock" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9500;flex-direction:column;align-items:center;justify-content:center;padding:20px;display:none" onmousedown="_overlayMd=event.target" onclick="if(event.target===this&&_overlayMd===this){hideCfgLock();goTab('reg');}">
+    <div id="cfg-lock" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9500;flex-direction:column;align-items:center;justify-content:center;padding:20px;display:none" onclick="if(event.target===this){hideCfgLock();goTab('reg');}">
       <div style="background:#fff;border-radius:12px;padding:28px 24px;max-width:320px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2);display:flex;flex-direction:column;align-items:center;gap:14px">
         <div style="display:flex;justify-content:flex-end;width:100%;margin-bottom:-8px"><button onclick="hideCfgLock();goTab('reg')" style="background:none;border:none;font-size:20px;cursor:pointer;color:#94a3b8;line-height:1" title="Sluiten">&times;</button></div>
         <div style="font-size:28px">🔒</div>
@@ -433,31 +433,10 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <span id="medewerkers-toggle-icon" style="font-size:13px;color:#94a3b8;padding:4px 0">▼</span>
       </div>
       <div id="medewerkers-collapse" style="display:none;margin-top:10px">
-        <div id="medewerker-list" style="margin-bottom:12px"></div>
-        <button class="sm" onclick="openMedewerkerModal(null)" style="margin-bottom:8px">+ Nieuw medewerker</button>
-      </div>
-
-      <!-- Medewerker modal -->
-      <div id="medewerker-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9000;align-items:center;justify-content:center;padding:16px" onmousedown="_overlayMd=event.target" onclick="if(event.target===this&&_overlayMd===this)closeMedewerkerModal()">
-        <div style="background:#fff;border-radius:14px;padding:20px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.18);position:relative">
-          <button onclick="closeMedewerkerModal()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
-          <p id="medewerker-modal-title" style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 16px">Medewerker toevoegen</p>
-          <div style="display:flex;flex-direction:column;gap:12px">
-            <div style="display:flex;flex-direction:column;gap:4px">
-              <label style="font-size:11px;color:#64748b">Naam <span style="color:#ef4444">*</span></label>
-              <input type="text" id="inp-medewerker-naam" placeholder="Voor- en achternaam" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:100%;box-sizing:border-box" onkeydown="if(event.key==='Enter')saveMedewerkerModal()">
-            </div>
-            <div style="display:flex;flex-direction:column;gap:4px">
-              <label style="font-size:11px;color:#64748b">Functie / Rol <span style="font-size:10px;color:#94a3b8">(optioneel)</span></label>
-              <input type="text" id="inp-medewerker-rol" placeholder="Bv. Beveiliger, Teamleider&hellip;" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:100%;box-sizing:border-box" onkeydown="if(event.key==='Enter')saveMedewerkerModal()">
-            </div>
-          </div>
-          <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end">
-            <button class="sm" onclick="closeMedewerkerModal()" style="background:#f1f5f9;color:#64748b">Annuleren</button>
-            <button class="sm" onclick="saveMedewerkerModal()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg><span id="medewerker-modal-save-label">Toevoegen</span>
-            </button>
-          </div>
+        <div class="tags" id="name-tags"></div>
+        <div class="inp-row">
+          <input type="text" id="inp-name" placeholder="Naam toevoegen&hellip;" onkeydown="if(event.key==='Enter')addName()">
+          <button class="sm" onclick="addName()">+ Toevoegen</button>
         </div>
       </div>
       <div class="hr"></div>
@@ -484,7 +463,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
       <div id="dagdelen-collapse" style="display:none;margin-top:10px">
         <div id="dagdelen-list" style="margin-bottom:12px"></div>
         <!-- Dagdeel edit modal -->
-        <div id="dagdeel-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9000;align-items:center;justify-content:center;padding:16px" onmousedown="_overlayMd=event.target" onclick="if(event.target===this&&_overlayMd===this)cancelDagdeelEdit()">
+        <div id="dagdeel-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9000;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)cancelDagdeelEdit()">
           <div style="background:#fff;border-radius:14px;padding:20px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.18);position:relative">
             <button onclick="cancelDagdeelEdit()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
             <p id="dagdeel-modal-title" style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 16px">Dagdeel wijzigen</p>
@@ -532,7 +511,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     </div>
 
     <!-- Schema modal (add + edit) -->
-    <div id="schema-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9000;align-items:center;justify-content:center;padding:16px" onmousedown="_overlayMd=event.target" onclick="if(event.target===this&&_overlayMd===this)closeSchemaModal()">
+    <div id="schema-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9000;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeSchemaModal()">
       <div style="background:#fff;border-radius:14px;padding:20px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.18);position:relative">
         <button onclick="closeSchemaModal()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
         <p id="schema-modal-title" style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 16px">Schema-item toevoegen</p>
@@ -647,7 +626,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.05</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.02</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -667,7 +646,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.05';
+const APP_VERSION = '2.1.02';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -780,7 +759,6 @@ function fbSave() {
   updates['/dashboard/routes']  = S.routes;
   if (S.schema) updates['/dashboard/schema'] = S.schema;
   if (S.dagdelen) updates['/dashboard/dagdelen'] = S.dagdelen;
-  updates['/dashboard/rollen'] = S.rollen || {};
   updates['/dashboard/gedrag'] = { timeoutWarn: S.timeoutWarn, meldingTTL: S.meldingTTL, pinCacheDur: S.pinCacheDur };
   // PIN: only write if already hashed (64 char) — getCfgPinHash() handles migration async
   const storedPin = LS.get('rn_cfg_pin');
@@ -1041,15 +1019,6 @@ function fbListen() {
         LS.set('rn_dagdelen', S.dagdelen);
       }
     }
-    // Sync rollen from Firebase
-    if (d.rollen && typeof d.rollen === 'object' && !Array.isArray(d.rollen)) {
-      const fbRollenStr = JSON.stringify(d.rollen);
-      const localRollenStr = JSON.stringify(S.rollen || {});
-      if (fbRollenStr !== localRollenStr) {
-        S.rollen = d.rollen;
-        LS.set('rn_rollen', S.rollen);
-      }
-    }
     // Sync PIN from Firebase — only accept hashed values (64 char SHA-256)
     if (d.pin && typeof d.pin === 'string' && d.pin.length === 64) {
       LS.set('rn_cfg_pin', d.pin);
@@ -1120,7 +1089,6 @@ if (LS.get('rn_version') !== VERSION) {
 
 let S = {
   names:  LS.get('rn_names')  || DN,
-  rollen: LS.get('rn_rollen') || {}, // { naam: rol } — optional role per person
   routes: LS.get('rn_routes') || DR,
   schema: LS.get('rn_schema') || null, // null = use hardcoded SCHEMA default
   dagdelen: LS.get('rn_dagdelen') || null, // null = use DAGDELEN_DEFAULT
@@ -2750,25 +2718,18 @@ function renderCfg() {
   if (inpMT && document.activeElement !== inpMT) inpMT.value = S.meldingTTL;
   if (inpPC && document.activeElement !== inpPC) inpPC.value = S.pinCacheDur;
 
-  const ml = document.getElementById('medewerker-list');
-  if (ml) {
-    if (!S.names.length) {
-      ml.innerHTML = '<div style="font-size:13px;color:#94a3b8;padding:8px 0">Geen medewerkers.</div>';
-    } else {
-      ml.innerHTML = '<div style="border-radius:8px;overflow:hidden;border:1px solid rgba(148,163,184,.2)">' +
-        S.names.map((n, i) => {
-          const rol = (S.rollen || {})[n] || '';
-          return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:0.5px solid rgba(148,163,184,.18);font-size:13px;background:#fff">
-            <div style="flex:1;min-width:0">
-              <div style="font-weight:500;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n}</div>
-              ${rol ? `<div style="font-size:11px;color:#64748b;margin-top:1px">${rol}</div>` : ''}
-            </div>
-            <button onclick="openMedewerkerModal(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#94a3b8'">✎</button>
-            <button onclick="rmName(${i})" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:14px;padding:0 4px;flex-shrink:0" title="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#cbd5e1'">✕</button>
-          </div>`;
-        }).join('') + '</div>';
-    }
-  }
+  const nt = document.getElementById('name-tags');
+  nt.innerHTML = '';
+  S.names.forEach((n, i) => {
+    const sp = document.createElement('span');
+    sp.className = 'tag';
+    sp.textContent = n;
+    const btn = document.createElement('button');
+    btn.innerHTML = '&#x2715;';
+    btn.addEventListener('click', () => rmName(i));
+    sp.appendChild(btn);
+    nt.appendChild(sp);
+  });
   const rt = document.getElementById('route-tags');
   rt.innerHTML = '';
   S.routes.forEach((r, i) => {
@@ -3382,73 +3343,20 @@ function sanitizeInput(str) {
     .trim();
 }
 
-let _overlayMd = null; // tracks mousedown target to prevent drag-out-of-field closing overlays
-let _medewerkerEditIdx = null; // null = nieuw, number = edit index
-
-function openMedewerkerModal(idx) {
-  _medewerkerEditIdx = idx !== undefined ? idx : null;
-  const isEdit = _medewerkerEditIdx !== null;
-  document.getElementById('medewerker-modal-title').textContent = isEdit ? 'Medewerker wijzigen' : 'Medewerker toevoegen';
-  document.getElementById('medewerker-modal-save-label').textContent = isEdit ? 'Opslaan' : 'Toevoegen';
-  if (isEdit) {
-    const naam = S.names[_medewerkerEditIdx];
-    document.getElementById('inp-medewerker-naam').value = naam || '';
-    document.getElementById('inp-medewerker-rol').value = (S.rollen || {})[naam] || '';
-  } else {
-    document.getElementById('inp-medewerker-naam').value = '';
-    document.getElementById('inp-medewerker-rol').value = '';
-  }
-  document.getElementById('medewerker-modal-overlay').style.display = 'flex';
-  setTimeout(() => document.getElementById('inp-medewerker-naam').focus(), 50);
-}
-
-function closeMedewerkerModal() {
-  document.getElementById('medewerker-modal-overlay').style.display = 'none';
-  _medewerkerEditIdx = null;
-}
-
-function saveMedewerkerModal() {
-  const naam    = sanitizeInput(document.getElementById('inp-medewerker-naam').value).trim();
-  const rol     = sanitizeInput(document.getElementById('inp-medewerker-rol').value).trim().slice(0, 40);
-  const isEdit  = _medewerkerEditIdx !== null;
-  if (!naam) { showToast('Vul een naam in'); return; }
-  // Duplicate check: ignore own name in edit mode
-  const duplicate = S.names.find((n, i) => n === naam && i !== _medewerkerEditIdx);
-  if (duplicate) { showToast('Naam bestaat al'); return; }
-  if (!S.rollen) S.rollen = {};
-  if (isEdit) {
-    const oudNaam = S.names[_medewerkerEditIdx];
-    // Rename in dienst if active
-    if (oudNaam !== naam) {
-      if (S.dienst.has(oudNaam)) { S.dienst.delete(oudNaam); S.dienst.add(naam); }
-      if (S.rollen[oudNaam] !== undefined) { S.rollen[naam] = S.rollen[oudNaam]; delete S.rollen[oudNaam]; }
-    }
-    S.names[_medewerkerEditIdx] = naam;
-    S.names.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase(), 'nl'));
-    if (rol) S.rollen[naam] = rol;
-    else delete S.rollen[naam];
-    logEvent('settings', 'Medewerker gewijzigd', { oud: oudNaam, naam, rol });
-    showToast(naam.split(' ')[0] + ' bijgewerkt');
-  } else {
-    S.names.push(naam);
-    S.names.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase(), 'nl'));
-    if (rol) S.rollen[naam] = rol;
-    logEvent('settings', 'Medewerker toegevoegd: ' + naam, { rol });
-    showToast(naam.split(' ')[0] + ' toegevoegd' + (rol ? ` (${rol})` : ''));
-  }
+function addName() {
+  const v = sanitizeInput(document.getElementById('inp-name').value);
+  if (!v) return;
+  S.names.push(v);
+  S.names.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase(), 'nl'));
   save();
-  LS.set('rn_rollen', S.rollen);
-  closeMedewerkerModal();
-  renderCfg(); renderNameBtns();
+  document.getElementById('inp-name').value = '';
+  logEvent('settings', 'Medewerker toegevoegd: ' + v); renderCfg(); renderNameBtns(); showToast(v + ' toegevoegd');
 }
-
-function addName() { openMedewerkerModal(null); } // legacy alias
 
 async function rmName(i) {
   const naam = S.names[i];
   if (!await customConfirm('Weet je zeker dat je "' + naam + '" wilt verwijderen?')) return;
   S.names.splice(i, 1);
-  if (S.rollen && S.rollen[naam]) { delete S.rollen[naam]; LS.set('rn_rollen', S.rollen); }
   if (S.dienst.has(naam)) markDienstPending(naam, 'remove');
   S.dienst.delete(naam);
   save(); renderCfg(); renderNameBtns(); renderDienst();
