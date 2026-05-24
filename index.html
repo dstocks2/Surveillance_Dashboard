@@ -14,6 +14,18 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;min-height:100vh;color:#1e293b;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
 .header{background:#1e3a5c;padding:max(16px,env(safe-area-inset-top)) 24px 16px;display:flex;align-items:center;gap:14px;justify-content:space-between}
+
+/* Mobiele header */
+@media(max-width:600px){
+  .header{padding:max(12px,env(safe-area-inset-top)) 14px 12px;gap:10px}
+  #header-left h1{font-size:16px;line-height:1.2}
+  #header-left #header-sub{font-size:11px}
+  #header-clock{display:none !important}
+  #header-divider-right{display:none}
+  #header-right{flex-direction:column;align-items:flex-end;gap:4px}
+  #fb-status{font-size:9px !important}
+  #header-dienst{font-size:11px !important;padding:2px 8px !important}
+}
 .header h1{font-size:17px;font-weight:600;color:#fff}
 .header p{font-size:11px;color:rgba(255,255,255,.6);margin-top:2px}
 .tabs{background:#fff;border-bottom:1px solid #e2e8f0;display:flex;align-items:stretch;padding:0 12px;overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
@@ -738,7 +750,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.55</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.57</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -758,7 +770,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.55';
+const APP_VERSION = '2.1.57';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
