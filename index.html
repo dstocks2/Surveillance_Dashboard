@@ -430,14 +430,32 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <div style="font-size:28px">🔑</div>
         <div style="font-size:16px;font-weight:600;color:#1e293b">Pincode aanmaken</div>
         <div style="font-size:13px;color:#64748b;text-align:center">Stel een pincode in voor de instellingen. Dit is eenmalig.</div>
-        <input type="password" id="pin-setup-1" maxlength="8" placeholder="Kies pincode" autocomplete="new-password"
+        <input type="password" id="pin-setup-1" maxlength="8" placeholder="Nieuw" autocomplete="new-password"
           style="padding:10px 16px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:18px;text-align:center;width:160px;letter-spacing:.2em;font-family:monospace"
           onkeydown="if(event.key==='Enter')document.getElementById('pin-setup-2').focus()">
-        <input type="password" id="pin-setup-2" maxlength="8" placeholder="Herhaal pincode" autocomplete="new-password"
+        <input type="password" id="pin-setup-2" maxlength="8" placeholder="Herhaal" autocomplete="new-password"
           style="padding:10px 16px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:18px;text-align:center;width:160px;letter-spacing:.2em;font-family:monospace"
           onkeydown="if(event.key==='Enter')saveSetupPin()">
         <button class="sm" onclick="saveSetupPin()">Pincode opslaan</button>
         <div id="pin-setup-error" style="font-size:12px;color:#ef4444;display:none"></div>
+      </div>
+    </div>
+
+    <!-- Pincode wijzigen modal -->
+    <div id="pin-change-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9600;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px">
+      <div style="background:#fff;border-radius:12px;padding:28px 24px;max-width:320px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2);display:flex;flex-direction:column;align-items:center;gap:14px;position:relative">
+        <button onclick="closePinChangeDialog()" style="position:absolute;top:10px;right:14px;background:none;border:none;font-size:20px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
+        <div style="font-size:28px">🔑</div>
+        <div style="font-size:16px;font-weight:600;color:#1e293b">Pincode wijzigen</div>
+        <div style="font-size:13px;color:#64748b;text-align:center">Voer een nieuwe pincode in (minimaal 4 tekens).</div>
+        <input type="password" id="pin-change-1" maxlength="8" placeholder="Nieuw" autocomplete="new-password"
+          style="padding:10px 16px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:18px;text-align:center;width:160px;letter-spacing:.2em;font-family:monospace"
+          onkeydown="if(event.key==='Enter')document.getElementById('pin-change-2').focus()">
+        <input type="password" id="pin-change-2" maxlength="8" placeholder="Herhaal" autocomplete="new-password"
+          style="padding:10px 16px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:18px;text-align:center;width:160px;letter-spacing:.2em;font-family:monospace"
+          onkeydown="if(event.key==='Enter')savePinChange()">
+        <button class="sm" onclick="savePinChange()">Opslaan</button>
+        <div id="pin-change-error" style="font-size:12px;color:#ef4444;display:none"></div>
       </div>
     </div>
 
@@ -689,7 +707,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.49</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.50</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -709,7 +727,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.49';
+const APP_VERSION = '2.1.50';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -3459,14 +3477,33 @@ async function saveSetupPin() {
   showToast('Pincode opgeslagen ✓');
 }
 
-async function changePinDialog() {
-  if (!await customConfirm('Pincode wijzigen?')) return;
-  const newPin = prompt('Nieuwe pincode (minimaal 4 tekens):');
-  if (!newPin || newPin.length < 4) { showToast('Pincode moet minimaal 4 tekens zijn'); return; }
-  const hash = await hashPin(newPin);
+function changePinDialog() {
+  const overlay = document.getElementById('pin-change-overlay');
+  if (!overlay) return;
+  document.getElementById('pin-change-1').value = '';
+  document.getElementById('pin-change-2').value = '';
+  document.getElementById('pin-change-error').style.display = 'none';
+  overlay.style.display = 'flex';
+  setTimeout(() => document.getElementById('pin-change-1').focus(), 50);
+}
+
+function closePinChangeDialog() {
+  document.getElementById('pin-change-overlay').style.display = 'none';
+}
+
+async function savePinChange() {
+  const p1 = document.getElementById('pin-change-1').value;
+  const p2 = document.getElementById('pin-change-2').value;
+  const err = document.getElementById('pin-change-error');
+  if (p1.length < 4) { err.textContent = 'Minimaal 4 tekens'; err.style.display = 'block'; return; }
+  if (p1 !== p2)     { err.textContent = 'Pincodes komen niet overeen'; err.style.display = 'block'; return; }
+  err.style.display = 'none';
+  const hash = await hashPin(p1);
   LS.set(CFG_PIN_KEY, hash);
   fbSavePin(hash);
-  showToast('Pincode opgeslagen en gesynchroniseerd');
+  closePinChangeDialog();
+  showToast('Pincode opgeslagen');
+  logEvent('pin', 'Pincode gewijzigd');
 }
 
 // ── GEDRAG-INSTELLINGEN ────────────────────────────────────────────────────
