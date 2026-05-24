@@ -646,7 +646,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.25</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.26</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -666,7 +666,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.25';
+const APP_VERSION = '2.1.26';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1464,7 +1464,7 @@ async function doRetour(name) {
   delete S.active[n];
   renderAllActive();
   updBtn();
-  if (document.getElementById('pane-live').classList.contains('on')) renderLive();
+  renderLive();
 
   // Mark pending: this entry is being removed, log entry being added
   markActivePending(n, 'remove', { route: a.route, start: a.start });
@@ -1495,7 +1495,7 @@ async function doRetour(name) {
         setFbStatus('error');
         renderAllActive();
         updBtn();
-        if (document.getElementById('pane-live').classList.contains('on')) renderLive();
+        renderLive();
         logEvent('error', 'Retour MISLUKT \u2014 ' + n.split(' ')[0] + ' van ' + a.route, { error: String(e), name: n, route: a.route });
         voegMeldingToe('rood', 'Retour mislukt \u2014 ' + n.split(' ')[0], a.route + ' kon niet worden opgeslagen. Controleer de verbinding.', 'Opnieuw proberen', () => doRetour(n));
         showToast('\u26a0 Retour mislukt \u2014 controleer verbinding en probeer opnieuw', 5000);
@@ -2128,7 +2128,7 @@ function pruneStaleActive() {
     voegMeldingToe('grijs', 'Stale ronde opgeruimd', s.name.split(' ')[0] + ' — ' + s.route + ' (' + s.ageH + 'u, vergeten retour)', null, null);
   });
   renderAllActive();
-  if (document.getElementById('pane-live').classList.contains('on')) renderLive();
+  renderLive();
 }
 // Check elke 30 minuten + bij elke app-load (zie init onderaan)
 TIMERS.set('staleCheck', pruneStaleActive, 30 * 60 * 1000);
@@ -3174,7 +3174,7 @@ function saveDagdeelEdit() {
     showToast(isEdit ? 'Dagdeel bijgewerkt' + (toastParts.length ? ` — ${toastParts.join(', ')}` : '')
                      : 'Dagdeel toegevoegd'  + (toastParts.length ? ` — ${toastParts.join(', ')}` : ''));
     renderCfg();
-    if (document.getElementById('pane-live').classList.contains('on')) renderLive();
+    renderLive();
   };
 
   if (verwijderd.length === 0) {
@@ -3284,7 +3284,7 @@ function rmDagdeel(i) {
     logEvent('settings', 'Dagdeel verwijderd', { naam: d.naam, filledBy });
     showToast('Dagdeel verwijderd' + (filledBy ? ` — "${filledBy}" vult het gat` : ''));
     renderCfg();
-    if (document.getElementById('pane-live').classList.contains('on')) renderLive();
+    renderLive();
   });
 }
 
