@@ -442,7 +442,11 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
             <div style="display:flex;flex-direction:column;gap:12px">
               <div style="display:flex;flex-direction:column;gap:4px">
                 <label style="font-size:11px;color:#64748b">Naam</label>
-                <input type="text" id="inp-medewerker-edit-naam" placeholder="Voor- en achternaam…" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:100%;box-sizing:border-box" onkeydown="if(event.key==='Enter')saveMedewerkerEdit()">
+                <input type="text" id="inp-medewerker-edit-naam" placeholder="Voor- en achternaam…" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:100%;box-sizing:border-box" onkeydown="if(event.key==='Enter')document.getElementById('inp-medewerker-edit-rol').focus()">
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <label style="font-size:11px;color:#64748b">Functie / rol <span style="font-weight:400;color:#94a3b8">(optioneel)</span></label>
+                <input type="text" id="inp-medewerker-edit-rol" placeholder="bijv. Teamleider, Beveiliger…" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:100%;box-sizing:border-box" onkeydown="if(event.key==='Enter')saveMedewerkerEdit()">
               </div>
             </div>
             <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end">
@@ -642,7 +646,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.18</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.20</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -662,7 +666,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.18';
+const APP_VERSION = '2.1.20';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -772,6 +776,7 @@ function fbSave() {
   const updates = {};
   updates['/dashboard/dienst']  = [...S.dienst];
   updates['/dashboard/names']   = S.names;
+  if (S.medewerkers && S.medewerkers.length) updates['/dashboard/medewerkers'] = S.medewerkers;
   updates['/dashboard/routes']  = S.routes;
   if (S.schema) updates['/dashboard/schema'] = S.schema;
   if (S.dagdelen) updates['/dashboard/dagdelen'] = S.dagdelen;
@@ -898,6 +903,17 @@ function sanitizeNames(arr) {
   return arr.map(sanitizeFromFirebase).filter(Boolean);
 }
 
+function sanitizeMedewerkers(arr) {
+  if (!Array.isArray(arr)) return [];
+  return arr.map(m => {
+    if (typeof m === 'string') return { naam: sanitizeFromFirebase(m), rol: '' };
+    return {
+      naam: sanitizeFromFirebase(m.naam || ''),
+      rol:  sanitizeFromFirebase(m.rol  || '')
+    };
+  }).filter(m => m.naam);
+}
+
 function sanitizeActive(obj) {
   if (!obj || typeof obj !== 'object') return {};
   const clean = {};
@@ -1012,6 +1028,15 @@ function fbListen() {
       if (fbNames.join('|') !== S.names.join('|'))
         S.names = fbNames;
     }
+    if (d.medewerkers !== undefined && Array.isArray(d.medewerkers) && d.medewerkers.length) {
+      const fbMed = sanitizeMedewerkers(d.medewerkers);
+      const fbMedStr = JSON.stringify(fbMed);
+      const locMedStr = JSON.stringify(S.medewerkers || []);
+      if (fbMedStr !== locMedStr) {
+        S.medewerkers = fbMed;
+        LS.set('rn_medewerkers', S.medewerkers);
+      }
+    }
     if (d.routes !== undefined && Array.isArray(d.routes) && d.routes.length) {
       const fbRoutes = sanitizeNames(d.routes);
       if (fbRoutes.join('|') !== S.routes.join('|'))
@@ -1054,9 +1079,10 @@ function fbListen() {
     }
 
     // Only back up settings to localStorage (not active/log)
-    LS.set('rn_dienst', [...S.dienst]);
-    LS.set('rn_names',  S.names);
-    LS.set('rn_routes', S.routes);
+    LS.set('rn_dienst',      [...S.dienst]);
+    LS.set('rn_names',       S.names);
+    LS.set('rn_routes',      S.routes);
+    LS.set('rn_medewerkers', S.medewerkers || []);
 
     setFbStatus('ok');
     // Clean up stale long-round notifications whose person already returned
@@ -1098,13 +1124,20 @@ if (LS.get('rn_version') !== VERSION) {
   const existingRoutes = LS.get('rn_routes') || [];
   const mergedNames  = [...new Set([...DN, ...existingNames])].sort((a,b) => a.toLowerCase().localeCompare(b.toLowerCase(),'nl'));
   const mergedRoutes = [...new Set([...DR, ...existingRoutes])].sort((a,b) => a.toLowerCase().localeCompare(b.toLowerCase(),'nl'));
-  LS.set('rn_names',  mergedNames);
-  LS.set('rn_routes', mergedRoutes);
+  // Migrate medewerkers: merge existing with defaults, preserving any stored rol
+  const existingMed = LS.get('rn_medewerkers') || [];
+  const existingMedMap = {};
+  existingMed.forEach(m => { if (m && m.naam) existingMedMap[m.naam] = m.rol || ''; });
+  const mergedMed = mergedNames.map(n => ({ naam: n, rol: existingMedMap[n] || '' }));
+  LS.set('rn_names',       mergedNames);
+  LS.set('rn_routes',      mergedRoutes);
+  LS.set('rn_medewerkers', mergedMed);
   LS.set('rn_version', VERSION);
 }
 
 let S = {
   names:  LS.get('rn_names')  || DN,
+  medewerkers: LS.get('rn_medewerkers') || DN.map(n => ({ naam: n, rol: '' })),
   routes: LS.get('rn_routes') || DR,
   schema: LS.get('rn_schema') || null, // null = use hardcoded SCHEMA default
   dagdelen: LS.get('rn_dagdelen') || null, // null = use DAGDELEN_DEFAULT
@@ -1162,7 +1195,8 @@ setInterval(() => {
 function save() {
   // Only save settings to localStorage (names, routes, dienst)
   // active and log are ONLY stored in Firebase
-  LS.set('rn_names',  S.names);
+  LS.set('rn_names',       S.names);
+  LS.set('rn_medewerkers', S.medewerkers || []);
   LS.set('rn_routes', S.routes);
   LS.set('rn_dienst', [...S.dienst]);
   fbSave();
@@ -2740,15 +2774,21 @@ function renderCfg() {
     if (!S.names.length) {
       ml.innerHTML = '<div style="font-size:13px;color:#94a3b8;padding:8px 0">Geen medewerkers.</div>';
     } else {
-      ml.innerHTML = S.names.map((n, i) => {
+      const rows = S.names.map((n, i) => {
         const isOnDienst = S.dienst.has(n);
-        return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;margin-bottom:6px;background:#f8fafc;border:1px solid #e2e8f0;font-size:12px">
-          <span style="font-weight:600;color:#1e293b;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n}</span>
-          ${isOnDienst ? '<span style="font-size:10px;font-weight:600;color:#15803d;background:#dcfce7;border-radius:4px;padding:2px 6px;flex-shrink:0">op dienst</span>' : ''}
-          <button onclick="editMedewerker(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#94a3b8'">✎</button>
-          <button onclick="rmName(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:14px;padding:0 4px;flex-shrink:0" title="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">✕</button>
+        const med = (S.medewerkers || []).find(m => m.naam === n);
+        const rol = med ? (med.rol || '') : '';
+        return `<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;border:0.5px solid #e2e8f0;background:#f8fafc;min-width:0">
+          <div style="flex:1;min-width:0;overflow:hidden">
+            <div style="font-weight:600;color:#1e293b;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${n}">${n}</div>
+            ${rol ? `<div style="font-size:10px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${rol}</div>` : ''}
+          </div>
+          ${isOnDienst ? '<span style="font-size:10px;font-weight:600;color:#15803d;background:#dcfce7;border-radius:4px;padding:1px 5px;flex-shrink:0">✓</span>' : ''}
+          <button onclick="editMedewerker(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:12px;padding:0 3px;flex-shrink:0;line-height:1" title="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#94a3b8'">✎</button>
+          <button onclick="rmName(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:13px;padding:0 3px;flex-shrink:0;line-height:1" title="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">✕</button>
         </div>`;
-      }).join('');
+      });
+      ml.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">${rows.join('')}</div>`;
     }
   }
   const rt = document.getElementById('route-tags');
@@ -3185,7 +3225,9 @@ function openMedewerkerModal(idx) {
   _medewerkerEditIdx = idx;
   const isEdit = idx !== null;
   document.getElementById('medewerker-modal-title').textContent = isEdit ? 'Medewerker wijzigen' : 'Medewerker toevoegen';
+  const _medItem = isEdit ? (S.medewerkers || []).find(m => m.naam === S.names[idx]) : null;
   document.getElementById('inp-medewerker-edit-naam').value = isEdit ? (S.names[idx] || '') : '';
+  document.getElementById('inp-medewerker-edit-rol').value  = _medItem ? (_medItem.rol || '') : '';
   document.getElementById('medewerker-modal-overlay').style.display = 'flex';
   setTimeout(() => document.getElementById('inp-medewerker-edit-naam').focus(), 50);
 }
@@ -3194,14 +3236,21 @@ function editMedewerker(i) { openMedewerkerModal(i); }
 
 function saveMedewerkerEdit() {
   const naam = sanitizeInput(document.getElementById('inp-medewerker-edit-naam').value || '').trim().slice(0, 60);
+  const rol  = sanitizeInput(document.getElementById('inp-medewerker-edit-rol').value  || '').trim().slice(0, 40);
   if (!naam) { showToast('Vul een naam in'); return; }
   const isEdit = _medewerkerEditIdx !== null;
   // Check for duplicate (case-insensitive), skip self when editing
   const isDuplicate = S.names.some((n, i) => n.toLowerCase() === naam.toLowerCase() && (!isEdit || i !== _medewerkerEditIdx));
   if (isDuplicate) { showToast('Deze naam bestaat al'); return; }
+  // Keep S.medewerkers in sync — same order as S.names after sort
+  if (!S.medewerkers) S.medewerkers = S.names.map(n => ({ naam: n, rol: '' }));
   if (isEdit) {
     const oudeNaam = S.names[_medewerkerEditIdx];
     S.names[_medewerkerEditIdx] = naam;
+    // Update medewerkers entry
+    const medIdx = S.medewerkers.findIndex(m => m.naam === oudeNaam);
+    if (medIdx >= 0) S.medewerkers[medIdx] = { naam, rol };
+    else S.medewerkers.push({ naam, rol });
     // Update dienst set if this person was on dienst
     if (S.dienst.has(oudeNaam)) {
       S.dienst.delete(oudeNaam);
@@ -3210,14 +3259,17 @@ function saveMedewerkerEdit() {
       LS.set('rn_dienst', [...S.dienst]);
     }
     S.names.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase(), 'nl'));
+    S.medewerkers.sort((a, b) => a.naam.toLowerCase().localeCompare(b.naam.toLowerCase(), 'nl'));
     save();
-    logEvent('settings', 'Medewerker gewijzigd: ' + oudeNaam + ' → ' + naam);
+    logEvent('settings', 'Medewerker gewijzigd: ' + oudeNaam + ' → ' + naam + (rol ? ' (' + rol + ')' : ''));
     showToast(naam + ' bijgewerkt');
   } else {
     S.names.push(naam);
+    S.medewerkers.push({ naam, rol });
     S.names.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase(), 'nl'));
+    S.medewerkers.sort((a, b) => a.naam.toLowerCase().localeCompare(b.naam.toLowerCase(), 'nl'));
     save();
-    logEvent('settings', 'Medewerker toegevoegd: ' + naam);
+    logEvent('settings', 'Medewerker toegevoegd: ' + naam + (rol ? ' (' + rol + ')' : ''));
     showToast(naam + ' toegevoegd');
   }
   _medewerkerEditIdx = null;
@@ -3427,6 +3479,10 @@ async function rmName(i) {
   const naam = S.names[i];
   if (!await customConfirm('Weet je zeker dat je "' + naam + '" wilt verwijderen?')) return;
   S.names.splice(i, 1);
+  if (S.medewerkers) {
+    const mi = S.medewerkers.findIndex(m => m.naam === naam);
+    if (mi >= 0) S.medewerkers.splice(mi, 1);
+  }
   if (S.dienst.has(naam)) markDienstPending(naam, 'remove');
   S.dienst.delete(naam);
   save(); renderCfg(); renderNameBtns(); renderDienst();
