@@ -646,7 +646,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.26</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.27</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -666,7 +666,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.26';
+const APP_VERSION = '2.1.27';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -838,7 +838,7 @@ function showUpdateBanner() {
     <div style="background:#fff;border-radius:12px;padding:28px 24px;max-width:320px;width:100%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.25)">
       <div style="font-size:32px;margin-bottom:12px">🔄</div>
       <div style="font-size:16px;font-weight:600;color:#1e293b;margin-bottom:8px">Nieuwe versie beschikbaar</div>
-      <div style="font-size:13px;color:#64748b;margin-bottom:20px;line-height:1.5">Er is een nieuwe versie van de webapplicatie. Vernieuw de pagina om door te gaan.</div>
+      <div style="font-size:13px;color:#64748b;margin-bottom:20px;line-height:1.5">De versie van de webapplicatie is gewijzigd. Vernieuw de pagina om door te gaan.</div>
       <button onclick="location.reload(true)"
         style="width:100%;padding:13px;border-radius:8px;border:none;background:#1d4ed8;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
         Pagina vernieuwen
@@ -853,7 +853,8 @@ function showUpdateBanner() {
 }
 
 function checkAppVersion(remoteVersion) {
-  if (isNewerVersion(remoteVersion, APP_VERSION)) showUpdateBanner();
+  // Trigger bij elke versieverschil — ook rollback (remote lager dan local)
+  if (remoteVersion && remoteVersion !== APP_VERSION) showUpdateBanner();
 }
 
 // Re-check version when tab comes back to foreground (catches background-stale tabs)
@@ -956,7 +957,7 @@ function fbListen() {
     const d = snap.val();
     if (!d) return;
 
-    // Version check — if Firebase has a newer version, block all writes and force reload
+    // Version check — bij elk versieverschil (upgrade én rollback) schrijfacties blokkeren en reload forceren
     if (d.appVersion) checkAppVersion(d.appVersion);
     if (window._appOutdated) return; // stop processing: don't overwrite state with stale data
 
@@ -3837,24 +3838,10 @@ function initFirebase() {
   // Stale-active cleanup 5s na init zodat fbListen tijd heeft S.active te vullen
   setTimeout(pruneStaleActive, 5000);
 
-  // Write own version to Firebase so outdated tabs on other devices get notified
-  window.fbGet(window.fbRef(window.fbDb, 'dashboard/appVersion'))
-    .then(snap => {
-      const remote = snap.exists() ? snap.val() : null;
-      // Only write if our version is newer (avoid downgrading if multiple tabs open)
-      if (!remote || isNewerVersion(APP_VERSION, remote)) {
-        window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/appVersion': APP_VERSION })
-          .catch(e => console.warn('Version write error:', e));
-      } else {
-        // Remote is newer — we are the outdated tab
-        checkAppVersion(remote);
-      }
-    })
-    .catch(() => {
-      // Can't read version — write ours as fallback
-      window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/appVersion': APP_VERSION })
-        .catch(() => {});
-    });
+  // Schrijf altijd eigen versie naar Firebase — ook bij rollback.
+  // Andere sessies detecteren elke versieverschil en reloaden.
+  window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/appVersion': APP_VERSION })
+    .catch(e => console.warn('Version write error:', e));
 }
 
 // Track already-shown shared notification IDs to avoid duplicates
