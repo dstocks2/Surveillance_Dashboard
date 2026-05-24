@@ -433,7 +433,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <span id="medewerkers-toggle-icon" style="font-size:13px;color:#94a3b8;padding:4px 0">▼</span>
       </div>
       <div id="medewerkers-collapse" style="display:none;margin-top:10px">
-        <div id="medewerkers-list" style="margin-bottom:12px"></div>
+        <div id="medewerkers-list" style="margin-bottom:8px"></div>
         <!-- Medewerker edit modal -->
         <div id="medewerker-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9000;align-items:center;justify-content:center;padding:16px" onmousedown="if(event.target===this)this._mdOnOverlay=true" onmouseup="if(event.target===this&&this._mdOnOverlay)cancelMedewerkerEdit();this._mdOnOverlay=false">
           <div style="background:#fff;border-radius:14px;padding:20px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.18);position:relative">
@@ -457,7 +457,10 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
             </div>
           </div>
         </div>
-        <button class="sm" onclick="openMedewerkerModal(null)" style="margin-bottom:8px">+ Nieuwe medewerker</button>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
+          <button class="sm" onclick="openMedewerkerModal(null)" style="font-size:12px">+ Nieuwe medewerker</button>
+          <button id="med-sort-btn" onclick="toggleMedewerkerSort()" style="background:none;border:none;cursor:pointer;font-size:11px;color:#94a3b8;padding:4px 2px;font-family:inherit" title="Sorteervolgorde wisselen">Sortering: naam ↕</button>
+        </div>
       </div>
       <div class="hr"></div>
 
@@ -467,11 +470,25 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <span id="rondes-toggle-icon" style="font-size:13px;color:#94a3b8;padding:4px 0">▼</span>
       </div>
       <div id="rondes-collapse" style="display:none;margin-top:10px">
-        <div class="tags" id="route-tags"></div>
-        <div class="inp-row">
-          <input type="text" id="inp-route" placeholder="Ronde toevoegen&hellip;" onkeydown="if(event.key==='Enter')addRoute()">
-          <button class="sm" onclick="addRoute()">+ Toevoegen</button>
+        <div id="rondes-list" style="margin-bottom:8px"></div>
+        <!-- Ronde edit modal -->
+        <div id="ronde-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9000;align-items:center;justify-content:center;padding:16px" onmousedown="if(event.target===this)this._mdOnOverlay=true" onmouseup="if(event.target===this&&this._mdOnOverlay)cancelRondeEdit();this._mdOnOverlay=false">
+          <div style="background:#fff;border-radius:14px;padding:20px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.18);position:relative">
+            <button onclick="cancelRondeEdit()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
+            <p id="ronde-modal-title" style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 16px">Ronde toevoegen</p>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <label style="font-size:11px;color:#64748b">Naam</label>
+              <input type="text" id="inp-ronde-edit-naam" placeholder="bijv. Buitenronde, P-noord…" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:100%;box-sizing:border-box" onkeydown="if(event.key==='Enter')saveRondeEdit()">
+            </div>
+            <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end">
+              <button class="sm" onclick="cancelRondeEdit()" style="background:#f1f5f9;color:#64748b">Annuleren</button>
+              <button class="sm" onclick="saveRondeEdit()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Opslaan
+              </button>
+            </div>
+          </div>
         </div>
+        <button class="sm" onclick="openRondeModal(null)">+ Nieuwe ronde</button>
       </div>
       <div class="hr"></div>
 
@@ -646,7 +663,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.28</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.31</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -666,7 +683,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.28';
+const APP_VERSION = '2.1.31';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -2764,7 +2781,17 @@ function renderCfg() {
     if (!S.medewerkers.length) {
       ml.innerHTML = '<div style="font-size:13px;color:#94a3b8;padding:8px 0">Geen medewerkers.</div>';
     } else {
-      const rows = (S.medewerkers || []).map((med, i) => {
+      // Sorteren op naam of rol, originele index bewaren voor edit/delete
+      const _medSort = window._medSortMode || 'naam';
+      const indexed = (S.medewerkers || []).map((med, i) => ({ med, i }));
+      if (_medSort === 'rol') {
+        indexed.sort((a, b) => {
+          const ra = (a.med.rol || '').toLowerCase(), rb = (b.med.rol || '').toLowerCase();
+          if (ra !== rb) return ra.localeCompare(rb, 'nl');
+          return a.med.naam.toLowerCase().localeCompare(b.med.naam.toLowerCase(), 'nl');
+        });
+      }
+      const rows = indexed.map(({ med, i }) => {
         const n = med.naam;
         const rol = med.rol || '';
         const isOnDienst = S.dienst.has(n);
@@ -2773,7 +2800,7 @@ function renderCfg() {
             <div style="font-weight:600;color:#1e293b;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${n}">${n}</div>
             ${rol ? `<div style="font-size:10px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${rol}</div>` : ''}
           </div>
-          ${isOnDienst ? '<span style="font-size:10px;font-weight:600;color:#15803d;background:#dcfce7;border-radius:4px;padding:1px 5px;flex-shrink:0">✓</span>' : ''}
+          ${isOnDienst ? '<span style="font-size:11px;font-weight:600;color:#15803d;background:#dcfce7;border-radius:4px;padding:2px 7px;flex-shrink:0;white-space:nowrap">op dienst</span>' : ''}
           <button onclick="editMedewerker(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:12px;padding:0 3px;flex-shrink:0;line-height:1" title="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#94a3b8'">✎</button>
           <button onclick="rmName(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:13px;padding:0 3px;flex-shrink:0;line-height:1" title="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">✕</button>
         </div>`;
@@ -2781,18 +2808,21 @@ function renderCfg() {
       ml.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">${rows.join('')}</div>`;
     }
   }
-  const rt = document.getElementById('route-tags');
-  rt.innerHTML = '';
-  S.routes.forEach((r, i) => {
-    const sp = document.createElement('span');
-    sp.className = 'tag';
-    sp.textContent = r;
-    const btn = document.createElement('button');
-    btn.innerHTML = '&#x2715;';
-    btn.addEventListener('click', () => rmRoute(i));
-    sp.appendChild(btn);
-    rt.appendChild(sp);
-  });
+  const rl = document.getElementById('rondes-list');
+  if (rl) {
+    if (!S.routes.length) {
+      rl.innerHTML = '<div style="font-size:13px;color:#94a3b8;padding:8px 0">Geen rondes.</div>';
+    } else {
+      const rows = S.routes.map((r, i) =>
+        `<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;border:0.5px solid #e2e8f0;background:#f8fafc;min-width:0;margin-bottom:4px">
+          <span style="font-weight:600;color:#1e293b;font-size:12px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r}">${r}</span>
+          <button onclick="editRonde(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:12px;padding:0 3px;flex-shrink:0;line-height:1" title="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#94a3b8'">✎</button>
+          <button onclick="rmRoute(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:13px;padding:0 3px;flex-shrink:0;line-height:1" title="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">✕</button>
+        </div>`
+      );
+      rl.innerHTML = rows.join('');
+    }
+  }
 
   // Populate ronde dropdowns
   const rondeOptions = ['', ...S.routes].map(r =>
@@ -3224,6 +3254,13 @@ function openMedewerkerModal(idx) {
 
 function editMedewerker(i) { openMedewerkerModal(i); }
 
+function toggleMedewerkerSort() {
+  window._medSortMode = (window._medSortMode || 'naam') === 'naam' ? 'rol' : 'naam';
+  const btn = document.getElementById('med-sort-btn');
+  if (btn) btn.textContent = 'Sortering: ' + window._medSortMode + ' ↕';
+  renderCfg();
+}
+
 function saveMedewerkerEdit() {
   const naam = sanitizeInput(document.getElementById('inp-medewerker-edit-naam').value || '').trim().slice(0, 60);
   const rol  = sanitizeInput(document.getElementById('inp-medewerker-edit-rol').value  || '').trim().slice(0, 40);
@@ -3468,21 +3505,60 @@ async function rmName(i) {
   showToast(naam.split(' ')[0] + ' verwijderd');
 }
 
-function addRoute() {
-  const v = sanitizeInput(document.getElementById('inp-route').value);
-  if (!v) return;
-  S.routes.push(v);
-  S.routes.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase(), 'nl'));
-  save();
-  document.getElementById('inp-route').value = '';
-  logEvent('settings', 'Ronde toegevoegd: ' + v); renderCfg(); renderRouteBtns(); showToast(v + ' toegevoegd');
-}
+function addRoute() { openRondeModal(null); } // legacy: delegate to modal
 
 async function rmRoute(i) {
   const ronde = S.routes[i];
   if (!await customConfirm('Weet je zeker dat je "' + ronde + '" wilt verwijderen?')) return;
-  const _r = S.routes[i]; S.routes.splice(i, 1); save(); logEvent('settings', 'Ronde verwijderd: ' + _r); renderCfg(); renderRouteBtns();
+  S.routes.splice(i, 1);
+  save();
+  logEvent('settings', 'Ronde verwijderd: ' + ronde);
+  renderCfg(); renderRouteBtns();
   showToast(ronde + ' verwijderd');
+}
+
+// ── RONDE MODAL ───────────────────────────────────────────────────────────
+let _rondeEditIdx = null;
+
+function openRondeModal(idx) {
+  _rondeEditIdx = idx;
+  const isEdit = idx !== null;
+  document.getElementById('ronde-modal-title').textContent = isEdit ? 'Ronde wijzigen' : 'Ronde toevoegen';
+  document.getElementById('inp-ronde-edit-naam').value = isEdit ? (S.routes[idx] || '') : '';
+  document.getElementById('ronde-modal-overlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('inp-ronde-edit-naam').focus(), 50);
+}
+
+function editRonde(i) { openRondeModal(i); }
+
+function saveRondeEdit() {
+  const naam = sanitizeInput(document.getElementById('inp-ronde-edit-naam').value || '').trim().slice(0, 60);
+  if (!naam) { showToast('Vul een naam in'); return; }
+  const isEdit = _rondeEditIdx !== null;
+  const isDuplicate = S.routes.some((r, i) => r.toLowerCase() === naam.toLowerCase() && (!isEdit || i !== _rondeEditIdx));
+  if (isDuplicate) { showToast('Deze ronde bestaat al'); return; }
+  if (isEdit) {
+    const oude = S.routes[_rondeEditIdx];
+    S.routes[_rondeEditIdx] = naam;
+    S.routes.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase(), 'nl'));
+    save();
+    logEvent('settings', 'Ronde gewijzigd: ' + oude + ' → ' + naam);
+    showToast(naam + ' bijgewerkt');
+  } else {
+    S.routes.push(naam);
+    S.routes.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase(), 'nl'));
+    save();
+    logEvent('settings', 'Ronde toegevoegd: ' + naam);
+    showToast(naam + ' toegevoegd');
+  }
+  _rondeEditIdx = null;
+  document.getElementById('ronde-modal-overlay').style.display = 'none';
+  renderCfg(); renderRouteBtns();
+}
+
+function cancelRondeEdit() {
+  _rondeEditIdx = null;
+  document.getElementById('ronde-modal-overlay').style.display = 'none';
 }
 
 function renderDienst() {
