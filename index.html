@@ -1104,12 +1104,9 @@ function fbListen() {
     if (d.pin && typeof d.pin === 'string' && d.pin.length === 64) {
       LS.set('rn_cfg_pin', d.pin);
     } else if (d.pin === null || d.pin === undefined) {
-      // Geen PIN in Firebase — setup tonen als geen geldige hash lokaal staat
-      const localPin = LS.get('rn_cfg_pin');
-      if (!localPin || localPin.length !== 64) {
-        if (localPin) localStorage.removeItem('rn_cfg_pin'); // verwijder eventuele plaintext restant
-        showPinSetup();
-      }
+      // Geen PIN in Firebase = source of truth → lokale cache wissen en setup tonen
+      localStorage.removeItem('rn_cfg_pin');
+      showPinSetup();
     }
     // Sync gedrag-instellingen from Firebase
     if (d.gedrag && typeof d.gedrag === 'object') {
