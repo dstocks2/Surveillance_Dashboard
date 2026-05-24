@@ -646,7 +646,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.21</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.23</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -666,7 +666,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.21';
+const APP_VERSION = '2.1.23';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -775,12 +775,8 @@ function fbSave() {
   // Only save settings — active/log only written via fbSaveActive()
   const updates = {};
   updates['/dashboard/dienst']  = [...S.dienst];
-  // medewerkers is de enige bron — names wordt er live uit afgeleid, niet apart opgeslagen
-  if (S.medewerkers && S.medewerkers.length) {
-    updates['/dashboard/medewerkers'] = S.medewerkers;
-  } else {
-    updates['/dashboard/names'] = S.names; // fallback voor lege medewerkers
-  }
+  // medewerkers is de enige bron — names wordt niet meer naar Firebase geschreven
+  updates['/dashboard/medewerkers'] = S.medewerkers || [];
   updates['/dashboard/routes']  = S.routes;
   if (S.schema) updates['/dashboard/schema'] = S.schema;
   if (S.dagdelen) updates['/dashboard/dagdelen'] = S.dagdelen;
@@ -1027,27 +1023,13 @@ function fbListen() {
       if (remoteDienst !== localDienst)
         S.dienst = new Set(fbDienst);
     }
-    // medewerkers is de bron van waarheid — names wordt er altijd uit afgeleid
+    // medewerkers is de enige bron — names is een computed getter, nooit apart geladen
     if (d.medewerkers !== undefined && Array.isArray(d.medewerkers) && d.medewerkers.length) {
       const fbMed = sanitizeMedewerkers(d.medewerkers);
       const fbMedStr = JSON.stringify(fbMed);
       const locMedStr = JSON.stringify(S.medewerkers || []);
       if (fbMedStr !== locMedStr) {
         S.medewerkers = fbMed;
-        S.names = fbMed.map(m => m.naam);
-        LS.set('rn_medewerkers', S.medewerkers);
-        LS.set('rn_names', S.names);
-      }
-    } else if (d.names !== undefined && Array.isArray(d.names) && d.names.length) {
-      // Fallback: geen medewerkers node → gebruik names en migreer
-      const fbNames = sanitizeNames(d.names);
-      if (fbNames.join('|') !== S.names.join('|')) {
-        S.names = fbNames;
-        S.medewerkers = fbNames.map(n => {
-          const existing = (S.medewerkers || []).find(m => m.naam === n);
-          return { naam: n, rol: existing ? (existing.rol || '') : '' };
-        });
-        LS.set('rn_names', S.names);
         LS.set('rn_medewerkers', S.medewerkers);
       }
     }
@@ -1131,26 +1113,19 @@ const DR = ['0-1 ronde','Alarm opvolging','Assistentie','Begeleiding',
             'Van Geuns','Verpleegronde','Vrije ronde'];
 
 if (LS.get('rn_version') !== VERSION) {
-  // On version update: MERGE existing names/routes with the new defaults
-  // so manually added names are never lost
-  const existingNames  = LS.get('rn_names')  || [];
+  // On version update: merge routes with defaults; medewerkers beheert eigen lijst
   const existingRoutes = LS.get('rn_routes') || [];
-  const mergedNames  = [...new Set([...DN, ...existingNames])].sort((a,b) => a.toLowerCase().localeCompare(b.toLowerCase(),'nl'));
   const mergedRoutes = [...new Set([...DR, ...existingRoutes])].sort((a,b) => a.toLowerCase().localeCompare(b.toLowerCase(),'nl'));
-  // Migrate medewerkers: merge existing with defaults, preserving any stored rol
-  const existingMed = LS.get('rn_medewerkers') || [];
-  const existingMedMap = {};
-  existingMed.forEach(m => { if (m && m.naam) existingMedMap[m.naam] = m.rol || ''; });
-  const mergedMed = mergedNames.map(n => ({ naam: n, rol: existingMedMap[n] || '' }));
-  LS.set('rn_routes',      mergedRoutes);
-  LS.set('rn_medewerkers', mergedMed);
+  // Medewerkers: als nog geen rn_medewerkers bestaat, initialiseer vanuit DN defaults
+  if (!LS.get('rn_medewerkers')) {
+    LS.set('rn_medewerkers', DN.map(n => ({ naam: n, rol: '' })));
+  }
+  LS.set('rn_routes',  mergedRoutes);
   LS.set('rn_version', VERSION);
 }
 
 let S = {
   medewerkers: LS.get('rn_medewerkers') || DN.map(n => ({ naam: n, rol: '' })),
-  get names() { return this.medewerkers.map(m => m.naam); },
-  set names(arr) { /* names is afgeleid — schrijf via medewerkers */ },
   routes: LS.get('rn_routes') || DR,
   schema: LS.get('rn_schema') || null, // null = use hardcoded SCHEMA default
   dagdelen: LS.get('rn_dagdelen') || null, // null = use DAGDELEN_DEFAULT
@@ -1261,9 +1236,9 @@ function render() {
 }
 
 // SINGLE SOURCE OF TRUTH for "names currently visible on registratie tab"
-// Always call this — never iterate S.names directly when filtering by dienst.
+// Always call this — never iterate S.medewerkers directly when filtering by dienst.
 function activeNames() {
-  return S.dienst.size > 0 ? S.names.filter(n => S.dienst.has(n)) : S.names;
+  return S.dienst.size > 0 ? S.medewerkers.map(m => m.naam).filter(n => S.dienst.has(n)) : S.medewerkers.map(m => m.naam);
 }
 
 function renderNameBtns() {
@@ -1280,7 +1255,7 @@ function renderNameBtns() {
   const ind = document.getElementById('dienst-ind');
   if (ind) {
     if (S.dienst.size > 0) {
-      ind.textContent = S.dienst.size + ' van ' + S.names.length + ' op dienst';
+      ind.textContent = S.dienst.size + ' van ' + S.medewerkers.length + ' op dienst';
       ind.style.display = 'inline';
     } else {
       ind.style.display = 'none';
@@ -1389,7 +1364,7 @@ function doStart() {
 
   // Mark pending so fbListen doesn't clobber these entries while write is in flight
   started.forEach(s => {
-    const fullName = S.names.find(x => x.split(' ')[0] === s) || s;
+    const fullName = (S.medewerkers.find(m => m.naam.split(' ')[0] === s) || {naam: s}).naam;
     markActivePending(fullName, 'add', { route, start: startTime });
   });
 
@@ -1404,14 +1379,14 @@ function doStart() {
         setFbStatus('ok');
         // Clear pending markers — Firebase now has our writes
         started.forEach(s => {
-          const fullName = S.names.find(x => x.split(' ')[0] === s) || s;
+          const fullName = (S.medewerkers.find(m => m.naam.split(' ')[0] === s) || {naam: s}).naam;
           clearActivePending(fullName);
         });
         logEvent('start', started.join(' & ') + ' gestart op ' + route, { names: started, route, ts: startTime });
         showToast(started.join(' & ') + ' gestart — ' + route);
         schrijfGedeeldeMelding('grijs', started.join(' & ') + ' gestart', route);
         // Duplicate route check only after confirmed write
-        const startedFull = started.map(s => S.names.find(x => x.split(' ')[0] === s) || s);
+        const startedFull = started.map(s => (S.medewerkers.find(m => m.naam.split(' ')[0] === s) || {naam: s}).naam);
         const sameRoute = Object.entries(S.active)
           .filter(([nm, a]) => a.route === route && !startedFull.includes(nm) && a.start !== startTime);
         if (sameRoute.length > 0) {
@@ -1424,7 +1399,7 @@ function doStart() {
         console.warn('Firebase start write error:', e);
         // Rollback: clear pending markers AND remove optimistically added active entries
         started.forEach(s => {
-          const fullName = S.names.find(x => x.split(' ')[0] === s) || s;
+          const fullName = (S.medewerkers.find(m => m.naam.split(' ')[0] === s) || {naam: s}).naam;
           clearActivePending(fullName);
           if (S.active[fullName] && S.active[fullName].start === startTime) delete S.active[fullName];
         });
@@ -1434,7 +1409,7 @@ function doStart() {
         voegMeldingToe('rood', 'Start mislukt — ' + started.join(' & '), route + ' kon niet worden opgeslagen. Controleer de verbinding.', 'Opnieuw proberen', () => {
           // Restore selection so user can retry
           started.forEach(s => {
-            const fullName = S.names.find(x => x.split(' ')[0] === s) || s;
+            const fullName = (S.medewerkers.find(m => m.naam.split(' ')[0] === s) || {naam: s}).naam;
             S.sns.add(fullName);
           });
           S.sr = route;
@@ -2782,7 +2757,7 @@ function renderCfg() {
   // Render medewerkers list — sorted alphabetically, styled like dagdelen
   const ml = document.getElementById('medewerkers-list');
   if (ml) {
-    if (!S.names.length) {
+    if (!S.medewerkers.length) {
       ml.innerHTML = '<div style="font-size:13px;color:#94a3b8;padding:8px 0">Geen medewerkers.</div>';
     } else {
       const rows = (S.medewerkers || []).map((med, i) => {
@@ -3251,7 +3226,7 @@ function saveMedewerkerEdit() {
   if (!naam) { showToast('Vul een naam in'); return; }
   const isEdit = _medewerkerEditIdx !== null;
   if (!S.medewerkers) S.medewerkers = [];
-  // Duplicate check via medewerkers (S.names is computed, same result)
+  // Duplicate check via medewerkers
   const isDuplicate = S.medewerkers.some((m, i) => m.naam.toLowerCase() === naam.toLowerCase() && (!isEdit || i !== _medewerkerEditIdx));
   if (isDuplicate) { showToast('Deze naam bestaat al'); return; }
   if (isEdit) {
@@ -3512,7 +3487,7 @@ function renderDienst() {
 
   // Group names by first letter, skip empty letters
   const groepen = {};
-  S.names.forEach(n => {
+  S.medewerkers.forEach(med => { const n = med.naam;
     const l = n[0].toUpperCase();
     if (!groepen[l]) groepen[l] = [];
     groepen[l].push(n);
@@ -3592,7 +3567,7 @@ function renderDienst() {
 
   const st = document.getElementById('dienst-status');
   if (S.dienst.size === 0) {
-    st.textContent = 'Geen selectie — alle ' + S.names.length + ' medewerkers worden getoond bij registratie.';
+    st.textContent = 'Geen selectie — alle ' + S.medewerkers.length + ' medewerkers worden getoond bij registratie.';
   } else {
     st.innerHTML = '<strong>' + S.dienst.size + '</strong> medewerker' + (S.dienst.size !== 1 ? 's' : '') + ' op dienst: ' + [...S.dienst].join(', ');
   }
