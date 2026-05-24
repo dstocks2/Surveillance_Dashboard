@@ -433,11 +433,27 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <span id="medewerkers-toggle-icon" style="font-size:13px;color:#94a3b8;padding:4px 0">▼</span>
       </div>
       <div id="medewerkers-collapse" style="display:none;margin-top:10px">
-        <div class="tags" id="name-tags"></div>
-        <div class="inp-row">
-          <input type="text" id="inp-name" placeholder="Naam toevoegen&hellip;" onkeydown="if(event.key==='Enter')addName()">
-          <button class="sm" onclick="addName()">+ Toevoegen</button>
+        <div id="medewerkers-list" style="margin-bottom:12px"></div>
+        <!-- Medewerker edit modal -->
+        <div id="medewerker-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9000;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)cancelMedewerkerEdit()">
+          <div style="background:#fff;border-radius:14px;padding:20px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.18);position:relative">
+            <button onclick="cancelMedewerkerEdit()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
+            <p id="medewerker-modal-title" style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 16px">Medewerker toevoegen</p>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <label style="font-size:11px;color:#64748b">Naam</label>
+                <input type="text" id="inp-medewerker-edit-naam" placeholder="Voor- en achternaam…" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:100%;box-sizing:border-box" onkeydown="if(event.key==='Enter')saveMedewerkerEdit()">
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end">
+              <button class="sm" onclick="cancelMedewerkerEdit()" style="background:#f1f5f9;color:#64748b">Annuleren</button>
+              <button class="sm" onclick="saveMedewerkerEdit()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Opslaan
+              </button>
+            </div>
+          </div>
         </div>
+        <button class="sm" onclick="openMedewerkerModal(null)" style="margin-bottom:8px">+ Nieuwe medewerker</button>
       </div>
       <div class="hr"></div>
 
@@ -2718,18 +2734,23 @@ function renderCfg() {
   if (inpMT && document.activeElement !== inpMT) inpMT.value = S.meldingTTL;
   if (inpPC && document.activeElement !== inpPC) inpPC.value = S.pinCacheDur;
 
-  const nt = document.getElementById('name-tags');
-  nt.innerHTML = '';
-  S.names.forEach((n, i) => {
-    const sp = document.createElement('span');
-    sp.className = 'tag';
-    sp.textContent = n;
-    const btn = document.createElement('button');
-    btn.innerHTML = '&#x2715;';
-    btn.addEventListener('click', () => rmName(i));
-    sp.appendChild(btn);
-    nt.appendChild(sp);
-  });
+  // Render medewerkers list — sorted alphabetically, styled like dagdelen
+  const ml = document.getElementById('medewerkers-list');
+  if (ml) {
+    if (!S.names.length) {
+      ml.innerHTML = '<div style="font-size:13px;color:#94a3b8;padding:8px 0">Geen medewerkers.</div>';
+    } else {
+      ml.innerHTML = S.names.map((n, i) => {
+        const isOnDienst = S.dienst.has(n);
+        return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;margin-bottom:6px;background:#f8fafc;border:1px solid #e2e8f0;font-size:12px">
+          <span style="font-weight:600;color:#1e293b;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n}</span>
+          ${isOnDienst ? '<span style="font-size:10px;font-weight:600;color:#15803d;background:#dcfce7;border-radius:4px;padding:2px 6px;flex-shrink:0">op dienst</span>' : ''}
+          <button onclick="editMedewerker(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#94a3b8'">✎</button>
+          <button onclick="rmName(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:14px;padding:0 4px;flex-shrink:0" title="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">✕</button>
+        </div>`;
+      }).join('');
+    }
+  }
   const rt = document.getElementById('route-tags');
   rt.innerHTML = '';
   S.routes.forEach((r, i) => {
@@ -3157,6 +3178,60 @@ function cancelDagdeelEdit() {
   document.getElementById('dagdeel-modal-overlay').style.display = 'none';
 }
 
+// ── MEDEWERKER MODAL ──────────────────────────────────────────────────────
+let _medewerkerEditIdx = null; // null = nieuw, number = bewerk index
+
+function openMedewerkerModal(idx) {
+  _medewerkerEditIdx = idx;
+  const isEdit = idx !== null;
+  document.getElementById('medewerker-modal-title').textContent = isEdit ? 'Medewerker wijzigen' : 'Medewerker toevoegen';
+  document.getElementById('inp-medewerker-edit-naam').value = isEdit ? (S.names[idx] || '') : '';
+  document.getElementById('medewerker-modal-overlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('inp-medewerker-edit-naam').focus(), 50);
+}
+
+function editMedewerker(i) { openMedewerkerModal(i); }
+
+function saveMedewerkerEdit() {
+  const naam = sanitizeInput(document.getElementById('inp-medewerker-edit-naam').value || '').trim().slice(0, 60);
+  if (!naam) { showToast('Vul een naam in'); return; }
+  const isEdit = _medewerkerEditIdx !== null;
+  // Check for duplicate (case-insensitive), skip self when editing
+  const isDuplicate = S.names.some((n, i) => n.toLowerCase() === naam.toLowerCase() && (!isEdit || i !== _medewerkerEditIdx));
+  if (isDuplicate) { showToast('Deze naam bestaat al'); return; }
+  if (isEdit) {
+    const oudeNaam = S.names[_medewerkerEditIdx];
+    S.names[_medewerkerEditIdx] = naam;
+    // Update dienst set if this person was on dienst
+    if (S.dienst.has(oudeNaam)) {
+      S.dienst.delete(oudeNaam);
+      S.dienst.add(naam);
+      markDienstPending(naam, 'add');
+      LS.set('rn_dienst', [...S.dienst]);
+    }
+    S.names.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase(), 'nl'));
+    save();
+    logEvent('settings', 'Medewerker gewijzigd: ' + oudeNaam + ' → ' + naam);
+    showToast(naam + ' bijgewerkt');
+  } else {
+    S.names.push(naam);
+    S.names.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase(), 'nl'));
+    save();
+    logEvent('settings', 'Medewerker toegevoegd: ' + naam);
+    showToast(naam + ' toegevoegd');
+  }
+  _medewerkerEditIdx = null;
+  document.getElementById('medewerker-modal-overlay').style.display = 'none';
+  renderCfg();
+  renderNameBtns();
+  renderDienst();
+}
+
+function cancelMedewerkerEdit() {
+  _medewerkerEditIdx = null;
+  document.getElementById('medewerker-modal-overlay').style.display = 'none';
+}
+
 function rmDagdeel(i) {
   const list = S.dagdelen ? [...S.dagdelen] : [...DAGDELEN_DEFAULT];
   const d = list[i];
@@ -3344,13 +3419,8 @@ function sanitizeInput(str) {
 }
 
 function addName() {
-  const v = sanitizeInput(document.getElementById('inp-name').value);
-  if (!v) return;
-  S.names.push(v);
-  S.names.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase(), 'nl'));
-  save();
-  document.getElementById('inp-name').value = '';
-  logEvent('settings', 'Medewerker toegevoegd: ' + v); renderCfg(); renderNameBtns(); showToast(v + ' toegevoegd');
+  // Legacy: delegate to modal
+  openMedewerkerModal(null);
 }
 
 async function rmName(i) {
