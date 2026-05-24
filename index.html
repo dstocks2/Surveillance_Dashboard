@@ -321,7 +321,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
   <!-- REGISTRATIE -->
   <div id="pane-reg" class="pane on">
-    <p class="lbl">Stap 1 &mdash; Kies een persoon (meerdere mogelijk) <span id="dienst-ind" style="font-size:10px;background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:20px;font-weight:500;display:none;text-transform:none;letter-spacing:0"></span></p>
+    <p class="lbl">Stap 1 &mdash; Kies een persoon <span style="font-weight:400;color:#94a3b8;font-size:11px">(meerdere mogelijk)</span> <span id="dienst-ind" style="font-size:10px;background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:20px;font-weight:500;display:none;text-transform:none;letter-spacing:0"></span></p>
     <div class="btn-row" id="name-btns"></div>
     <div class="selbar"><span class="k">Naam:</span><span id="sn-val" class="ph">selecteer naam(men)&hellip;</span></div>
 
@@ -335,7 +335,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M3 2l7 4-7 4V2z"/></svg>
         Ronde starten
       </button>
-      <button class="abtn abtn-r" onclick="doRetour(null)">
+      <button class="abtn abtn-r" id="btn-retour" onclick="doRetour(null)" disabled>
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="2,6 5,9 10,3"/></svg>
         Retour melden
       </button>
@@ -663,7 +663,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.32</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.36</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -683,7 +683,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.32';
+const APP_VERSION = '2.1.36';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1343,6 +1343,8 @@ function updBtn() {
   // Disable only if ALL selected names are already active
   const allActive = hasName && [...S.sns].every(n => !!S.active[n]);
   document.getElementById('btn-start').disabled = !hasName || !hasRoute || allActive;
+  const anyActive = hasName && [...S.sns].some(n => !!S.active[n]);
+  document.getElementById('btn-retour').disabled = !anyActive;
   document.getElementById('btn-wis').disabled = !hasName && !hasRoute;
 }
 
@@ -1451,8 +1453,6 @@ async function doRetour(name) {
   const n = name || (S.sns.size === 1 ? [...S.sns][0] : null);
   if (!n) {
     if (S.sns.size > 1) { showToast('Selecteer één naam voor retour'); return; }
-    const a = Object.keys(S.active);
-    showToast(a.length ? 'Selecteer eerst je naam (stap 1)' : 'Geen actieve rondes');
     return;
   }
   if (!S.active[n]) { showToast(n.split(' ')[0] + ' is niet onderweg'); return; }
@@ -3671,11 +3671,21 @@ function renderDienst() {
 
 
 function dienstLeeg() {
-  // Mark every currently-on-dienst name as 'remove' pending so an in-flight
-  // Firebase snapshot can't undo the clear
-  for (const n of S.dienst) markDienstPending(n, 'remove');
-  S.dienst = new Set();
+  const geblokkeerd = [];
+  for (const n of S.dienst) {
+    if (S.active[n]) {
+      geblokkeerd.push(n.split(' ')[0]);
+    } else {
+      // Mark intent BEFORE state change so any in-flight fbListen respects it
+      markDienstPending(n, 'remove');
+      S.dienst.delete(n);
+    }
+  }
   save(); renderDienst(); renderNameBtns();
+  if (geblokkeerd.length) {
+    const hebben = geblokkeerd.length === 1 ? 'heeft' : 'hebben';
+    showToast('⚠ ' + geblokkeerd.join(', ') + ' ' + hebben + ' nog een actieve ronde. Meld eerst retour.', 4000);
+  }
 }
 
 
