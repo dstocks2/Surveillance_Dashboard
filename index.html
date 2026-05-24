@@ -26,7 +26,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;min-height:1
   #header-divider-right{display:none !important}
   #header-right{flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
   #fb-status{font-size:9px !important;opacity:.8 !important}
-  #header-dienst{font-size:11px !important;padding:2px 8px !important}
+  #header-dienst{font-size:13px !important;padding:5px 12px !important;border-radius:20px !important;background:rgba(255,255,255,.1) !important;border:1px solid rgba(255,255,255,.18) !important;color:#fff !important;font-weight:500 !important}
+  #header-dienst-tekst{display:none !important}
+  #header-dienst-kort{display:inline !important}
 }
 .header h1{font-size:17px;font-weight:600;color:#fff}
 .header p{font-size:11px;color:rgba(255,255,255,.6);margin-top:2px}
@@ -747,7 +749,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.59</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.61</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -767,7 +769,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.59';
+const APP_VERSION = '2.1.61';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -4117,7 +4119,8 @@ function updateHeader() {
     const count = S.dienst.size > 0 ? S.dienst.size : S.medewerkers.length;
     const total = S.medewerkers.length;
     dienstEl.innerHTML = '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4ade80;margin-right:5px;vertical-align:middle"></span>'
-      + '<span style="vertical-align:middle">' + count + ' van ' + total + ' op dienst</span>';
+      + '<span style="vertical-align:middle" id="header-dienst-tekst">' + count + ' van ' + total + ' op dienst</span>'
+      + '<span style="vertical-align:middle;display:none" id="header-dienst-kort">' + count + '/' + total + '</span>';
     dienstEl.style.background = 'rgba(255,255,255,.12)';
     dienstEl.style.color = 'rgba(255,255,255,.75)';
   }
