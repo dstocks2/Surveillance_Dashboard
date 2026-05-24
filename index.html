@@ -646,7 +646,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.20</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.21</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -666,7 +666,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.20';
+const APP_VERSION = '2.1.21';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -775,8 +775,12 @@ function fbSave() {
   // Only save settings — active/log only written via fbSaveActive()
   const updates = {};
   updates['/dashboard/dienst']  = [...S.dienst];
-  updates['/dashboard/names']   = S.names;
-  if (S.medewerkers && S.medewerkers.length) updates['/dashboard/medewerkers'] = S.medewerkers;
+  // medewerkers is de enige bron — names wordt er live uit afgeleid, niet apart opgeslagen
+  if (S.medewerkers && S.medewerkers.length) {
+    updates['/dashboard/medewerkers'] = S.medewerkers;
+  } else {
+    updates['/dashboard/names'] = S.names; // fallback voor lege medewerkers
+  }
   updates['/dashboard/routes']  = S.routes;
   if (S.schema) updates['/dashboard/schema'] = S.schema;
   if (S.dagdelen) updates['/dashboard/dagdelen'] = S.dagdelen;
@@ -1023,17 +1027,27 @@ function fbListen() {
       if (remoteDienst !== localDienst)
         S.dienst = new Set(fbDienst);
     }
-    if (d.names !== undefined && Array.isArray(d.names) && d.names.length) {
-      const fbNames = sanitizeNames(d.names);
-      if (fbNames.join('|') !== S.names.join('|'))
-        S.names = fbNames;
-    }
+    // medewerkers is de bron van waarheid — names wordt er altijd uit afgeleid
     if (d.medewerkers !== undefined && Array.isArray(d.medewerkers) && d.medewerkers.length) {
       const fbMed = sanitizeMedewerkers(d.medewerkers);
       const fbMedStr = JSON.stringify(fbMed);
       const locMedStr = JSON.stringify(S.medewerkers || []);
       if (fbMedStr !== locMedStr) {
         S.medewerkers = fbMed;
+        S.names = fbMed.map(m => m.naam);
+        LS.set('rn_medewerkers', S.medewerkers);
+        LS.set('rn_names', S.names);
+      }
+    } else if (d.names !== undefined && Array.isArray(d.names) && d.names.length) {
+      // Fallback: geen medewerkers node → gebruik names en migreer
+      const fbNames = sanitizeNames(d.names);
+      if (fbNames.join('|') !== S.names.join('|')) {
+        S.names = fbNames;
+        S.medewerkers = fbNames.map(n => {
+          const existing = (S.medewerkers || []).find(m => m.naam === n);
+          return { naam: n, rol: existing ? (existing.rol || '') : '' };
+        });
+        LS.set('rn_names', S.names);
         LS.set('rn_medewerkers', S.medewerkers);
       }
     }
@@ -1080,7 +1094,6 @@ function fbListen() {
 
     // Only back up settings to localStorage (not active/log)
     LS.set('rn_dienst',      [...S.dienst]);
-    LS.set('rn_names',       S.names);
     LS.set('rn_routes',      S.routes);
     LS.set('rn_medewerkers', S.medewerkers || []);
 
@@ -1129,15 +1142,15 @@ if (LS.get('rn_version') !== VERSION) {
   const existingMedMap = {};
   existingMed.forEach(m => { if (m && m.naam) existingMedMap[m.naam] = m.rol || ''; });
   const mergedMed = mergedNames.map(n => ({ naam: n, rol: existingMedMap[n] || '' }));
-  LS.set('rn_names',       mergedNames);
   LS.set('rn_routes',      mergedRoutes);
   LS.set('rn_medewerkers', mergedMed);
   LS.set('rn_version', VERSION);
 }
 
 let S = {
-  names:  LS.get('rn_names')  || DN,
   medewerkers: LS.get('rn_medewerkers') || DN.map(n => ({ naam: n, rol: '' })),
+  get names() { return this.medewerkers.map(m => m.naam); },
+  set names(arr) { /* names is afgeleid — schrijf via medewerkers */ },
   routes: LS.get('rn_routes') || DR,
   schema: LS.get('rn_schema') || null, // null = use hardcoded SCHEMA default
   dagdelen: LS.get('rn_dagdelen') || null, // null = use DAGDELEN_DEFAULT
@@ -1193,12 +1206,10 @@ setInterval(() => {
 }, 10000);
 
 function save() {
-  // Only save settings to localStorage (names, routes, dienst)
-  // active and log are ONLY stored in Firebase
-  LS.set('rn_names',       S.names);
+  // medewerkers is de bron — names wordt er live uit afgeleid
   LS.set('rn_medewerkers', S.medewerkers || []);
-  LS.set('rn_routes', S.routes);
-  LS.set('rn_dienst', [...S.dienst]);
+  LS.set('rn_routes',      S.routes);
+  LS.set('rn_dienst',      [...S.dienst]);
   fbSave();
 }
 
@@ -2774,10 +2785,10 @@ function renderCfg() {
     if (!S.names.length) {
       ml.innerHTML = '<div style="font-size:13px;color:#94a3b8;padding:8px 0">Geen medewerkers.</div>';
     } else {
-      const rows = S.names.map((n, i) => {
+      const rows = (S.medewerkers || []).map((med, i) => {
+        const n = med.naam;
+        const rol = med.rol || '';
         const isOnDienst = S.dienst.has(n);
-        const med = (S.medewerkers || []).find(m => m.naam === n);
-        const rol = med ? (med.rol || '') : '';
         return `<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;border:0.5px solid #e2e8f0;background:#f8fafc;min-width:0">
           <div style="flex:1;min-width:0;overflow:hidden">
             <div style="font-weight:600;color:#1e293b;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${n}">${n}</div>
@@ -3225,9 +3236,9 @@ function openMedewerkerModal(idx) {
   _medewerkerEditIdx = idx;
   const isEdit = idx !== null;
   document.getElementById('medewerker-modal-title').textContent = isEdit ? 'Medewerker wijzigen' : 'Medewerker toevoegen';
-  const _medItem = isEdit ? (S.medewerkers || []).find(m => m.naam === S.names[idx]) : null;
-  document.getElementById('inp-medewerker-edit-naam').value = isEdit ? (S.names[idx] || '') : '';
-  document.getElementById('inp-medewerker-edit-rol').value  = _medItem ? (_medItem.rol || '') : '';
+  const _medItem = isEdit ? (S.medewerkers || [])[idx] : null;
+  document.getElementById('inp-medewerker-edit-naam').value = _medItem ? (_medItem.naam || '') : '';
+  document.getElementById('inp-medewerker-edit-rol').value  = _medItem ? (_medItem.rol  || '') : '';
   document.getElementById('medewerker-modal-overlay').style.display = 'flex';
   setTimeout(() => document.getElementById('inp-medewerker-edit-naam').focus(), 50);
 }
@@ -3239,34 +3250,26 @@ function saveMedewerkerEdit() {
   const rol  = sanitizeInput(document.getElementById('inp-medewerker-edit-rol').value  || '').trim().slice(0, 40);
   if (!naam) { showToast('Vul een naam in'); return; }
   const isEdit = _medewerkerEditIdx !== null;
-  // Check for duplicate (case-insensitive), skip self when editing
-  const isDuplicate = S.names.some((n, i) => n.toLowerCase() === naam.toLowerCase() && (!isEdit || i !== _medewerkerEditIdx));
+  if (!S.medewerkers) S.medewerkers = [];
+  // Duplicate check via medewerkers (S.names is computed, same result)
+  const isDuplicate = S.medewerkers.some((m, i) => m.naam.toLowerCase() === naam.toLowerCase() && (!isEdit || i !== _medewerkerEditIdx));
   if (isDuplicate) { showToast('Deze naam bestaat al'); return; }
-  // Keep S.medewerkers in sync — same order as S.names after sort
-  if (!S.medewerkers) S.medewerkers = S.names.map(n => ({ naam: n, rol: '' }));
   if (isEdit) {
-    const oudeNaam = S.names[_medewerkerEditIdx];
-    S.names[_medewerkerEditIdx] = naam;
-    // Update medewerkers entry
-    const medIdx = S.medewerkers.findIndex(m => m.naam === oudeNaam);
-    if (medIdx >= 0) S.medewerkers[medIdx] = { naam, rol };
-    else S.medewerkers.push({ naam, rol });
-    // Update dienst set if this person was on dienst
-    if (S.dienst.has(oudeNaam)) {
+    const oudeNaam = S.medewerkers[_medewerkerEditIdx].naam;
+    S.medewerkers[_medewerkerEditIdx] = { naam, rol };
+    // Update dienst set als naam veranderd
+    if (naam !== oudeNaam && S.dienst.has(oudeNaam)) {
       S.dienst.delete(oudeNaam);
       S.dienst.add(naam);
       markDienstPending(naam, 'add');
       LS.set('rn_dienst', [...S.dienst]);
     }
-    S.names.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase(), 'nl'));
     S.medewerkers.sort((a, b) => a.naam.toLowerCase().localeCompare(b.naam.toLowerCase(), 'nl'));
     save();
     logEvent('settings', 'Medewerker gewijzigd: ' + oudeNaam + ' → ' + naam + (rol ? ' (' + rol + ')' : ''));
     showToast(naam + ' bijgewerkt');
   } else {
-    S.names.push(naam);
     S.medewerkers.push({ naam, rol });
-    S.names.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase(), 'nl'));
     S.medewerkers.sort((a, b) => a.naam.toLowerCase().localeCompare(b.naam.toLowerCase(), 'nl'));
     save();
     logEvent('settings', 'Medewerker toegevoegd: ' + naam + (rol ? ' (' + rol + ')' : ''));
@@ -3476,13 +3479,10 @@ function addName() {
 }
 
 async function rmName(i) {
-  const naam = S.names[i];
+  if (!S.medewerkers || !S.medewerkers[i]) return;
+  const naam = S.medewerkers[i].naam;
   if (!await customConfirm('Weet je zeker dat je "' + naam + '" wilt verwijderen?')) return;
-  S.names.splice(i, 1);
-  if (S.medewerkers) {
-    const mi = S.medewerkers.findIndex(m => m.naam === naam);
-    if (mi >= 0) S.medewerkers.splice(mi, 1);
-  }
+  S.medewerkers.splice(i, 1);
   if (S.dienst.has(naam)) markDienstPending(naam, 'remove');
   S.dienst.delete(naam);
   save(); renderCfg(); renderNameBtns(); renderDienst();
