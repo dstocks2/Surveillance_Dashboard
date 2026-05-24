@@ -663,7 +663,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.36</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.37</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -683,7 +683,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.36';
+const APP_VERSION = '2.1.37';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -3461,21 +3461,20 @@ setInterval(() => {
   }
 }, 60000);
 
-function rmSchemaItem(i) {
+async function rmSchemaItem(i) {
   const activeSchema = S.schema ? [...S.schema] : [...SCHEMA];
   const item = activeSchema[i];
   const hDisp = item.h % 24;
   const tijdStr = String(hDisp).padStart(2,'0') + ':' + String(item.m).padStart(2,'0');
-  customConfirm(`Schema-item verwijderen: ${tijdStr} — ${item.taak}?`, () => {
-    const _rem = activeSchema[i];
-    activeSchema.splice(i, 1);
-    S.schema = activeSchema;
-    LS.set('rn_schema', S.schema);
-    fbSave();
-    logEvent('settings', 'Schema-item verwijderd', _rem);
-    showToast('Schema-item verwijderd');
-    renderCfg();
-  });
+  if (!await customConfirm(`Schema-item verwijderen: ${tijdStr} — ${item.taak}?`)) return;
+  const _rem = activeSchema[i];
+  activeSchema.splice(i, 1);
+  S.schema = activeSchema;
+  LS.set('rn_schema', S.schema);
+  fbSave();
+  logEvent('settings', 'Schema-item verwijderd', _rem);
+  showToast('Schema-item verwijderd');
+  renderCfg();
 }
 
 function sanitizeInput(str) {
