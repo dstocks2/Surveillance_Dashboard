@@ -642,7 +642,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.17</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.18</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -662,7 +662,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.17';
+const APP_VERSION = '2.1.18';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -3830,12 +3830,28 @@ function fbListenMeldingen() {
   if (!window.fbDb) return;
   window.fbOnValue(window.fbRef(window.fbDb, 'dashboard/meldingen'), snap => {
     const data = snap.val();
-    // Trim _sharedMeldIds: remove keys no longer in Firebase (prevents unbounded growth)
-    const currentKeys = new Set(data ? Object.keys(data) : []);
-    for (const key of _sharedMeldIds) {
-      if (!currentKeys.has(key)) _sharedMeldIds.delete(key);
+    // If Firebase node is empty/deleted, wipe all shared meldingen locally
+    if (!data) {
+      let wipedAny = false;
+      for (let i = MELDINGEN.length - 1; i >= 0; i--) {
+        if (MELDINGEN[i]._fbKey) { MELDINGEN.splice(i, 1); wipedAny = true; }
+      }
+      _sharedMeldIds.clear();
+      if (wipedAny) renderMeldingen();
+      return;
     }
-    if (!data) return;
+    // Sync deletions: remove local meldingen whose Firebase key is gone
+    const currentKeys = new Set(Object.keys(data));
+    let changed = false;
+    for (const key of [..._sharedMeldIds]) {
+      if (!currentKeys.has(key)) {
+        _sharedMeldIds.delete(key);
+        // Remove the matching local melding so it disappears on all sessions
+        const localIdx = MELDINGEN.findIndex(x => x._fbKey === key);
+        if (localIdx >= 0) { MELDINGEN.splice(localIdx, 1); changed = true; }
+      }
+    }
+    if (changed) renderMeldingen();
     const TTL = S.meldingTTL * 60 * 60 * 1000; // configureerbaar via instellingen
     const cutoff = Date.now() - TTL;
     // data is an object keyed by push-id: { type, naam, sub, tijdStr, ts }
