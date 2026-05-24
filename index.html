@@ -327,7 +327,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
   <!-- REGISTRATIE -->
   <div id="pane-reg" class="pane on">
-    <p class="lbl">Stap 1 &mdash; Kies een persoon <span style="font-weight:400;color:#94a3b8;font-size:11px">(meerdere mogelijk)</span> <span id="dienst-ind" style="font-size:10px;background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:20px;font-weight:500;display:none;text-transform:none;letter-spacing:0"></span></p>
+    <p class="lbl">Stap 1 &mdash; Kies een persoon <span style="font-weight:400;color:#94a3b8;font-size:11px">(meerdere mogelijk)</span></p>
     <div class="btn-row" id="name-btns"></div>
     <div class="selbar"><span class="k">Naam:</span><span id="sn-val" class="ph">selecteer naam(men)&hellip;</span></div>
 
@@ -350,7 +350,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
     <div class="hr"></div>
     <p class="lbl">Actieve rondes</p>
-    <div class="cards" id="all-active-cards"><div class="empty">Nog niemand onderweg</div></div>
+    <div class="cards" id="all-active-cards"><div class="empty">Geen actieve rondes</div></div>
   </div>
 
   <!-- LIVE -->
@@ -669,7 +669,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.43</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.45</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -689,7 +689,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.43';
+const APP_VERSION = '2.1.45';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1277,16 +1277,6 @@ function renderNameBtns() {
     btn.addEventListener('click', () => selN(n));
     el.appendChild(btn);
   });
-  // Show dienst indicator
-  const ind = document.getElementById('dienst-ind');
-  if (ind) {
-    if (S.dienst.size > 0) {
-      ind.textContent = S.dienst.size + ' van ' + S.medewerkers.length + ' op dienst';
-      ind.style.display = 'inline';
-    } else {
-      ind.style.display = 'none';
-    }
-  }
 }
 
 function renderRouteBtns() {
@@ -1541,7 +1531,7 @@ function renderAllActive() {
   const entries = Object.entries(S.active);
   if (!entries.length) {
     clearInterval(S.tick); S.tick = null;
-    el.innerHTML = '<div class="empty">Nog niemand onderweg</div>';
+    el.innerHTML = '<div class="empty">Geen actieve rondes</div>';
     return;
   }
   const r = () => {
@@ -3946,7 +3936,7 @@ function updateHeader() {
   const subEl = document.getElementById('header-sub');
   if (subEl) {
     const datumTxt = dagen[now.getDay()] + ' ' + now.getDate() + ' ' + maanden[now.getMonth()];
-    subEl.textContent = dd && dd.naam ? datumTxt + ' \u00b7 ploeg ' + dd.naam : datumTxt;
+    subEl.textContent = dd && dd.naam ? datumTxt + ' \u00b7 ' + dd.naam : datumTxt;
   }
 
   // Dienst badge: groen bolletje + aantal
