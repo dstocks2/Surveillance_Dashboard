@@ -663,7 +663,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.31</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.32</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -683,7 +683,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.31';
+const APP_VERSION = '2.1.32';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -3511,6 +3511,14 @@ async function rmRoute(i) {
   const ronde = S.routes[i];
   if (!await customConfirm('Weet je zeker dat je "' + ronde + '" wilt verwijderen?')) return;
   S.routes.splice(i, 1);
+  // Verwijder ronde-koppeling uit schema-items
+  if (S.schema && S.schema.length) {
+    let schemaChanged = false;
+    S.schema.forEach(item => {
+      if (item.ronde === ronde) { item.ronde = ''; schemaChanged = true; }
+    });
+    if (schemaChanged) LS.set('rn_schema', S.schema);
+  }
   save();
   logEvent('settings', 'Ronde verwijderd: ' + ronde);
   renderCfg(); renderRouteBtns();
@@ -3541,6 +3549,14 @@ function saveRondeEdit() {
     const oude = S.routes[_rondeEditIdx];
     S.routes[_rondeEditIdx] = naam;
     S.routes.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase(), 'nl'));
+    // Update alle schema-items die naar de oude ronde verwijzen
+    if (oude !== naam && S.schema && S.schema.length) {
+      let schemaChanged = false;
+      S.schema.forEach(item => {
+        if (item.ronde === oude) { item.ronde = naam; schemaChanged = true; }
+      });
+      if (schemaChanged) LS.set('rn_schema', S.schema);
+    }
     save();
     logEvent('settings', 'Ronde gewijzigd: ' + oude + ' → ' + naam);
     showToast(naam + ' bijgewerkt');
