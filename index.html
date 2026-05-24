@@ -424,23 +424,6 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
       </div>
     </div>
 
-    <!-- Eerste keer: pincode aanmaken -->
-    <div id="pin-setup-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9600;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px">
-      <div style="background:#fff;border-radius:12px;padding:28px 24px;max-width:320px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2);display:flex;flex-direction:column;align-items:center;gap:14px">
-        <div style="font-size:28px">🔑</div>
-        <div style="font-size:16px;font-weight:600;color:#1e293b">Pincode aanmaken</div>
-        <div style="font-size:13px;color:#64748b;text-align:center">Stel een pincode in voor de instellingen. Dit is eenmalig.</div>
-        <input type="password" id="pin-setup-1" maxlength="8" placeholder="Kies pincode" autocomplete="new-password"
-          style="padding:10px 16px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:18px;text-align:center;width:160px;letter-spacing:.2em;font-family:monospace"
-          onkeydown="if(event.key==='Enter')document.getElementById('pin-setup-2').focus()">
-        <input type="password" id="pin-setup-2" maxlength="8" placeholder="Herhaal pincode" autocomplete="new-password"
-          style="padding:10px 16px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:18px;text-align:center;width:160px;letter-spacing:.2em;font-family:monospace"
-          onkeydown="if(event.key==='Enter')saveSetupPin()">
-        <button class="sm" onclick="saveSetupPin()">Pincode opslaan</button>
-        <div id="pin-setup-error" style="font-size:12px;color:#ef4444;display:none"></div>
-      </div>
-    </div>
-
     <!-- Unlocked content -->
     <div id="cfg-content">
       <!-- PIN change row -->
@@ -689,7 +672,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.49</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.48</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -709,7 +692,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.49';
+const APP_VERSION = '2.1.48';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -824,7 +807,7 @@ function fbSave() {
   if (S.schema) updates['/dashboard/schema'] = S.schema;
   if (S.dagdelen) updates['/dashboard/dagdelen'] = S.dagdelen;
   updates['/dashboard/gedrag'] = { timeoutWarn: S.timeoutWarn, meldingTTL: S.meldingTTL, pinCacheDur: S.pinCacheDur };
-  // PIN: alleen schrijven als er een geldige hash in localStorage staat
+  // PIN: only write if already hashed (64 char) — getCfgPinHash() handles migration async
   const storedPin = LS.get('rn_cfg_pin');
   if (storedPin && storedPin.length === 64) updates['/dashboard/pin'] = storedPin;
   window.fbUpdate(window.fbRef(window.fbDb), updates)
@@ -1103,9 +1086,6 @@ function fbListen() {
     // Sync PIN from Firebase — only accept hashed values (64 char SHA-256)
     if (d.pin && typeof d.pin === 'string' && d.pin.length === 64) {
       LS.set('rn_cfg_pin', d.pin);
-    } else if (d.pin === null || d.pin === undefined) {
-      // Geen PIN in Firebase — setup tonen als nog niet gedaan
-      if (!LS.get('rn_cfg_pin')) showPinSetup();
     }
     // Sync gedrag-instellingen from Firebase
     if (d.gedrag && typeof d.gedrag === 'object') {
@@ -3356,6 +3336,7 @@ function toggleSection(id) {
 
 // ── PIN LOCK ──────────────────────────────────────────────────────────────
 const CFG_PIN_KEY = 'rn_cfg_pin';
+const DEFAULT_PIN = '806910';
 
 // SHA-256 hash via Web Crypto API — PIN nooit plaintext opgeslagen of zichtbaar
 async function hashPin(pin) {
@@ -3365,8 +3346,20 @@ async function hashPin(pin) {
 
 async function getCfgPinHash() {
   const stored = LS.get(CFG_PIN_KEY);
-  if (stored && stored.length === 64) return stored;
-  return null; // geen geldige hash beschikbaar
+  // Migratie: als opgeslagen waarde geen 64-char hash is, is het plaintext — hashen en opslaan
+  if (!stored || stored.length !== 64) {
+    const plain = (stored && stored.length < 64) ? stored : DEFAULT_PIN;
+    const hash = await hashPin(plain);
+    LS.set(CFG_PIN_KEY, hash);
+    logEvent('pin', 'PIN gemigreerd naar SHA-256 hash');
+    // Sync gehashte PIN naar Firebase (vervangt eventuele plaintext)
+    if (window.fbDb) {
+      window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/pin': hash })
+        .catch(e => console.warn('Firebase pin migrate error:', e));
+    }
+    return hash;
+  }
+  return stored;
 }
 
 function showCfgLock() {
@@ -3400,7 +3393,6 @@ async function checkPin() {
   if (!inp) return;
   const entered = await hashPin(inp.value);
   const stored  = await getCfgPinHash();
-  if (!stored) { showPinSetup(); return; } // geen PIN bekend → setup tonen
   if (entered === stored) {
     err.style.display = 'none';
     hideCfgLock();
@@ -3410,52 +3402,6 @@ async function checkPin() {
     inp.value = '';
     inp.focus();
   }
-}
-
-function showPinSetup() {
-  const overlay = document.getElementById('pin-setup-overlay');
-  if (overlay) {
-    overlay.style.display = 'flex';
-    setTimeout(() => {
-      const i = document.getElementById('pin-setup-1');
-      if (i) { i.value = ''; i.focus(); }
-      const j = document.getElementById('pin-setup-2');
-      if (j) j.value = '';
-    }, 50);
-  }
-}
-
-function hidePinSetup() {
-  const overlay = document.getElementById('pin-setup-overlay');
-  if (overlay) overlay.style.display = 'none';
-}
-
-async function saveSetupPin() {
-  const p1 = document.getElementById('pin-setup-1').value;
-  const p2 = document.getElementById('pin-setup-2').value;
-  const err = document.getElementById('pin-setup-error');
-  if (p1.length < 4) {
-    err.textContent = 'Pincode moet minimaal 4 cijfers zijn'; err.style.display = 'block'; return;
-  }
-  if (p1 !== p2) {
-    err.textContent = 'Pincodes komen niet overeen'; err.style.display = 'block';
-    document.getElementById('pin-setup-2').value = '';
-    document.getElementById('pin-setup-2').focus();
-    return;
-  }
-  err.style.display = 'none';
-  const hash = await hashPin(p1);
-  LS.set(CFG_PIN_KEY, hash);
-  // Schrijf naar Firebase
-  if (window.fbDb) {
-    await window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/pin': hash })
-      .catch(e => console.warn('Firebase pin setup error:', e));
-  }
-  logEvent('pin', 'Pincode aangemaakt');
-  hidePinSetup();
-  hideCfgLock();
-  LS.set('rn_cfg_unlocked', Date.now()); // direct ontgrendeld na aanmaken
-  showToast('Pincode opgeslagen ✓');
 }
 
 async function changePinDialog() {
@@ -3966,7 +3912,7 @@ function sluitMeldingen() {
 }
 
 pruneLog();
-// PIN wordt geladen via Firebase listener (fbListen) — geen lokale init nodig
+getCfgPinHash(); // Migreer plaintext PIN naar SHA-256 hash bij eerste load
 
 // ── Header: datum, dagdeel, klok ────────────────────────────────────────────
 function updateHeader() {
