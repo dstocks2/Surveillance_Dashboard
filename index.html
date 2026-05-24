@@ -415,17 +415,37 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   <div id="pane-cfg" class="pane" style="position:relative">
 
     <!-- PIN lock overlay -->
-    <div id="cfg-lock" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9500;flex-direction:column;align-items:center;justify-content:center;padding:20px;display:none" onmousedown="if(event.target===this)this._mdOnOverlay=true" onmouseup="if(event.target===this&&this._mdOnOverlay){hideCfgLock();goTab('reg');}this._mdOnOverlay=false">
-      <div style="background:#fff;border-radius:12px;padding:28px 24px;max-width:320px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2);display:flex;flex-direction:column;align-items:center;gap:14px">
-        <div style="display:flex;justify-content:flex-end;width:100%;margin-bottom:-8px"><button onclick="hideCfgLock();goTab('reg')" style="background:none;border:none;font-size:20px;cursor:pointer;color:#94a3b8;line-height:1" title="Sluiten">&times;</button></div>
-        <div style="font-size:28px">🔒</div>
-        <div style="font-size:16px;font-weight:600;color:#1e293b">Instellingen vergrendeld</div>
-        <div style="font-size:13px;color:#64748b;text-align:center">Voer de pincode in om door te gaan</div>
-        <input type="password" id="cfg-pin-input" maxlength="8" placeholder="Pincode" autocomplete="off"
-          style="padding:10px 16px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:18px;text-align:center;width:160px;letter-spacing:.2em;font-family:monospace"
-          onkeydown="if(event.key==='Enter')checkPin()">
-        <button class="sm" onclick="checkPin()">Ontgrendelen</button>
-        <div id="cfg-pin-error" style="font-size:12px;color:#ef4444;display:none">Onjuiste pincode</div>
+    <div id="cfg-lock" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9500;flex-direction:column;align-items:center;justify-content:center;padding:20px;display:none">
+      <div style="background:#fff;border-radius:16px;padding:28px 24px 24px;max-width:340px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.22);display:flex;flex-direction:column;align-items:center;position:relative">
+        <button onclick="hideCfgLock();goTab('reg')" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:22px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
+        <div style="width:48px;height:48px;background:#f1f5f9;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div style="font-size:18px;font-weight:700;color:#1e293b;margin-bottom:6px">Instellingen vergrendeld</div>
+        <div style="font-size:13px;color:#64748b;text-align:center;margin-bottom:20px">Voer de pincode in om door te gaan</div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;color:#64748b;margin-bottom:12px;text-transform:uppercase">Pincode</div>
+        <div id="lock-dots" style="display:flex;gap:12px;margin-bottom:24px">
+          <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:260px">
+          <button class="pin-key" onclick="lockKeyPress('1')">1</button>
+          <button class="pin-key" onclick="lockKeyPress('2')">2</button>
+          <button class="pin-key" onclick="lockKeyPress('3')">3</button>
+          <button class="pin-key" onclick="lockKeyPress('4')">4</button>
+          <button class="pin-key" onclick="lockKeyPress('5')">5</button>
+          <button class="pin-key" onclick="lockKeyPress('6')">6</button>
+          <button class="pin-key" onclick="lockKeyPress('7')">7</button>
+          <button class="pin-key" onclick="lockKeyPress('8')">8</button>
+          <button class="pin-key" onclick="lockKeyPress('9')">9</button>
+          <div></div>
+          <button class="pin-key" onclick="lockKeyPress('0')">0</button>
+          <button class="pin-key pin-key-del" onclick="lockKeyDel()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="13" y2="14"/><line x1="13" y1="9" x2="18" y2="14"/></svg>
+          </button>
+        </div>
+        <div id="cfg-pin-error" style="font-size:12px;color:#ef4444;min-height:18px;margin-top:10px;display:none">Onjuiste pincode</div>
+        <!-- hidden input zodat checkPin() nog werkt -->
+        <input type="hidden" id="cfg-pin-input">
       </div>
     </div>
 
@@ -463,9 +483,9 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
           </button>
         </div>
         <div id="pin-keypad-error" style="font-size:12px;color:#ef4444;min-height:18px;margin-top:10px"></div>
-        <div style="display:flex;gap:10px;width:100%;max-width:260px;margin-top:14px">
-          <button id="pin-btn-back" onclick="pinKeypadBack()" style="flex:1;padding:11px;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;font-size:14px;color:#475569;cursor:pointer;font-weight:500">← Terug</button>
-          <button id="pin-btn-next" onclick="pinKeypadNext()" style="flex:2;padding:11px;border:none;border-radius:8px;background:#1e40af;color:#fff;font-size:14px;font-weight:600;cursor:pointer">Doorgaan →</button>
+        <div style="width:100%;max-width:260px;margin-top:14px">
+          <button id="pin-btn-back" onclick="pinKeypadBack()" style="display:none;width:100%;max-width:260px;padding:11px;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;font-size:14px;color:#475569;cursor:pointer;font-weight:500">← Terug</button>
+          <button id="pin-btn-next" onclick="pinKeypadNext()" style="width:100%;max-width:260px;padding:11px;border:none;border-radius:8px;background:#1e40af;color:#fff;font-size:14px;font-weight:600;cursor:pointer">Doorgaan →</button>
         </div>
       </div>
     </div>
@@ -718,7 +738,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.51</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.53</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -738,7 +758,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.51';
+const APP_VERSION = '2.1.53';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -3404,10 +3424,9 @@ function showCfgLock() {
   const content = document.getElementById('cfg-content');
   if (lock)    { lock.style.display = 'flex'; }
   if (content) { content.style.display = 'none'; }
-  setTimeout(() => {
-    const inp = document.getElementById('cfg-pin-input');
-    if (inp) { inp.value = ''; inp.focus(); }
-  }, 50);
+  _lockVal = '';
+  lockKeypadDots();
+  document.getElementById('cfg-pin-error').style.display = 'none';
 }
 
 function hideCfgLock() {
@@ -3424,21 +3443,38 @@ function manualLockCfg() {
   showCfgLock();
 }
 
+let _lockVal = '';
+
+function lockKeypadDots() {
+  const dots = document.querySelectorAll('#lock-dots .pin-dot');
+  dots.forEach((d, i) => d.classList.toggle('filled', i < _lockVal.length));
+}
+
+function lockKeyPress(digit) {
+  if (_lockVal.length >= PIN_MAX) return;
+  _lockVal += digit;
+  lockKeypadDots();
+  if (_lockVal.length === PIN_MAX) setTimeout(checkPin, 180);
+}
+
+function lockKeyDel() {
+  _lockVal = _lockVal.slice(0, -1);
+  lockKeypadDots();
+}
+
 async function checkPin() {
-  const inp = document.getElementById('cfg-pin-input');
   const err = document.getElementById('cfg-pin-error');
-  if (!inp) return;
-  const entered = await hashPin(inp.value);
+  const entered = await hashPin(_lockVal);
   const stored  = await getCfgPinHash();
-  if (!stored) { showPinSetup(); return; } // geen PIN bekend → setup tonen
+  if (!stored) { showPinSetup(); return; }
   if (entered === stored) {
     err.style.display = 'none';
     hideCfgLock();
-    LS.set('rn_cfg_unlocked', Date.now()); // onthoud 30 min
+    LS.set('rn_cfg_unlocked', Date.now());
   } else {
     err.style.display = 'block';
-    inp.value = '';
-    inp.focus();
+    _lockVal = '';
+    lockKeypadDots();
   }
 }
 
@@ -3476,9 +3512,9 @@ function pinKeypadRender() {
   document.getElementById('pin-step-1').style.background = '#1e40af';
   document.getElementById('pin-step-2').style.background = isStep1 ? '#e2e8f0' : '#1e40af';
   // Knoppen
+  // Knoppen: stap 1 = Doorgaan zichtbaar, stap 2 = alleen Terug (opslaan gaat automatisch)
   document.getElementById('pin-btn-back').style.display = isStep1 ? 'none' : 'block';
-  document.getElementById('pin-btn-next').textContent   = isStep1 ? 'Doorgaan →' : 'Pincode opslaan';
-  document.getElementById('pin-btn-next').style.background = isStep1 ? '#1e40af' : '#16a34a';
+  document.getElementById('pin-btn-next').style.display = isStep1 ? 'block' : 'none';
   document.getElementById('pin-keypad-error').textContent = '';
   pinKeypadDots();
 }
