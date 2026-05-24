@@ -646,7 +646,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.24</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.25</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -666,7 +666,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.24';
+const APP_VERSION = '2.1.25';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1086,9 +1086,10 @@ function fbListen() {
     renderNameBtns();
     renderRouteBtns();
     renderAllActive();
-    if (document.getElementById('pane-live').classList.contains('on'))   { renderLive(); }
+    // Always render live+plan — S.log or S.active may have changed (e.g. wisLog on another session)
+    renderLive();
+    renderPlan();
     if (document.getElementById('pane-dienst').classList.contains('on')) renderDienst();
-    if (document.getElementById('pane-plan').classList.contains('on'))   renderPlan();
     if (document.getElementById('pane-cfg').classList.contains('on'))    renderCfg();
     updBtn();
   }, e => { console.warn('Firebase read error:', e); setFbStatus('error'); });
@@ -1576,6 +1577,8 @@ function personColor(name) {
 }
 
 function renderLive() {
+  // Always update card data; skip canvas draw when pane not visible
+  const _liveVisible = document.getElementById('pane-live').classList.contains('on');
   clearInterval(S.tickL);
   const elActive = document.getElementById('live-cards-active');
   const elDone   = document.getElementById('live-cards-done');
@@ -1589,7 +1592,7 @@ function renderLive() {
   if (!act.length && !recent.length) {
     elActive.innerHTML = '<div class="empty">Niemand is momenteel onderweg</div>';
     elDone.innerHTML = '';
-    drawTimeline([], [], cutoff, now);
+    if (_liveVisible) drawTimeline([], [], cutoff, now);
     return;
   }
 
@@ -1640,7 +1643,7 @@ function renderLive() {
 
   renderActiveCards();
   renderDoneCards();
-  drawTimeline(recent, Object.entries(S.active), cutoff, now);
+  if (_liveVisible) drawTimeline(recent, Object.entries(S.active), cutoff, now);
   // Event delegation: retour knoppen werken ook tijdens tick-updates
   elActive.onclick = e => {
     const btn = e.target.closest('.rbtn');
