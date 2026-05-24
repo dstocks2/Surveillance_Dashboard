@@ -102,13 +102,8 @@ input[type=text]:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px #d
 @media(max-width:600px){
   .content{padding:12px 10px}
   .header{padding:10px 14px;gap:8px;align-items:center}
-  .header>img{display:none}
-  .header>div:nth-of-type(1){display:none}
   .header h1{font-size:15px;line-height:1.2}
   .header p{font-size:10px;white-space:normal;line-height:1.3;margin-top:1px}
-  .header-logo{display:none}
-  .header-divider{display:none}
-  #fb-status{display:none !important}
   #header-right{gap:7px}
   #header-divider-right{display:none !important}
   #header-dienst{font-size:11px;padding:2px 7px}
@@ -752,7 +747,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.58</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.59</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -772,7 +767,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.58';
+const APP_VERSION = '2.1.59';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
