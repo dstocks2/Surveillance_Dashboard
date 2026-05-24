@@ -28,10 +28,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;min-height:1
 .nbtn{padding:9px 15px;border-radius:8px;border:1.5px solid #cbd5e1;background:#fff;color:#334155;font-size:13px;cursor:pointer;transition:all .13s;font-family:inherit}
 .nbtn:hover{border-color:#2563eb;color:#1e3a5c;background:#eff6ff}
 .nbtn.sel{background:#1e3a5c;border-color:#1e3a5c;color:#fff;font-weight:600}
-.selbar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;margin-bottom:16px;min-height:40px;font-size:13px}
-.selbar .k{color:#64748b;font-size:11px;white-space:nowrap}
-.selbar .v{color:#1e40af;font-weight:600}
-.selbar .ph{color:#94a3b8;font-style:italic}
+
 .act-row{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:20px}
 .abtn{padding:11px 22px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:7px;transition:all .13s}
 .abtn:not(:disabled):hover{opacity:.88;transform:translateY(-1px)}
@@ -92,7 +89,6 @@ input[type=text]:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px #d
   .act-row{flex-direction:row;gap:6px}
   .nbtn{padding:11px 12px;font-size:13px;min-height:44px}
   .btn-row{gap:6px}
-  .selbar{padding:10px 12px;font-size:13px}
   .cards{grid-template-columns:1fr}
   .cards-done{grid-template-columns:1fr 1fr !important;gap:8px}
   .cards-done .card{padding:10px 12px}
@@ -140,8 +136,6 @@ input[type=text]:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px #d
   .header h1 { font-size: 18px; }
   .content { padding: 16px 16px; }
   .lbl { font-size: 12px; margin-bottom: 10px; margin-top: 4px; }
-  .selbar { padding: 12px 16px; font-size: 14px; min-height: 46px; }
-  .selbar .k { font-size: 12px; }
   .cards { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
   .card { padding: 16px 18px; border-radius: 12px; }
   .cn { font-size: 16px; }
@@ -329,11 +323,11 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   <div id="pane-reg" class="pane on">
     <p class="lbl">Stap 1 &mdash; Kies een persoon <span style="font-weight:400;color:#94a3b8;font-size:11px">(meerdere mogelijk)</span></p>
     <div class="btn-row" id="name-btns"></div>
-    <div class="selbar"><span class="k">Naam:</span><span id="sn-val" class="ph">selecteer naam(men)&hellip;</span></div>
+    <div class="hr"></div>
 
     <p class="lbl">Stap 2 &mdash; Klik op de ronde</p>
     <div class="btn-row" id="route-btns"></div>
-    <div class="selbar"><span class="k">Ronde:</span><span id="sr-val" class="ph">selecteer een ronde&hellip;</span></div>
+    <div class="hr"></div>
 
     <p class="lbl">Stap 3 &mdash; Actie</p>
     <div class="act-row">
@@ -669,7 +663,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.45</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.46</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -689,7 +683,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.45';
+const APP_VERSION = '2.1.46';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1299,10 +1293,9 @@ function selN(n) {
   }
   const el = document.getElementById('sn-val');
   if (S.sns.size === 0) {
-    el.className = 'ph'; el.textContent = 'selecteer een naam…';
+    if (el) { el.className = 'ph'; el.textContent = 'selecteer een naam…'; }
   } else {
-    el.className = 'v';
-    el.textContent = [...S.sns].join(', ');
+    if (el) { el.className = 'v'; el.textContent = [...S.sns].join(', '); }
   }
   renderNameBtns(); updBtn();
 }
@@ -1312,11 +1305,11 @@ function selR(r) {
   if (S.sr === r) {
     S.sr = null;
     const el = document.getElementById('sr-val');
-    el.className = 'ph'; el.textContent = 'selecteer een ronde…';
+    if (el) { el.className = 'ph'; el.textContent = 'selecteer een ronde…'; }
   } else {
     S.sr = r;
     const el = document.getElementById('sr-val');
-    el.className = 'v'; el.textContent = r;
+    if (el) { el.className = 'v'; el.textContent = r; }
   }
   renderRouteBtns(); updBtn();
 }
@@ -1347,10 +1340,6 @@ function updBtn() {
 
 function resetSel() {
   S.sns = new Set(); S.sr = null;
-  const sn = document.getElementById('sn-val');
-  sn.className = 'ph'; sn.textContent = 'selecteer een naam\u2026';
-  const sr = document.getElementById('sr-val');
-  sr.className = 'ph'; sr.textContent = 'selecteer een ronde\u2026';
   renderNameBtns(); renderRouteBtns(); updBtn();
   renderAllActive();
 }
@@ -1373,10 +1362,6 @@ function doStart() {
 
   // Optimistic UI: reset selection immediately
   S.sns = new Set(); S.sr = null;
-  document.getElementById('sn-val').className = 'ph';
-  document.getElementById('sn-val').textContent = 'selecteer naam(men)…';
-  document.getElementById('sr-val').className = 'ph';
-  document.getElementById('sr-val').textContent = 'selecteer een ronde…';
   renderNameBtns(); renderRouteBtns(); updBtn(); renderAllActive();
   if (skipped.length) setTimeout(() => showToast(skipped.join(', ') + ' al onderweg, overgeslagen'), 2800);
 
