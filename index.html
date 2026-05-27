@@ -749,7 +749,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.64</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.65</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -769,7 +769,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.64';
+const APP_VERSION = '2.1.65';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -910,13 +910,29 @@ function cleanActiveForFirebase() {
 
 function fbSaveActive() {
   if (!window.fbDb) return;
-  if (window._appOutdated) { showUpdateBanner(); return; } // guard: never overwrite newer state
+  if (window._appOutdated) { showUpdateBanner(); return; }
   const updates = {};
   updates['/dashboard/active'] = cleanActiveForFirebase();
-  updates['/dashboard/log']    = S.log.length ? S.log.slice(0, 200) : null;
+  // Log wordt NIET meer als array overschreven — elke entry heeft eigen push-key
   window.fbUpdate(window.fbRef(window.fbDb), updates)
     .then(() => { setFbStatus('ok'); })
     .catch(e => { console.warn('Firebase active write error:', e); setFbStatus('error'); logEvent('error', 'fbSaveActive MISLUKT', { error: String(e) }); voegMeldingToe('rood', 'Synchronisatie mislukt', 'Data kon niet worden opgeslagen. Controleer de verbinding.', null, null); });
+}
+
+// Push één log-entry naar Firebase als eigen node (geen array-overschrijf)
+function fbPushLogEntry(entry) {
+  if (!window.fbDb || !window.fbPush) return Promise.resolve();
+  if (window._appOutdated) return Promise.resolve();
+  const ref = window.fbRef(window.fbDb, 'dashboard/log');
+  return window.fbPush(ref, entry)
+    .then(snap => { entry._fbKey = snap.key; })
+    .catch(e => { console.warn('Firebase log push error:', e); });
+}
+
+// Verwijder één log-entry uit Firebase op basis van _fbKey
+function fbRemoveLogEntry(fbKey) {
+  if (!window.fbDb || !fbKey) return;
+  window.fbRemove(window.fbRef(window.fbDb, 'dashboard/log/' + fbKey)).catch(() => {});
 }
 
 // ── App version check ──────────────────────────────────────────────────────
@@ -1095,21 +1111,28 @@ function fbListen() {
     const locKey  = Object.entries(S.active).sort(([a],[b])=>a.localeCompare(b)).map(([n,v])=>n+'|'+v.route+'|'+v.start).join(',');
     if (fbKey !== locKey) S.active = merged;
 
-    // Sync log — merge: keep any pending log entries that haven't reached Firebase yet
-    if (d.log !== undefined) {
-      const fbLog = sanitizeLog(d.log || []);
+    // Sync log — Firebase is nu een object van {pushKey: entry}, geen array meer.
+    // Backward compat: als het nog een array is (oude data) behandelen we het als array.
+    if (d.log !== undefined && d.log !== null) {
+      let fbLog;
+      if (Array.isArray(d.log)) {
+        fbLog = sanitizeLog(d.log);
+      } else {
+        fbLog = sanitizeLog(
+          Object.entries(d.log).map(([key, val]) => ({ ...val, _fbKey: key }))
+        );
+      }
+      fbLog.sort((a, b) => (b.end || 0) - (a.end || 0));
       const fbIds = new Set(fbLog.map(r => r.id));
-      // Add any pending-local log entries that Firebase doesn't have yet
       const pendingLocal = S.log.filter(r => _pendingLog.has(r.id) && !fbIds.has(r.id));
       const merged = [...pendingLocal, ...fbLog];
-      // Dedup: verwijder dubbele retours op zelfde (name+route+start) — houd de vroegste end
       const seen = new Map();
       const mergedLog = merged.filter(r => {
         const key = (r.name || '') + '|' + (r.route || '') + '|' + (r.start || '');
         if (seen.has(key)) return false;
         seen.set(key, true);
         return true;
-      }).slice(0, 200);
+      }).slice(0, 300);
       const fbLogKey  = mergedLog.map(r => r.id).join(',');
       const locLogKey = S.log.map(r => r.id).join(',');
       if (fbLogKey !== locLogKey) S.log = mergedLog;
@@ -1471,11 +1494,10 @@ function doStart() {
     markActivePending(fullName, 'add', { route, start: startTime });
   });
 
-  // Write to Firebase — melding only after confirmed write, rollback on failure
+  // Write to Firebase — active only, log gaat niet meer als array
   if (window.fbDb) {
     const updates = {
-      '/dashboard/active': cleanActiveForFirebase(),
-      '/dashboard/log':    S.log.length ? S.log.slice(0, 200) : null
+      '/dashboard/active': cleanActiveForFirebase()
     };
     window.fbUpdate(window.fbRef(window.fbDb), updates)
       .then(() => {
@@ -1580,16 +1602,16 @@ async function doRetour(name) {
   markActivePending(n, 'remove', { route: a.route, start: a.start });
   markLogPending(logEntry.id);
 
-  // Write to Firebase — on failure roll back and warn user
+  // Write to Firebase — active via update, log-entry via push (eigen node)
   if (window.fbDb) {
-    const updates = {
-      '/dashboard/active': cleanActiveForFirebase(),
-      '/dashboard/log':    S.log.length ? S.log.slice(0, 200) : null
-    };
-    window.fbUpdate(window.fbRef(window.fbDb), updates)
+    Promise.all([
+      window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/active': cleanActiveForFirebase() }),
+      fbPushLogEntry(logEntry)
+    ])
       .then(() => {
         setFbStatus('ok');
         clearActivePending(n);
+        _pendingLog.delete(logEntry.id);
         opruimStaleLangeRondeMeldingen();
         logEvent('retour', n.split(' ')[0] + ' retour van ' + a.route + ' (' + dur + ' min)', { name: n, route: a.route, start: a.start, end, dur, logId: logEntry.id });
         showToast(n.split(' ')[0] + ' terug! \u2014 ' + dur + ' min');
@@ -1597,7 +1619,6 @@ async function doRetour(name) {
       })
       .catch(e => {
         console.warn('Firebase retour write error:', e);
-        // Roll back: clear pending, restore active entry, remove log entry
         clearActivePending(n);
         _pendingLog.delete(logEntry.id);
         S.active[n] = a;
@@ -2190,24 +2211,24 @@ function roundRect(ctx, x, y, w, h, r) {
 }
 
 function pruneLog() {
-  // Sort newest-first, keep max 200 entries.
-  // Only drop entries older than 48 hours IF we have more than 200.
-  // This prevents log entries from disappearing overnight during long shifts.
   const before = S.log.length;
   const beforeIds = new Set(S.log.map(r => r.id));
   const cutoff = Date.now() - 48 * 60 * 60 * 1000;
   const sorted = S.log.filter(r => r.end && r.start)
                       .sort((a, b) => (b.end || 0) - (a.end || 0));
-  // Always keep newest 200, drop only what's both older than 48h AND beyond index 200
-  S.log = sorted.filter((r, i) => i < 200 && r.end >= cutoff);
-  if (S.log.length > 200) S.log = S.log.slice(0, 200);
+  S.log = sorted.filter((r, i) => i < 300 && r.end >= cutoff);
   if (S.log.length !== before) {
     const afterIds = new Set(S.log.map(r => r.id));
-    const removed = [...beforeIds].filter(id => !afterIds.has(id));
-    const removedEntries = sorted.filter(r => removed.includes(r.id))
-                                 .map(r => ({ name: r.name, route: r.route, end: r.end, dur: r.dur }));
-    logEvent('auto', 'Log opgeschoond: ' + removed.length + ' entries verwijderd', { removed: removedEntries });
-    fbSaveActive();
+    const removedEntries = sorted.filter(r => !afterIds.has(r.id));
+    // Verwijder elk verouderd entry individueel uit Firebase (niet de hele array overschrijven)
+    if (window.fbDb && window.fbRemove) {
+      removedEntries.forEach(r => {
+        if (r._fbKey) fbRemoveLogEntry(r._fbKey);
+      });
+    }
+    logEvent('auto', 'Log opgeschoond: ' + removedEntries.length + ' entries verwijderd',
+      { removed: removedEntries.map(r => ({ name: r.name, route: r.route, end: r.end, dur: r.dur })) });
+    fbSaveActive(); // active bijwerken
   }
 }
 
@@ -2272,6 +2293,10 @@ async function wisLog() {
   S.log = [];
   S.active = {};
   fbSaveActive();
+  // Verwijder ook het volledige log-object uit Firebase
+  if (window.fbDb && window.fbRemove) {
+    window.fbRemove(window.fbRef(window.fbDb, 'dashboard/log')).catch(() => {});
+  }
   render();
   renderAllActive();
   logEvent('system', 'Log handmatig gewist (' + wipedLog + ' entries, ' + wipedActive.length + ' actieve)', { entries: wipedLog, active: wipedActive });
