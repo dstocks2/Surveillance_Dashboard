@@ -625,7 +625,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
     <!-- Schema: collapsible -->
     <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onclick="toggleSchema()">
-      <p class="lbl" style="margin:0">Dagschema <span style="font-size:10px;font-weight:400;color:#94a3b8;text-transform:none;letter-spacing:0">— tijden en taken per dienst</span></p>
+      <p class="lbl" style="margin:0">Dagplanning <span style="font-size:10px;font-weight:400;color:#94a3b8;text-transform:none;letter-spacing:0">— tijden en taken per dienst</span></p>
       <span id="schema-toggle-icon" style="font-size:13px;color:#94a3b8;padding:4px 0">▼</span>
     </div>
     <div id="schema-collapse" style="display:none;margin-top:10px">
@@ -749,7 +749,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- Danger zone -->
     <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
       <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.61</span>
+        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.64</span>
         <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
       </div>
     </div><!-- /cfg-content -->
@@ -769,7 +769,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.61';
+const APP_VERSION = '2.1.64';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1051,7 +1051,9 @@ function sanitizeLog(arr) {
 // stale-active cleanup of de retour-bevestiging moeten vangen, maar als die
 // faalden vangt deze filter het laatste vangnet op.
 function logInWindow(cutoff) {
-  return S.log.filter(r => r.end && r.end >= cutoff && r.start && r.start >= cutoff);
+  // Filter op r.end >= cutoff: ronde telt mee als hij EINDIGDE binnen het venster.
+  // r.start mag buiten het venster liggen (nacht-rondes gestart vóór de cutoff).
+  return S.log.filter(r => r.end && r.end >= cutoff && r.start);
 }
 
 function fbListen() {
@@ -1099,7 +1101,15 @@ function fbListen() {
       const fbIds = new Set(fbLog.map(r => r.id));
       // Add any pending-local log entries that Firebase doesn't have yet
       const pendingLocal = S.log.filter(r => _pendingLog.has(r.id) && !fbIds.has(r.id));
-      const mergedLog = [...pendingLocal, ...fbLog].slice(0, 200);
+      const merged = [...pendingLocal, ...fbLog];
+      // Dedup: verwijder dubbele retours op zelfde (name+route+start) — houd de vroegste end
+      const seen = new Map();
+      const mergedLog = merged.filter(r => {
+        const key = (r.name || '') + '|' + (r.route || '') + '|' + (r.start || '');
+        if (seen.has(key)) return false;
+        seen.set(key, true);
+        return true;
+      }).slice(0, 200);
       const fbLogKey  = mergedLog.map(r => r.id).join(',');
       const locLogKey = S.log.map(r => r.id).join(',');
       if (fbLogKey !== locLogKey) S.log = mergedLog;
@@ -1548,6 +1558,16 @@ async function doRetour(name) {
   }
 
   const logEntry = { id: Date.now().toString(36) + Math.random().toString(36).slice(2,6), name: n, route: a.route, start: a.start, end, dur };
+
+  // Guard: blokkeer dubbele retour — als start-ts al in S.log staat is de ronde al gemeld
+  // (kan gebeuren bij sync-conflict: twee apparaten melden retour voor dezelfde ronde)
+  const alreadyLogged = S.log.some(r => r.name === n && r.route === a.route && r.start === a.start);
+  if (alreadyLogged) {
+    showToast(n.split(' ')[0] + ' stond al als retour geregistreerd');
+    delete S.active[n]; // verwijder stale active entry
+    renderAllActive(); updBtn(); renderLive();
+    return;
+  }
 
   // Optimistic update: remove locally first for snappy UI
   S.log.unshift(logEntry);
@@ -3595,10 +3615,26 @@ function changePinDialog()   { pinKeypadOpen('change'); }
 function closePinChangeDialog() { pinKeypadClose(); }
 
 // ── GEDRAG-INSTELLINGEN ────────────────────────────────────────────────────
-function saveGedrag() {
+async function saveGedrag() {
   const tw  = parseInt(document.getElementById('inp-timeout-warn')?.value, 10);
   const mt  = parseInt(document.getElementById('inp-melding-ttl')?.value, 10);
   const pc  = parseInt(document.getElementById('inp-pin-cache')?.value, 10);
+
+  // Waarschuw als meldingTTL omlaag gaat en actieve gedeelde meldingen afkapt
+  if (!isNaN(mt) && mt < S.meldingTTL) {
+    const gedeeld = MELDINGEN.filter(m => m._fbKey);
+    const now = Date.now();
+    const newTTL = mt * 60 * 60 * 1000;
+    const getroffen = gedeeld.filter(m => !m._ts || (now - m._ts) >= newTTL);
+    if (getroffen.length > 0 || gedeeld.length > 0) {
+      const aantal = getroffen.length || gedeeld.length;
+      const bevestigd = await customConfirm(
+        `Melding duur verlagen naar ${mt}u kan ${aantal === 1 ? '1 actieve melding' : `${aantal} actieve meldingen`} laten verdwijnen. Doorgaan?`
+      );
+      if (!bevestigd) return;
+    }
+  }
+
   if (!isNaN(tw) && tw >= 1  && tw <= 24)  { S.timeoutWarn  = tw;  LS.set('rn_timeout_warn',  tw); }
   if (!isNaN(mt) && mt >= 1  && mt <= 72)  { S.meldingTTL   = mt;  LS.set('rn_melding_ttl',   mt); }
   if (!isNaN(pc) && pc >= 5  && pc <= 480) { S.pinCacheDur  = pc;  LS.set('rn_pin_cache_dur', pc); }
