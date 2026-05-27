@@ -727,7 +727,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button class="cfg-rail-btn" onclick="manualLockCfg()">Vergrendelen</button>
         <button class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.68</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.71</span>
     </div>
   </nav>
 
@@ -959,7 +959,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.68';
+const APP_VERSION = '2.1.71';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1037,7 +1037,9 @@ function fbListenEventLog() {
     Object.entries(data).forEach(([key, e]) => {
       // Auto-prune entries older than 7 days
       if (e && e.ts && e.ts < cutoff) {
-        window.fbRemove(window.fbRef(window.fbDb, 'dashboard/eventLog/' + key)).catch(() => {});
+        window.fbRemove(window.fbRef(window.fbDb, 'dashboard/eventLog/' + key))
+          .then(() => logEvent('auto', 'EventLog entry automatisch verwijderd (>7 dagen)', { key, ts: e.ts, type: e.type || '', msg: (e.msg || '').slice(0, 80) }))
+          .catch(err => logEvent('error', 'EventLog auto-verwijdering MISLUKT', { key, error: String(err) }));
         return;
       }
       if (!e || !e.ts) return;
@@ -1058,7 +1060,7 @@ function fbListenEventLog() {
       const eventLogEl = document.getElementById('event-log-list');
       if (pane && pane.classList.contains('on') && eventLogEl) renderEventLog();
     }
-  }, e => { console.warn('eventLog listener error:', e); });
+  }, e => { console.warn('eventLog listener error:', e); logEvent('error', 'EventLog listener MISLUKT', { error: String(e) }); });
 }
 
 // ── Firebase sync ─────────────────────────────────────────────────────────
@@ -1078,14 +1080,14 @@ function fbSave() {
   const storedPin = LS.get('rn_cfg_pin');
   if (storedPin && storedPin.length === 64) updates['/dashboard/pin'] = storedPin;
   window.fbUpdate(window.fbRef(window.fbDb), updates)
-    .catch(e => { console.warn('Firebase settings write error:', e); });
+    .catch(e => { console.warn('Firebase settings write error:', e); logEvent('error', 'Instellingen opslaan MISLUKT', { error: String(e) }); setFbStatus('error'); });
 }
 
 function fbSavePin(pin) {
   if (!window.fbDb) return;
   window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/pin': pin })
     .then(() => setFbStatus('ok'))
-    .catch(e => console.warn('Firebase pin write error:', e));
+    .catch(e => { console.warn('Firebase pin write error:', e); logEvent('error', 'PIN opslaan MISLUKT', { error: String(e) }); });
 }
 
 // Writes active + log atomically to Firebase — this is the ONLY place these are saved
@@ -4044,6 +4046,7 @@ async function rmName(i) {
   if (S.dienst.has(naam)) markDienstPending(naam, 'remove');
   S.dienst.delete(naam);
   save(); renderCfg(); renderNameBtns(); renderDienst();
+  logEvent('settings', 'Medewerker verwijderd: ' + naam);
   showToast(naam.split(' ')[0] + ' verwijderd');
 }
 
@@ -4299,16 +4302,6 @@ function verwijderMelding(id) {
 }
 
 // ── Event log UI ──────────────────────────────────────────────────────────
-function toggleEventLog() {
-  const section = document.getElementById('event-log-section');
-  const btn = document.getElementById('event-log-toggle');
-  if (!section || !btn) return;
-  const open = section.style.display !== 'none';
-  section.style.display = open ? 'none' : 'block';
-  btn.textContent = open ? 'Tonen' : 'Verbergen';
-  if (!open) renderEventLog();
-}
-
 function _fmtEventTime(ts) {
   const d = new Date(ts);
   const dateStr = d.toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit' });
@@ -4408,7 +4401,7 @@ function wisAlleMeldingen() {
   _sharedMeldIds.clear();
   // Also wipe Firebase so meldingen don't reappear on reload
   if (window.fbDb && window.fbRemove && window.fbRef) {
-    window.fbRemove(window.fbRef(window.fbDb, 'dashboard/meldingen')).catch(() => {});
+    window.fbRemove(window.fbRef(window.fbDb, 'dashboard/meldingen')).catch(e => { logEvent('error', 'Meldingen wissen MISLUKT', { error: String(e) }); });
   }
   logEvent('melding', 'Alle meldingen gewist (' + _cnt + ')');
   renderMeldingen();
@@ -4574,9 +4567,12 @@ function fbListenMeldingen() {
     const cutoff = Date.now() - TTL;
     // data is an object keyed by push-id: { type, naam, sub, tijdStr, ts }
     Object.entries(data).forEach(([key, m]) => {
-      // Delete entries older than 8h from Firebase and remove local copy
+      // Delete entries older than TTL from Firebase and remove local copy
       if (m.ts && m.ts < cutoff) {
-        window.fbRemove(window.fbRef(window.fbDb, 'dashboard/meldingen/' + key)).catch(() => {});
+        const ageH = Math.round((Date.now() - m.ts) / 3600000);
+        window.fbRemove(window.fbRef(window.fbDb, 'dashboard/meldingen/' + key))
+          .then(() => logEvent('auto', 'Melding automatisch verwijderd (TTL ' + S.meldingTTL + 'u, leeftijd ' + ageH + 'u)', { key, naam: sanitizeFromFirebase(m.naam || ''), sub: sanitizeFromFirebase(m.sub || '').slice(0, 60) }))
+          .catch(err => logEvent('error', 'Melding auto-verwijdering MISLUKT', { key, error: String(err) }));
         const localIdx = MELDINGEN.findIndex(x => x._fbKey === key);
         if (localIdx >= 0) { MELDINGEN.splice(localIdx, 1); renderMeldingen(); }
         _sharedMeldIds.delete(key);
@@ -4594,7 +4590,7 @@ function fbListenMeldingen() {
         renderMeldingen();
       }
     });
-  }, e => { console.warn('Firebase meldingen listener error:', e); });
+  }, e => { console.warn('Firebase meldingen listener error:', e); logEvent('error', 'Meldingen listener MISLUKT', { error: String(e) }); });
 }
 
 function fbListenConnected() {
