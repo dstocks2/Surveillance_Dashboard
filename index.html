@@ -34,10 +34,84 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;min-height:1
 .header p{font-size:11px;color:rgba(255,255,255,.6);margin-top:2px}
 .tabs{background:#fff;border-bottom:1px solid #e2e8f0;display:flex;align-items:stretch;padding:0 12px;overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
 .tab-cfg{min-width:44px;display:flex;align-items:center;justify-content:center;padding:0 14px !important;font-size:inherit !important;letter-spacing:0}
-.tab{padding:12px 14px;font-size:13px;cursor:pointer;color:#64748b;border-bottom:2px solid transparent;transition:all .14s;user-select:none;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit;white-space:nowrap;flex-shrink:0}
+.tab{padding:12px 14px;font-size:13px;cursor:pointer;color:#64748b;border-bottom:2px solid transparent;transition:all .14s;user-select:none;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;gap:6px}
 .tab:hover{color:#1e293b}
 .tab.on{color:#1e3a5c;font-weight:600;border-bottom-color:#2563eb}
 .content{padding:20px 24px;max-width:960px;margin:0 auto}
+/* ── Mobile bottom tabbar ──────────────────────────────────────────────── */
+.mobile-tabbar{display:none;position:fixed;bottom:0;left:0;right:0;height:66px;background:#fff;border-top:0.5px solid #e2e8f0;z-index:8000;padding-bottom:env(safe-area-inset-bottom)}
+.mob-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;font-family:inherit;color:#8e8e93;font-size:10px;font-weight:500;padding:8px 2px 4px;-webkit-tap-highlight-color:transparent;transition:color .12s}
+.mob-tab.on{color:#1d4ed8}
+.mob-tab svg{flex-shrink:0}
+/* ── Desktop sidebar cfg layout ───────────────────────────────────────── */
+.cfg-shell{padding:0 !important;max-width:none !important}
+.content:has(#pane-cfg.on){max-width:100% !important;padding:0 !important}
+.cfg-layout{display:flex;min-height:calc(100vh - 105px)}
+.cfg-rail{width:220px;flex-shrink:0;background:#fff;border-right:1px solid #e2e8f0;display:flex;flex-direction:column;padding:20px 0 0;gap:2px}
+.cfg-rail-title{font-size:10px;font-weight:700;letter-spacing:.1em;color:#94a3b8;padding:0 18px 10px;text-transform:uppercase}
+.cfg-nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;font-size:13px;font-weight:500;color:#475569;background:none;border:none;cursor:pointer;font-family:inherit;text-align:left;border-radius:0;transition:background .12s,color .12s;width:100%}
+.cfg-nav-item:hover{background:#f1f5f9;color:#1e293b}
+.cfg-nav-item.active{background:#eff6ff;color:#1d4ed8;font-weight:600;border-right:3px solid #2563eb}
+.cfg-nav-item svg{flex-shrink:0;opacity:.75}
+.cfg-nav-item.active svg{opacity:1}
+.cfg-rail-footer{padding:16px 18px 20px;border-top:1px solid #f1f5f9;margin-top:auto}
+.cfg-rail-lock-row{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#16a34a;margin-bottom:10px}
+.cfg-rail-btn{padding:5px 10px;border:1px solid #e2e8f0;border-radius:6px;background:#f8fafc;color:#64748b;font-size:11px;cursor:pointer;font-family:inherit;transition:all .12s;margin-right:4px}
+.cfg-rail-btn:hover{border-color:#cbd5e1;color:#1e293b}
+.cfg-detail{flex:1;padding:28px 32px;overflow-y:auto;background:#f8fafc;min-width:0}
+.cfg-section{background:#fff;border-radius:10px;border:1px solid #e2e8f0;padding:22px 24px;display:none}
+.cfg-section.active{display:block}
+.cfg-sec-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
+.cfg-sec-title{font-size:16px;font-weight:700;color:#1e293b}
+.cfg-sec-sub{font-size:12px;color:#94a3b8;margin-top:2px}
+.cfg-action-btn{padding:7px 14px;border-radius:7px;border:1.5px solid #2563eb;background:#2563eb;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;transition:opacity .12s}
+.cfg-action-btn:hover{opacity:.85}
+.cfg-action-btn-sec{background:#f1f5f9;border-color:#e2e8f0;color:#475569}
+.cfg-action-btn-sec:hover{background:#e2e8f0;opacity:1}
+.cfg-gedrag-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid #f1f5f9}
+.cfg-gedrag-row:last-child{border-bottom:none}
+.cfg-gedrag-label{font-size:13px;font-weight:500;color:#1e293b}
+.cfg-gedrag-sub{font-size:11px;color:#94a3b8;margin-top:2px}
+/* ── Mobile cfg layout ────────────────────────────────────────────────── */
+@media(max-width:700px){
+  .tabs{display:none}
+  .mobile-tabbar{display:flex}
+  body{padding-bottom:66px}
+  .cfg-layout{flex-direction:column;min-height:unset}
+  .cfg-rail{display:none}
+  .cfg-detail{display:none}
+  .cfg-mobile-master{display:block !important}
+}
+.cfg-mobile-master{display:none;background:#f2f2f7;min-height:calc(100vh - 105px);padding-bottom:32px}
+.cfg-mobile-detail{display:none;background:#f2f2f7;min-height:calc(100vh - 105px);flex-direction:column}
+.cfg-mobile-detail.open{display:flex}
+.cfg-mob-strip{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;background:#fff;border-bottom:0.5px solid #e5e5ea}
+.cfg-mob-strip-left{display:flex;align-items:center;gap:6px;min-width:0}
+#cfg-mob-lock-title{font-size:13px;font-weight:600;color:#1c1c1e;white-space:nowrap}
+.cfg-mob-strip-dot{color:#c7c7cc;font-size:12px}
+.cfg-mob-strip-sub{font-size:12px;color:#8e8e93;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cfg-mob-strip-btn{flex-shrink:0;padding:5px 12px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;color:#475569;font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;white-space:nowrap}
+.cfg-mob-strip #cfg-mob-strip-icon{color:#16a34a}
+.cfg-mob-strip.locked #cfg-mob-strip-icon{color:#aeaeb2}
+.cfg-mob-page-title{font-size:22px;font-weight:700;color:#1c1c1e;padding:20px 16px 4px}
+.cfg-mob-section-label{font-size:11px;font-weight:600;color:#aeaeb2;letter-spacing:.05em;text-transform:uppercase;padding:16px 16px 5px}
+.cfg-mob-list{margin:0 16px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.cfg-mob-row{display:flex;align-items:center;gap:12px;padding:13px 14px 13px 16px;border-bottom:0.5px solid #f0f0f0;cursor:pointer;background:#fff;width:100%;border-left:none;border-right:none;border-top:none;font-family:inherit;text-align:left;-webkit-tap-highlight-color:transparent;transition:background .1s}
+.cfg-mob-row:active{background:#f5f5f5}
+.cfg-mob-row:last-child{border-bottom:none}
+.cfg-mob-row-icon{width:34px;height:34px;border-radius:9px;background:#eef2ff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cfg-mob-row-icon-slate{background:#f1f5f9 !important}
+.cfg-mob-row-text{flex:1;min-width:0}
+.cfg-mob-row-title{font-size:15px;font-weight:500;color:#1c1c1e}
+.cfg-mob-row-sub{font-size:12px;color:#aeaeb2;margin-top:1px}
+.cfg-mob-badge{font-size:12px;color:#aeaeb2;margin-right:4px;flex-shrink:0}
+.cfg-mob-chevron{flex-shrink:0}
+.cfg-mob-detail-header{background:#1e3a5c;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0}
+.cfg-mob-back{display:flex;align-items:center;gap:4px;background:none;border:none;color:#93c5fd;font-size:15px;font-family:inherit;cursor:pointer;padding:4px 0;-webkit-tap-highlight-color:transparent}
+.cfg-mob-detail-title{font-size:16px;font-weight:700;color:#fff;flex:1;text-align:center}
+.cfg-mob-detail-action{background:#2563eb;color:#fff;border:none;border-radius:7px;padding:7px 13px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap}
+.cfg-mob-detail-body{flex:1;overflow-y:auto;padding:16px}
+.cfg-mob-footer{text-align:center;font-size:11px;color:#8e8e93;padding:24px 16px 8px}
 .pane{display:none}.pane.on{display:block}
 .lbl{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#64748b;margin-bottom:8px}
 .btn-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
@@ -311,10 +385,10 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 </div>
 
 <div class="tabs">
-  <button class="tab on" onclick="goTab('reg')">Registratie</button>
-  <button class="tab" onclick="goTab('live')">Overzicht</button>
-  <button class="tab" onclick="goTab('plan')">Voorgestelde ronde</button>
-  <button class="tab" onclick="goTab('dienst')">Op dienst</button>
+  <button class="tab on" onclick="goTab('reg')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Registratie</button>
+  <button class="tab" onclick="goTab('live')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Overzicht</button>
+  <button class="tab" onclick="goTab('plan')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>Voorgestelde ronde</button>
+  <button class="tab" onclick="goTab('dienst')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Op dienst</button>
   <div style="flex:1"></div>
   <button class="bel-wrap" id="bel-btn" onclick="toggleMeldingen()" title="Meldingen">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
@@ -322,6 +396,30 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   </button>
   <button class="tab tab-cfg" onclick="goTab('cfg')" title="Instellingen">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </button>
+</div>
+
+<!-- Mobile bottom tabbar (alleen zichtbaar op ≤700px) -->
+<div class="mobile-tabbar" id="mobile-tabbar">
+  <button class="mob-tab on" id="mob-tab-reg" onclick="goTab('reg')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+    Registratie
+  </button>
+  <button class="mob-tab" id="mob-tab-live" onclick="goTab('live')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Overzicht
+  </button>
+  <button class="mob-tab" id="mob-tab-plan" onclick="goTab('plan')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+    Voorstel
+  </button>
+  <button class="mob-tab" id="mob-tab-dienst" onclick="goTab('dienst')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    Op dienst
+  </button>
+  <button class="mob-tab" id="mob-tab-cfg" onclick="goTab('cfg')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    Instellingen
   </button>
 </div>
 
@@ -423,7 +521,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   </div>
 
   <!-- BEHEER -->
-  <div id="pane-cfg" class="pane" style="position:relative">
+  <div id="pane-cfg" class="pane cfg-shell" style="position:relative">
 
     <!-- PIN lock overlay -->
     <div id="cfg-lock" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9500;flex-direction:column;align-items:center;justify-content:center;padding:20px;display:none">
@@ -503,25 +601,245 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
     <!-- Unlocked content -->
     <div id="cfg-content">
-      <!-- PIN change row -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-        <span style="font-size:11px;color:#94a3b8">🔒 Instellingen zijn beveiligd met een pincode</span>
-        <div style="display:flex;gap:12px;align-items:center">
-          <button onclick="manualLockCfg()" style="background:none;border:none;font-size:11px;color:#94a3b8;cursor:pointer;text-decoration:underline;padding:0">Vergrendelen</button>
-          <button onclick="changePinDialog()" style="background:none;border:none;font-size:11px;color:#94a3b8;cursor:pointer;text-decoration:underline;padding:0">Pincode wijzigen</button>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     MOBILE MASTER/DETAIL (alleen zichtbaar op ≤700px via CSS)
+════════════════════════════════════════════════════════════════════════ -->
+<div id="cfg-mobile-master" class="cfg-mobile-master" style="display:none">
+
+  <!-- Status strip -->
+  <div class="cfg-mob-strip" id="cfg-mob-strip">
+    <div class="cfg-mob-strip-left">
+      <svg id="cfg-mob-strip-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <span id="cfg-mob-lock-title">Ontgrendeld</span>
+      <span class="cfg-mob-strip-dot">·</span>
+      <span id="cfg-mob-lock-sub" class="cfg-mob-strip-sub">beveiligd met pincode</span>
+    </div>
+    <button class="cfg-mob-strip-btn" id="cfg-mob-lock-btn" onclick="manualLockCfg()">Vergrendel</button>
+  </div>
+
+  <div class="cfg-mob-page-title">Instellingen</div>
+
+  <div class="cfg-mob-section-label">Categorieën</div>
+  <div class="cfg-mob-list">
+    <button class="cfg-mob-row" onclick="cfgMobGoSection('medewerkers')">
+      <div class="cfg-mob-row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3b5fc0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/></svg></div>
+      <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Medewerkers</div><div class="cfg-mob-row-sub">Actieve beveiligers</div></div>
+      <span class="cfg-mob-badge" id="cfg-mob-badge-medewerkers"></span>
+      <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <button class="cfg-mob-row" onclick="cfgMobGoSection('rondes')">
+      <div class="cfg-mob-row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3b5fc0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></div>
+      <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Rondes</div><div class="cfg-mob-row-sub">Vaste looproutes</div></div>
+      <span class="cfg-mob-badge" id="cfg-mob-badge-rondes"></span>
+      <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <button class="cfg-mob-row" onclick="cfgMobGoSection('dagdelen')">
+      <div class="cfg-mob-row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3b5fc0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg></div>
+      <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Dagdelen</div><div class="cfg-mob-row-sub">Naam, tijdvak, kleur</div></div>
+      <span class="cfg-mob-badge" id="cfg-mob-badge-dagdelen"></span>
+      <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <button class="cfg-mob-row" onclick="cfgMobGoSection('schema')">
+      <div class="cfg-mob-row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3b5fc0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+      <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Dagplanning</div><div class="cfg-mob-row-sub">Tijden en taken</div></div>
+      <span class="cfg-mob-badge" id="cfg-mob-badge-schema"></span>
+      <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <button class="cfg-mob-row" onclick="cfgMobGoSection('gedrag')">
+      <div class="cfg-mob-row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3b5fc0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></div>
+      <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Gedrag</div><div class="cfg-mob-row-sub">Limieten en lock</div></div>
+      <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+
+  <div class="cfg-mob-section-label">Systeem</div>
+  <div class="cfg-mob-list">
+    <button class="cfg-mob-row" onclick="cfgMobGoSection('auditlog')">
+      <div class="cfg-mob-row-icon cfg-mob-row-icon-slate"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+      <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Audit log</div><div class="cfg-mob-row-sub">Auto-wis na 7 dagen</div></div>
+      <span class="cfg-mob-badge" id="cfg-mob-badge-auditlog"></span>
+      <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <button class="cfg-mob-row" onclick="changePinDialog()">
+      <div class="cfg-mob-row-icon cfg-mob-row-icon-slate"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+      <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Pincode wijzigen</div><div class="cfg-mob-row-sub">4-cijferige toegangscode</div></div>
+      <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+
+  <div class="cfg-mob-footer"><span id="cfg-mob-version"></span> · Made by Danny Stockschen</div>
+</div>
+
+<!-- MOBILE DETAIL VIEW -->
+<div id="cfg-mobile-detail" class="cfg-mobile-detail">
+  <div class="cfg-mob-detail-header">
+    <button class="cfg-mob-back" onclick="cfgMobBack()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Instellingen
+    </button>
+    <div class="cfg-mob-detail-title" id="cfg-mob-detail-title"></div>
+    <button class="cfg-mob-detail-action" id="cfg-mob-detail-action" style="display:none" onclick="cfgMobDetailAction()"></button>
+  </div>
+  <div class="cfg-mob-detail-body" id="cfg-mob-detail-body"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     DESKTOP SIDEBAR + DETAIL LAYOUT
+════════════════════════════════════════════════════════════════════════ -->
+<div class="cfg-layout">
+
+  <!-- Sidebar nav rail -->
+  <nav class="cfg-rail">
+    <div class="cfg-rail-title">Instellingen</div>
+
+    <button class="cfg-nav-item active" id="cfg-nav-medewerkers" onclick="cfgGoSection('medewerkers')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/></svg>
+      Medewerkers
+    </button>
+    <button class="cfg-nav-item" id="cfg-nav-rondes" onclick="cfgGoSection('rondes')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      Rondes
+    </button>
+    <button class="cfg-nav-item" id="cfg-nav-dagdelen" onclick="cfgGoSection('dagdelen')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Dagdelen
+    </button>
+    <button class="cfg-nav-item" id="cfg-nav-schema" onclick="cfgGoSection('schema')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Dagplanning
+    </button>
+    <button class="cfg-nav-item" id="cfg-nav-gedrag" onclick="cfgGoSection('gedrag')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+      Gedrag
+    </button>
+    <button class="cfg-nav-item" id="cfg-nav-auditlog" onclick="cfgGoSection('auditlog')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Audit log
+    </button>
+
+    <div class="cfg-rail-footer">
+      <div class="cfg-rail-lock-row">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span id="cfg-rail-lock-label">Ontgrendeld</span>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+        <button class="cfg-rail-btn" onclick="manualLockCfg()">Vergrendelen</button>
+        <button class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
+      </div>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.68</span>
+    </div>
+  </nav>
+
+  <!-- Detail panels -->
+  <div class="cfg-detail">
+
+    <!-- Medewerkers -->
+    <div class="cfg-section active" id="cfg-sec-medewerkers">
+      <div class="cfg-sec-header">
+        <div><div class="cfg-sec-title">Medewerkers</div><div class="cfg-sec-sub">Actieve beveiligers in het systeem</div></div>
+        <button class="cfg-action-btn" onclick="openMedewerkerModal(null)">+ Medewerker</button>
+      </div>
+      <div id="medewerkers-list" style="margin-bottom:8px"></div>
+      <div style="display:flex;align-items:center;justify-content:flex-end;margin-top:8px">
+        <button id="med-sort-btn" onclick="toggleMedewerkerSort()" style="background:none;border:none;cursor:pointer;font-size:11px;color:#94a3b8;padding:4px 2px;font-family:inherit" title="Sorteervolgorde wisselen">Sortering: naam ↕</button>
+      </div>
+    </div>
+
+    <!-- Rondes -->
+    <div class="cfg-section" id="cfg-sec-rondes">
+      <div class="cfg-sec-header">
+        <div><div class="cfg-sec-title">Rondes</div><div class="cfg-sec-sub">Vaste looproutes in het gebouw</div></div>
+        <button class="cfg-action-btn" onclick="openRondeModal(null)">+ Ronde</button>
+      </div>
+      <div id="rondes-list" style="margin-bottom:8px"></div>
+    </div>
+
+    <!-- Dagdelen -->
+    <div class="cfg-section" id="cfg-sec-dagdelen">
+      <div class="cfg-sec-header">
+        <div><div class="cfg-sec-title">Dagdelen</div><div class="cfg-sec-sub">Diensten: naam, tijdvak en kleur</div></div>
+        <button class="cfg-action-btn" onclick="openDagdeelModal(null)">+ Dagdeel</button>
+      </div>
+      <div id="dagdelen-list" style="margin-bottom:12px"></div>
+      <div style="font-size:10px;color:#94a3b8;padding:4px 0">Tip: een dagdeel mag middernacht overschrijden (bv. nacht 23:00 → 07:00). Tijdvakken mogen niet overlappen.</div>
+    </div>
+
+    <!-- Dagplanning (schema) -->
+    <div class="cfg-section" id="cfg-sec-schema">
+      <div class="cfg-sec-header">
+        <div><div class="cfg-sec-title">Dagplanning</div><div class="cfg-sec-sub">Tijden en taken per dienst</div></div>
+        <button class="cfg-action-btn" onclick="openSchemaModal(null)">+ Item</button>
+      </div>
+      <div id="schema-list" style="margin-bottom:12px"></div>
+    </div>
+
+    <!-- Gedrag -->
+    <div class="cfg-section" id="cfg-sec-gedrag">
+      <div class="cfg-sec-header">
+        <div><div class="cfg-sec-title">Gedrag</div><div class="cfg-sec-sub">Tijdslimieten en vergrendelingsgedrag</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column">
+        <div class="cfg-gedrag-row">
+          <div><div class="cfg-gedrag-label">Lange-ronde waarschuwing</div><div class="cfg-gedrag-sub">Oranje melding als een ronde langer duurt dan dit aantal uur</div></div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            <input type="number" id="inp-timeout-warn" min="1" max="24" step="1" style="width:60px;padding:5px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;text-align:center;font-family:inherit" oninput="saveGedrag()">
+            <span style="font-size:12px;color:#64748b">uur</span>
+          </div>
+        </div>
+        <div class="cfg-gedrag-row">
+          <div><div class="cfg-gedrag-label">Melding duur</div><div class="cfg-gedrag-sub">Hoe lang gedeelde meldingen zichtbaar blijven voor alle apparaten</div></div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            <input type="number" id="inp-melding-ttl" min="1" max="72" step="1" style="width:60px;padding:5px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;text-align:center;font-family:inherit" oninput="saveGedrag()">
+            <span style="font-size:12px;color:#64748b">uur</span>
+          </div>
+        </div>
+        <div class="cfg-gedrag-row">
+          <div><div class="cfg-gedrag-label">Automatische vergrendeling instellingen</div><div class="cfg-gedrag-sub">Hoe lang instellingen ontgrendeld blijven na invoer van pincode</div></div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            <input type="number" id="inp-pin-cache" min="5" max="480" step="5" style="width:68px;padding:5px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;text-align:center;font-family:inherit" oninput="saveGedrag()">
+            <span style="font-size:12px;color:#64748b">min</span>
+          </div>
         </div>
       </div>
-      <div class="hr" style="margin-top:8px"></div>
+    </div>
 
-      <!-- Medewerkers: collapsible -->
-      <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onclick="toggleSection('medewerkers')">
-        <p class="lbl" style="margin:0">Medewerkers <span style="font-size:10px;font-weight:400;color:#94a3b8;text-transform:none;letter-spacing:0">— actieve beveiligers in het systeem</span></p>
-        <span id="medewerkers-toggle-icon" style="font-size:13px;color:#94a3b8;padding:4px 0">▼</span>
+    <!-- Audit log -->
+    <div class="cfg-section" id="cfg-sec-auditlog">
+      <div class="cfg-sec-header">
+        <div><div class="cfg-sec-title">Audit log</div><div class="cfg-sec-sub">Systeem- en gebruikersacties (auto-wis na 7 dagen)</div></div>
+        <div style="display:flex;gap:6px">
+          <button class="cfg-action-btn cfg-action-btn-sec" onclick="renderEventLog()">↻</button>
+          <button class="cfg-action-btn cfg-action-btn-sec" onclick="exportEventLog()">Export</button>
+          <button class="cfg-action-btn cfg-action-btn-sec" onclick="wisLog()">Wis log</button>
+        </div>
       </div>
-      <div id="medewerkers-collapse" style="display:none;margin-top:10px">
-        <div id="medewerkers-list" style="margin-bottom:8px"></div>
-        <!-- Medewerker edit modal -->
-        <div id="medewerker-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9000;align-items:center;justify-content:center;padding:16px" onmousedown="if(event.target===this)this._mdOnOverlay=true" onmouseup="if(event.target===this&&this._mdOnOverlay)cancelMedewerkerEdit();this._mdOnOverlay=false">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+        <select id="event-log-filter" onchange="renderEventLog()" style="padding:5px 8px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;font-family:inherit;background:#fff">
+          <option value="">Alle types</option>
+          <option value="start">start</option>
+          <option value="retour">retour</option>
+          <option value="dienst">dienst</option>
+          <option value="settings">settings</option>
+          <option value="auto">auto</option>
+          <option value="sync">sync</option>
+          <option value="system">system</option>
+          <option value="melding">melding</option>
+          <option value="pin">pin</option>
+          <option value="error">error</option>
+        </select>
+        <input type="text" id="event-log-search" placeholder="Zoeken..." oninput="renderEventLog()" style="flex:1;min-width:120px;padding:5px 8px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;font-family:inherit">
+      </div>
+      <div id="event-log-list" style="max-height:500px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;background:#fafafa;font-family:ui-monospace,Menlo,monospace;font-size:11px"></div>
+    </div>
+
+  </div><!-- /cfg-detail -->
+</div><!-- /cfg-layout -->
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     MODALS (altijd aanwezig in DOM)
+════════════════════════════════════════════════════════════════════════ -->
+<div id="medewerker-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9000;align-items:center;justify-content:center;padding:16px" onmousedown="if(event.target===this)this._mdOnOverlay=true" onmouseup="if(event.target===this&&this._mdOnOverlay)cancelMedewerkerEdit();this._mdOnOverlay=false">
           <div style="background:#fff;border-radius:14px;padding:20px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.18);position:relative">
             <button onclick="cancelMedewerkerEdit()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
             <p id="medewerker-modal-title" style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 16px">Medewerker toevoegen</p>
@@ -543,22 +861,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
             </div>
           </div>
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
-          <button class="sm" onclick="openMedewerkerModal(null)" style="font-size:12px">+ Nieuwe medewerker</button>
-          <button id="med-sort-btn" onclick="toggleMedewerkerSort()" style="background:none;border:none;cursor:pointer;font-size:11px;color:#94a3b8;padding:4px 2px;font-family:inherit" title="Sorteervolgorde wisselen">Sortering: naam ↕</button>
-        </div>
-      </div>
-      <div class="hr"></div>
-
-      <!-- Rondes: collapsible -->
-      <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onclick="toggleSection('rondes')">
-        <p class="lbl" style="margin:0">Rondes <span style="font-size:10px;font-weight:400;color:#94a3b8;text-transform:none;letter-spacing:0">— vaste looproutes in het gebouw</span></p>
-        <span id="rondes-toggle-icon" style="font-size:13px;color:#94a3b8;padding:4px 0">▼</span>
-      </div>
-      <div id="rondes-collapse" style="display:none;margin-top:10px">
-        <div id="rondes-list" style="margin-bottom:8px"></div>
-        <!-- Ronde edit modal -->
-        <div id="ronde-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9000;align-items:center;justify-content:center;padding:16px" onmousedown="if(event.target===this)this._mdOnOverlay=true" onmouseup="if(event.target===this&&this._mdOnOverlay)cancelRondeEdit();this._mdOnOverlay=false">
+<div id="ronde-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9000;align-items:center;justify-content:center;padding:16px" onmousedown="if(event.target===this)this._mdOnOverlay=true" onmouseup="if(event.target===this&&this._mdOnOverlay)cancelRondeEdit();this._mdOnOverlay=false">
           <div style="background:#fff;border-radius:14px;padding:20px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.18);position:relative">
             <button onclick="cancelRondeEdit()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
             <p id="ronde-modal-title" style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 16px">Ronde toevoegen</p>
@@ -574,19 +877,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
             </div>
           </div>
         </div>
-        <button class="sm" onclick="openRondeModal(null)">+ Nieuwe ronde</button>
-      </div>
-      <div class="hr"></div>
-
-      <!-- Dagdelen: collapsible -->
-      <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onclick="toggleSection('dagdelen')">
-        <p class="lbl" style="margin:0">Dagdelen <span style="font-size:10px;font-weight:400;color:#94a3b8;text-transform:none;letter-spacing:0">— diensten: naam, tijdvak en kleur</span></p>
-        <span id="dagdelen-toggle-icon" style="font-size:13px;color:#94a3b8;padding:4px 0">▼</span>
-      </div>
-      <div id="dagdelen-collapse" style="display:none;margin-top:10px">
-        <div id="dagdelen-list" style="margin-bottom:12px"></div>
-        <!-- Dagdeel edit modal -->
-        <div id="dagdeel-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9000;align-items:center;justify-content:center;padding:16px" onmousedown="if(event.target===this)this._mdOnOverlay=true" onmouseup="if(event.target===this&&this._mdOnOverlay)cancelDagdeelEdit();this._mdOnOverlay=false">
+<div id="dagdeel-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9000;align-items:center;justify-content:center;padding:16px" onmousedown="if(event.target===this)this._mdOnOverlay=true" onmouseup="if(event.target===this&&this._mdOnOverlay)cancelDagdeelEdit();this._mdOnOverlay=false">
           <div style="background:#fff;border-radius:14px;padding:20px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.18);position:relative">
             <button onclick="cancelDagdeelEdit()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
             <p id="dagdeel-modal-title" style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 16px">Dagdeel wijzigen</p>
@@ -618,23 +909,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
             </div>
           </div>
         </div>
-        <button class="sm" onclick="openDagdeelModal(null)" style="margin-bottom:8px">+ Nieuw dagdeel</button>
-        <div style="font-size:10px;color:#94a3b8;padding:4px 0">Tip: een dagdeel mag middernacht overschrijden (bv. nacht 23:00 → 07:00). Tijdvakken mogen niet overlappen.</div>
-      </div>
-      <div class="hr"></div>
-
-    <!-- Schema: collapsible -->
-    <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onclick="toggleSchema()">
-      <p class="lbl" style="margin:0">Dagplanning <span style="font-size:10px;font-weight:400;color:#94a3b8;text-transform:none;letter-spacing:0">— tijden en taken per dienst</span></p>
-      <span id="schema-toggle-icon" style="font-size:13px;color:#94a3b8;padding:4px 0">▼</span>
-    </div>
-    <div id="schema-collapse" style="display:none;margin-top:10px">
-      <div id="schema-list" style="margin-bottom:12px"></div>
-      <button class="sm" onclick="openSchemaModal(null)" style="margin-bottom:8px">+ Nieuw schema-item</button>
-    </div>
-
-    <!-- Schema modal (add + edit) -->
-    <div id="schema-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9000;align-items:center;justify-content:center;padding:16px" onmousedown="if(event.target===this)this._mdOnOverlay=true" onmouseup="if(event.target===this&&this._mdOnOverlay)closeSchemaModal();this._mdOnOverlay=false">
+<div id="schema-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9000;align-items:center;justify-content:center;padding:16px" onmousedown="if(event.target===this)this._mdOnOverlay=true" onmouseup="if(event.target===this&&this._mdOnOverlay)closeSchemaModal();this._mdOnOverlay=false">
       <div style="background:#fff;border-radius:14px;padding:20px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.18);position:relative">
         <button onclick="closeSchemaModal()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
         <p id="schema-modal-title" style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 16px">Schema-item toevoegen</p>
@@ -666,92 +941,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         </div>
       </div>
     </div>
-    <div class="hr"></div>
 
-    <!-- Gedrag: collapsible -->
-    <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onclick="toggleSection('gedrag')">
-      <p class="lbl" style="margin:0">Gedrag <span style="font-size:10px;font-weight:400;color:#94a3b8;text-transform:none;letter-spacing:0">— tijdslimieten en vergrendelingsgedrag</span></p>
-      <span id="gedrag-toggle-icon" style="font-size:13px;color:#94a3b8;padding:4px 0">▼</span>
-    </div>
-    <div id="gedrag-collapse" style="display:none;margin-top:10px">
-      <div style="display:flex;flex-direction:column;gap:14px;padding:4px 0 8px">
-
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-          <div>
-            <div style="font-size:13px;font-weight:500;color:#1e293b">Lange-ronde waarschuwing</div>
-            <div style="font-size:11px;color:#94a3b8;margin-top:2px">Oranje melding als een ronde langer duurt dan dit aantal uur</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-            <input type="number" id="inp-timeout-warn" min="1" max="24" step="1"
-              style="width:60px;padding:5px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;text-align:center;font-family:inherit"
-              oninput="saveGedrag()">
-            <span style="font-size:12px;color:#64748b">uur</span>
-          </div>
-        </div>
-
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-          <div>
-            <div style="font-size:13px;font-weight:500;color:#1e293b">Melding duur</div>
-            <div style="font-size:11px;color:#94a3b8;margin-top:2px">Hoe lang gedeelde meldingen zichtbaar blijven voor alle apparaten</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-            <input type="number" id="inp-melding-ttl" min="1" max="72" step="1"
-              style="width:60px;padding:5px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;text-align:center;font-family:inherit"
-              oninput="saveGedrag()">
-            <span style="font-size:12px;color:#64748b">uur</span>
-          </div>
-        </div>
-
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-          <div>
-            <div style="font-size:13px;font-weight:500;color:#1e293b">Automatische vergrendeling instellingen</div>
-            <div style="font-size:11px;color:#94a3b8;margin-top:2px">Hoe lang instellingen ontgrendeld blijven na invoer van pincode</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-            <input type="number" id="inp-pin-cache" min="5" max="480" step="5"
-              style="width:68px;padding:5px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;text-align:center;font-family:inherit"
-              oninput="saveGedrag()">
-            <span style="font-size:12px;color:#64748b">min</span>
-          </div>
-        </div>
-
-      </div>
-    </div>
-    <div class="hr"></div>
-
-    <div class="hr"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-      <h3 style="margin:0;font-size:14px;font-weight:normal">Audit log <span style="font-size:11px;color:#94a3b8">— systeem- en gebruikersacties (auto-wis na 7 dagen)</span></h3>
-      <button class="sm" onclick="toggleEventLog()" id="event-log-toggle" style="font-size:11px;padding:4px 10px">Tonen</button>
-    </div>
-    <div id="event-log-section" style="display:none;margin-bottom:16px">
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
-        <select id="event-log-filter" onchange="renderEventLog()" style="padding:5px 8px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;font-family:inherit;background:#fff">
-          <option value="">Alle types</option>
-          <option value="start">start</option>
-          <option value="retour">retour</option>
-          <option value="dienst">dienst</option>
-          <option value="settings">settings</option>
-          <option value="auto">auto</option>
-          <option value="sync">sync</option>
-          <option value="system">system</option>
-          <option value="melding">melding</option>
-          <option value="pin">pin</option>
-          <option value="error">error</option>
-        </select>
-        <input type="text" id="event-log-search" placeholder="Zoeken..." oninput="renderEventLog()" style="flex:1;min-width:120px;padding:5px 8px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;font-family:inherit">
-        <button class="sm" onclick="renderEventLog()" style="font-size:11px;padding:4px 10px">↻</button>
-        <button class="sm" onclick="exportEventLog()" style="font-size:11px;padding:4px 10px">Export</button>
-      </div>
-      <div id="event-log-list" style="max-height:400px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;background:#fafafa;font-family:ui-monospace,Menlo,monospace;font-size:11px"></div>
-    </div>
-
-    <!-- Danger zone -->
-    <button class="sm del" onclick="wisLog()">&#128465; Log wissen</button>
-      <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;display:flex;align-items:center;gap:6px">
-        <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.65</span>
-        <span>Surveillance Dashboard · UMC Utrecht · Made by Danny Stockschen</span>
-      </div>
     </div><!-- /cfg-content -->
   </div>
 
@@ -769,7 +959,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.65';
+const APP_VERSION = '2.1.68';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1368,7 +1558,12 @@ function goTab(id) {
     Object.entries(S.active), Date.now()-86400000, Date.now()), 50); }
   if (id === 'plan')  renderPlan();
   if (id === 'dienst') renderDienst();
-  if (id === 'cfg')   { renderCfg(); checkCfgLock(); }
+  if (id === 'cfg')   { if (isMobile()) { cfgShowMobile(); checkCfgLock(); } else { cfgGoSection(_cfgActiveSection || 'medewerkers'); checkCfgLock(); } }
+  // Sync mobile bottom tabbar
+  ['reg','live','plan','dienst','cfg'].forEach(function(t) {
+    var btn = document.getElementById('mob-tab-' + t);
+    if (btn) btn.classList.toggle('on', t === id);
+  });
 }
 
 function render() {
@@ -3443,21 +3638,134 @@ function rmDagdeel(i) {
   });
 }
 
-function toggleSchema() {
-  const col = document.getElementById('schema-collapse');
-  const icon = document.getElementById('schema-toggle-icon');
-  const isOpen = col.style.display === 'none';
-  col.style.display = isOpen ? 'block' : 'none';
-  icon.textContent = isOpen ? '▲' : '▼';
+function toggleSchema() { cfgGoSection('schema'); }
+
+function toggleSection(id) { cfgGoSection(id); }
+
+// ── CFG LAYOUT ────────────────────────────────────────────────────────────
+var _cfgActiveSection = 'medewerkers';
+
+var CFG_MOB_SECTIONS = {
+  medewerkers: { title: 'Medewerkers', action: '+ Medewerker', fn: function() { openMedewerkerModal(null); } },
+  rondes:      { title: 'Rondes',      action: '+ Ronde',      fn: function() { openRondeModal(null); } },
+  dagdelen:    { title: 'Dagdelen',    action: '+ Dagdeel',    fn: function() { openDagdeelModal(null); } },
+  schema:      { title: 'Dagplanning', action: '+ Item',       fn: function() { openSchemaModal(null); } },
+  gedrag:      { title: 'Gedrag',      action: null,           fn: null },
+  auditlog:    { title: 'Audit log',   action: null,           fn: null },
+};
+
+function isMobile() { return window.innerWidth <= 700; }
+
+function cfgMobGoSection(id) {
+  _cfgActiveSection = id;
+  var cfg = CFG_MOB_SECTIONS[id];
+  if (!cfg) return;
+  document.getElementById('cfg-mob-detail-title').textContent = cfg.title;
+  var btn = document.getElementById('cfg-mob-detail-action');
+  if (cfg.action) { btn.textContent = cfg.action; btn.style.display = 'block'; btn._cfgFn = cfg.fn; }
+  else { btn.style.display = 'none'; }
+  renderCfg();
+  if (id === 'auditlog') renderEventLog();
+  var srcSec = document.getElementById('cfg-sec-' + id);
+  var body = document.getElementById('cfg-mob-detail-body');
+  if (srcSec && body) {
+    body.innerHTML = srcSec.innerHTML;
+    var hdr = body.querySelector('.cfg-sec-header');
+    if (hdr) hdr.remove();
+    if (id === 'gedrag') _rewireGedragInputs(body);
+    if (id === 'auditlog') _rewireAuditlog(body);
+  }
+  document.getElementById('cfg-mobile-master').style.display = 'none';
+  document.getElementById('cfg-mobile-detail').classList.add('open');
 }
 
-function toggleSection(id) {
-  const col  = document.getElementById(id + '-collapse');
-  const icon = document.getElementById(id + '-toggle-icon');
-  if (!col) return;
-  const isOpen = col.style.display === 'none';
-  col.style.display = isOpen ? 'block' : 'none';
-  icon.textContent = isOpen ? '▲' : '▼';
+function cfgMobDetailAction() {
+  var btn = document.getElementById('cfg-mob-detail-action');
+  if (btn && btn._cfgFn) btn._cfgFn();
+}
+
+function cfgMobBack() {
+  document.getElementById('cfg-mobile-detail').classList.remove('open');
+  document.getElementById('cfg-mobile-master').style.display = 'block';
+}
+
+function _rewireGedragInputs(container) {
+  var tw = container.querySelector('#inp-timeout-warn');
+  var mt = container.querySelector('#inp-melding-ttl');
+  var pc = container.querySelector('#inp-pin-cache');
+  if (tw) { tw.value = S.timeoutWarn; tw.oninput = function() { S.timeoutWarn = parseFloat(tw.value); saveGedrag(); }; }
+  if (mt) { mt.value = S.meldingTTL;  mt.oninput = function() { S.meldingTTL  = parseFloat(mt.value); saveGedrag(); }; }
+  if (pc) { pc.value = S.pinCacheDur; pc.oninput = function() { S.pinCacheDur = parseFloat(pc.value); saveGedrag(); }; }
+}
+
+function _rewireAuditlog(container) {
+  var filter = container.querySelector('#event-log-filter');
+  var search = container.querySelector('#event-log-search');
+  if (filter) filter.onchange = function() { renderEventLog(); };
+  if (search) search.oninput  = function() { renderEventLog(); };
+}
+
+function cfgShowMobile() {
+  document.getElementById('cfg-mobile-master').style.display = 'block';
+  document.getElementById('cfg-mobile-detail').classList.remove('open');
+  var unlocked = LS.get('rn_cfg_unlocked');
+  var isUnlocked = unlocked && (Date.now() - Number(unlocked)) < S.pinCacheDur * 60000;
+  var title = document.getElementById('cfg-mob-lock-title');
+  var sub   = document.getElementById('cfg-mob-lock-sub');
+  var btn   = document.getElementById('cfg-mob-lock-btn');
+  var strip = document.getElementById('cfg-mob-strip');
+  if (isUnlocked) {
+    if (title) { title.textContent = 'Ontgrendeld'; title.style.color = '#1c1c1e'; }
+    if (sub)   sub.textContent = 'beveiligd met pincode';
+    if (btn)   { btn.textContent = 'Vergrendel'; btn.onclick = manualLockCfg; }
+    if (strip) strip.classList.remove('locked');
+  } else {
+    if (title) { title.textContent = 'Vergrendeld'; title.style.color = '#aeaeb2'; }
+    if (sub)   sub.textContent = 'tik om te ontgrendelen';
+    if (btn)   { btn.textContent = 'Ontgrendel'; btn.onclick = showCfgLock; }
+    if (strip) strip.classList.add('locked');
+  }
+  var setBadge = function(id, val) { var el = document.getElementById('cfg-mob-badge-' + id); if (el) el.textContent = val || ''; };
+  setBadge('medewerkers', S.medewerkers && S.medewerkers.length ? S.medewerkers.length : '');
+  setBadge('rondes', S.routes && S.routes.length ? S.routes.length : '');
+  var dagdelenSrc = S.dagdelen || DAGDELEN_DEFAULT; setBadge('dagdelen', dagdelenSrc.length || '');
+  var schemaSrc = S.schema || SCHEMA; setBadge('schema', schemaSrc && schemaSrc.length ? schemaSrc.length : '');
+  try {
+    var _now = new Date();
+    var todayLog = EVENT_LOG.filter(function(e){ var d=new Date(e.ts); return d.getDate()===_now.getDate()&&d.getMonth()===_now.getMonth()&&d.getFullYear()===_now.getFullYear(); }).length;
+    setBadge('auditlog', todayLog || '');
+  } catch(e) {}
+  var vb = document.getElementById('cfg-mob-version');
+  if (vb) vb.textContent = 'v' + APP_VERSION;
+}
+
+function cfgGoSection(id) {
+  _cfgActiveSection = id;
+  ['medewerkers','rondes','dagdelen','schema','gedrag','auditlog'].forEach(function(s) {
+    var el = document.getElementById('cfg-sec-' + s);
+    if (el) el.classList.remove('active');
+    var nav = document.getElementById('cfg-nav-' + s);
+    if (nav) nav.classList.remove('active');
+  });
+  var target = document.getElementById('cfg-sec-' + id);
+  if (target) target.classList.add('active');
+  var navTarget = document.getElementById('cfg-nav-' + id);
+  if (navTarget) navTarget.classList.add('active');
+  renderCfg();
+  if (id === 'auditlog') renderEventLog();
+}
+
+function _updateRailLockLabel(unlocked) {
+  var lbl = document.getElementById('cfg-rail-lock-label');
+  if (!lbl) return;
+  var svg = lbl.previousElementSibling;
+  if (unlocked) {
+    lbl.textContent = 'Ontgrendeld'; lbl.style.color = '#16a34a';
+    if (svg) svg.setAttribute('stroke','#22c55e');
+  } else {
+    lbl.textContent = 'Vergrendeld'; lbl.style.color = '#94a3b8';
+    if (svg) svg.setAttribute('stroke','#94a3b8');
+  }
 }
 
 // ── PIN LOCK ──────────────────────────────────────────────────────────────
@@ -3480,6 +3788,7 @@ function showCfgLock() {
   const content = document.getElementById('cfg-content');
   if (lock)    { lock.style.display = 'flex'; }
   if (content) { content.style.display = 'none'; }
+  _updateRailLockLabel(false);
   _lockVal = '';
   lockKeypadDots();
   document.getElementById('cfg-pin-error').style.display = 'none';
@@ -3490,6 +3799,8 @@ function hideCfgLock() {
   const content = document.getElementById('cfg-content');
   if (lock)    lock.style.display = 'none';
   if (content) content.style.display = 'block';
+  _updateRailLockLabel(true);
+  if (isMobile()) cfgShowMobile();
 }
 
 function manualLockCfg() {
@@ -3525,8 +3836,8 @@ async function checkPin() {
   if (!stored) { showPinSetup(); return; }
   if (entered === stored) {
     err.style.display = 'none';
-    hideCfgLock();
     LS.set('rn_cfg_unlocked', Date.now());
+    hideCfgLock();
   } else {
     err.style.display = 'block';
     _lockVal = '';
@@ -3626,8 +3937,8 @@ async function pinKeypadNext() {
     logEvent('pin', _pinMode === 'setup' ? 'Pincode aangemaakt' : 'Pincode gewijzigd');
     pinKeypadClose();
     if (_pinMode === 'setup') {
-      hideCfgLock();
       LS.set('rn_cfg_unlocked', Date.now());
+      hideCfgLock();
     }
     showToast('Pincode opgeslagen ✓');
   }
