@@ -729,7 +729,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button class="cfg-rail-btn" onclick="manualLockCfg()">Vergrendelen</button>
         <button class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.81</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.82</span>
     </div>
   </nav>
 
@@ -996,7 +996,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.81';
+const APP_VERSION = '2.1.82';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -3278,8 +3278,9 @@ function renderCfg() {
   renderRouteCatsList();
 
   // Populate ronde dropdowns
+  const _encR = r => r.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
   const rondeOptions = ['', ...S.routes.map(r => r.naam)].map(r =>
-    `<option value="${r}">${r || '— geen ronde —'}</option>`
+    `<option value="${_encR(r)}">${r ? _encR(r) : '— geen ronde —'}</option>`
   ).join('');
   const modalDropdown = document.getElementById('inp-schema-modal-ronde');
   if (modalDropdown) modalDropdown.innerHTML = rondeOptions;
@@ -3441,8 +3442,9 @@ function openSchemaModal(idx) {
   document.getElementById('schema-modal-title').textContent = isEdit ? 'Schema-item wijzigen' : 'Schema-item toevoegen';
 
   // Populate ronde dropdown
+  const _encRs = r => r.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
   const rondeOptions = ['', ...S.routes.map(r => r.naam)].map(r =>
-    `<option value="${r}">${r || '— geen ronde —'}</option>`
+    `<option value="${_encRs(r)}">${r ? _encRs(r) : '— geen ronde —'}</option>`
   ).join('');
   document.getElementById('inp-schema-modal-ronde').innerHTML = rondeOptions;
 
@@ -4292,10 +4294,11 @@ function openRondeModal(idx) {
   const isEdit = idx !== null;
   document.getElementById('ronde-modal-title').textContent = isEdit ? 'Ronde wijzigen' : 'Ronde toevoegen';
   document.getElementById('inp-ronde-edit-naam').value = isEdit ? (S.routes[idx].naam || '') : '';
-  // Populate and set category dropdown
+  // Populate category dropdown — encode & in value/label
   const catSel = document.getElementById('inp-ronde-edit-cat');
+  const encAttr = s => s.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
   catSel.innerHTML = '<option value="">— geen categorie —</option>' +
-    ROUTE_CATEGORIEEN.map(c => `<option value="${c}">${c}</option>`).join('');
+    (S.routeCats || []).map(c => `<option value="${encAttr(c)}">${encAttr(c)}</option>`).join('');
   catSel.value = isEdit ? (S.routes[idx].categorie || '') : '';
   document.getElementById('ronde-modal-overlay').style.display = 'flex';
   setTimeout(() => document.getElementById('inp-ronde-edit-naam').focus(), 50);
