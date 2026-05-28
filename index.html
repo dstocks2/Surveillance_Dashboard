@@ -77,10 +77,12 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;min-height:1
   .tabs{display:none}
   .mobile-tabbar{display:flex}
   body{padding-bottom:66px}
-  .cfg-layout{flex-direction:column;min-height:unset}
+  .cfg-layout{display:none !important}
   .cfg-rail{display:none}
   .cfg-detail{display:none}
   .cfg-mobile-master{display:block !important}
+  .cfg-mobile-detail.open ~ * .cfg-mobile-master,
+  .cfg-mobile-detail.open + .cfg-mobile-master{display:none !important}
 }
 .cfg-mobile-master{display:none;background:#f2f2f7;min-height:calc(100vh - 105px);padding-bottom:32px}
 .cfg-mobile-detail{display:none;background:#f2f2f7;min-height:calc(100vh - 105px);flex-direction:column}
@@ -727,7 +729,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button class="cfg-rail-btn" onclick="manualLockCfg()">Vergrendelen</button>
         <button class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.71</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.79</span>
     </div>
   </nav>
 
@@ -865,9 +867,17 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
           <div style="background:#fff;border-radius:14px;padding:20px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.18);position:relative">
             <button onclick="cancelRondeEdit()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
             <p id="ronde-modal-title" style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 16px">Ronde toevoegen</p>
-            <div style="display:flex;flex-direction:column;gap:4px">
-              <label style="font-size:11px;color:#64748b">Naam</label>
-              <input type="text" id="inp-ronde-edit-naam" placeholder="bijv. Buitenronde, P-noord…" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:100%;box-sizing:border-box" onkeydown="if(event.key==='Enter')saveRondeEdit()">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <label style="font-size:11px;color:#64748b">Naam</label>
+                <input type="text" id="inp-ronde-edit-naam" placeholder="bijv. Buitenronde, P-noord…" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:100%;box-sizing:border-box" onkeydown="if(event.key==='Enter')saveRondeEdit()">
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <label style="font-size:11px;color:#64748b">Categorie <span style="color:#cbd5e1;font-weight:400">(optioneel)</span></label>
+                <select id="inp-ronde-edit-cat" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;background:#fff;width:100%">
+                  <option value="">— geen categorie —</option>
+                </select>
+              </div>
             </div>
             <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end">
               <button class="sm" onclick="cancelRondeEdit()" style="background:#f1f5f9;color:#64748b">Annuleren</button>
@@ -959,7 +969,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.71';
+const APP_VERSION = '2.1.79';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1142,6 +1152,21 @@ function isNewerVersion(remote, local) {
 
 function showUpdateBanner() {
   if (document.getElementById('update-banner')) return; // already shown
+  window._appOutdated = true;
+  setFbStatus('error');
+  logEvent('system', 'Verouderde versie gedetecteerd — schrijfacties geblokkeerd', { localVersion: APP_VERSION });
+  const el = document.getElementById('fb-status');
+  if (el) { el.textContent = '⚠ verouderde versie'; el.style.color = '#fca5a5'; }
+
+  // Silent reload if nobody is mid-action
+  const hasActive = Object.keys(S.active || {}).length > 0;
+  const hasSel = S.sns && S.sns.size > 0;
+  if (!hasActive && !hasSel) {
+    location.reload(true);
+    return;
+  }
+
+  // Someone is busy — show banner so they can finish first
   const banner = document.createElement('div');
   banner.id = 'update-banner';
   banner.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:20px';
@@ -1156,11 +1181,6 @@ function showUpdateBanner() {
       </button>
     </div>`;
   document.body.appendChild(banner);
-  window._appOutdated = true;
-  setFbStatus('error');
-  logEvent('system', 'Verouderde versie gedetecteerd — schrijfacties geblokkeerd', { localVersion: APP_VERSION });
-  const el = document.getElementById('fb-status');
-  if (el) { el.textContent = '⚠ verouderde versie'; el.style.color = '#fca5a5'; }
 }
 
 function checkAppVersion(remoteVersion) {
@@ -1224,6 +1244,17 @@ function sanitizeMedewerkers(arr) {
       rol:  sanitizeFromFirebase(m.rol  || '')
     };
   }).filter(m => m.naam);
+}
+
+function sanitizeRoutes(arr) {
+  if (!Array.isArray(arr)) return [];
+  return arr.map(r => {
+    if (typeof r === 'string') return { naam: sanitizeFromFirebase(r), categorie: '' };
+    return {
+      naam:      sanitizeFromFirebase(r.naam      || ''),
+      categorie: sanitizeFromFirebase(r.categorie || '')
+    };
+  }).filter(r => r.naam);
 }
 
 function sanitizeActive(obj) {
@@ -1363,9 +1394,13 @@ function fbListen() {
       }
     }
     if (d.routes !== undefined && Array.isArray(d.routes) && d.routes.length) {
-      const fbRoutes = sanitizeNames(d.routes);
-      if (fbRoutes.join('|') !== S.routes.join('|'))
+      const fbRoutes = sanitizeRoutes(d.routes);
+      const fbStr  = JSON.stringify(fbRoutes);
+      const locStr = JSON.stringify(S.routes);
+      if (fbStr !== locStr) {
         S.routes = fbRoutes;
+        LS.set('rn_routes', S.routes);
+      }
     }
     // Sync schema from Firebase — only accept valid arrays
     if (d.schema !== undefined && Array.isArray(d.schema) && d.schema.length) {
@@ -1440,16 +1475,29 @@ const DN = ['Alex Strouken','Anne Johan Lynch','Ayoub Essabri','Baran Basar',
             'Pas van de Ronald','Pascal Linnenbank','Pieterson Rogier','Reenen van Bert',
             'Remco Kuiper','Remco Vissink','Rijkaart Bart-Jan','Sander Groenestein',
             'Sander Uijttewaal','Sjoerd Gronsveld','Solaiman Loukili','Tjitte Smeenge'];
-const DR = ['0-1 ronde','Alarm opvolging','Assistentie','Begeleiding',
-            'Buitenronde','Gesprek op afdeling','HvdB','Openingsronde',
-            'P-noord','P-zuid','Parkeercontrole','Polironde',
-            'Sluitronde 1','Sluitronde 2','Staf lab','Stratenum',
-            'Van Geuns','Verpleegronde','Vrije ronde'];
+const DR = [
+  {naam:'0-1 ronde',categorie:''},{naam:'Alarm opvolging',categorie:'Alarm & assistentie'},
+  {naam:'Assistentie',categorie:'Alarm & assistentie'},{naam:'Begeleiding',categorie:'Alarm & assistentie'},
+  {naam:'Buitenronde',categorie:'Buiten'},{naam:'Gesprek op afdeling',categorie:'Sluit & afdeling'},
+  {naam:'HvdB',categorie:'Binnen'},{naam:'Openingsronde',categorie:'Binnen'},
+  {naam:'P-noord',categorie:'Buiten'},{naam:'P-zuid',categorie:'Buiten'},
+  {naam:'Parkeercontrole',categorie:'Buiten'},{naam:'Polironde',categorie:'Binnen'},
+  {naam:'Sluitronde 1',categorie:'Sluit & afdeling'},{naam:'Sluitronde 2',categorie:'Sluit & afdeling'},
+  {naam:'Staf lab',categorie:'Binnen'},{naam:'Stratenum',categorie:'Binnen'},
+  {naam:'Van Geuns',categorie:'Binnen'},{naam:'Verpleegronde',categorie:'Sluit & afdeling'},
+  {naam:'Vrije ronde',categorie:''}
+];
+
+const ROUTE_CATEGORIEEN = ['Binnen', 'Buiten', 'Sluit & afdeling', 'Alarm & assistentie', 'Overig'];
 
 if (LS.get('rn_version') !== VERSION) {
   // On version update: merge routes with defaults; medewerkers beheert eigen lijst
   const existingRoutes = LS.get('rn_routes') || [];
-  const mergedRoutes = [...new Set([...DR, ...existingRoutes])].sort((a,b) => a.toLowerCase().localeCompare(b.toLowerCase(),'nl'));
+  // Migrate: existing routes may be strings (old format) or objects (new format)
+  const existingObjs = sanitizeRoutes(existingRoutes);
+  const drNames = new Set(DR.map(r => r.naam.toLowerCase()));
+  const extraObjs = existingObjs.filter(r => !drNames.has(r.naam.toLowerCase()));
+  const mergedRoutes = [...DR, ...extraObjs].sort((a,b) => a.naam.toLowerCase().localeCompare(b.naam.toLowerCase(),'nl'));
   // Medewerkers: als nog geen rn_medewerkers bestaat, initialiseer vanuit DN defaults
   if (!LS.get('rn_medewerkers')) {
     LS.set('rn_medewerkers', DN.map(n => ({ naam: n, rol: '' })));
@@ -1460,7 +1508,7 @@ if (LS.get('rn_version') !== VERSION) {
 
 let S = {
   medewerkers: LS.get('rn_medewerkers') || DN.map(n => ({ naam: n, rol: '' })),
-  routes: LS.get('rn_routes') || DR,
+  routes: sanitizeRoutes(LS.get('rn_routes') || DR),
   schema: LS.get('rn_schema') || null, // null = use hardcoded SCHEMA default
   dagdelen: LS.get('rn_dagdelen') || null, // null = use DAGDELEN_DEFAULT
   active: {},   // always loaded from Firebase — never from localStorage
@@ -1560,7 +1608,9 @@ function goTab(id) {
     Object.entries(S.active), Date.now()-86400000, Date.now()), 50); }
   if (id === 'plan')  renderPlan();
   if (id === 'dienst') renderDienst();
-  if (id === 'cfg')   { if (isMobile()) { cfgShowMobile(); checkCfgLock(); } else { cfgGoSection(_cfgActiveSection || 'medewerkers'); checkCfgLock(); } }
+  if (id === 'cfg') {
+    if (isMobile()) { cfgShowMobile(); checkCfgLock(); } else { cfgGoSection(_cfgActiveSection || 'medewerkers'); checkCfgLock(); }
+  }
   // Sync mobile bottom tabbar
   ['reg','live','plan','dienst','cfg'].forEach(function(t) {
     var btn = document.getElementById('mob-tab-' + t);
@@ -1598,9 +1648,9 @@ function renderRouteBtns() {
   el.innerHTML = '';
   S.routes.forEach(r => {
     const btn = document.createElement('button');
-    btn.className = 'nbtn' + (S.sr === r ? ' sel' : '');
-    btn.textContent = r;
-    btn.addEventListener('click', () => selR(r));
+    btn.className = 'nbtn' + (S.sr === r.naam ? ' sel' : '');
+    btn.textContent = r.naam;
+    btn.addEventListener('click', () => selR(r.naam));
     el.appendChild(btn);
   });
 }
@@ -3127,19 +3177,54 @@ function renderCfg() {
     if (!S.routes.length) {
       rl.innerHTML = '<div style="font-size:13px;color:#94a3b8;padding:8px 0">Geen rondes.</div>';
     } else {
-      const rows = S.routes.map((r, i) =>
-        `<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;border:0.5px solid #e2e8f0;background:#f8fafc;min-width:0;margin-bottom:4px">
-          <span style="font-weight:600;color:#1e293b;font-size:12px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r}">${r}</span>
+      const CAT_COLORS = {
+        'Binnen': '#dbeafe', 'Buiten': '#dcfce7', 'Sluit & afdeling': '#fef9c3',
+        'Alarm & assistentie': '#fee2e2', 'Overig': '#f1f5f9'
+      };
+      const CAT_TEXT = {
+        'Binnen': '#1d4ed8', 'Buiten': '#15803d', 'Sluit & afdeling': '#92400e',
+        'Alarm & assistentie': '#991b1b', 'Overig': '#475569'
+      };
+      // Group by category; preserve index into S.routes for edit/delete
+      const grouped = {}; // cat -> [{naam, idx}]
+      const ungrouped = [];
+      S.routes.forEach((r, i) => {
+        const c = r.categorie || '';
+        if (c) { if (!grouped[c]) grouped[c] = []; grouped[c].push({ naam: r.naam, idx: i }); }
+        else ungrouped.push({ naam: r.naam, idx: i });
+      });
+      const renderRow = (naam, i) =>
+        `<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;border:0.5px solid #e2e8f0;background:#f8fafc;margin-bottom:4px;min-width:0">
+          <span style="font-weight:600;color:#1e293b;font-size:12px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${naam}">${naam}</span>
           <button onclick="editRonde(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:12px;padding:0 3px;flex-shrink:0;line-height:1" title="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#94a3b8'">✎</button>
           <button onclick="rmRoute(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:13px;padding:0 3px;flex-shrink:0;line-height:1" title="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">✕</button>
-        </div>`
-      );
-      rl.innerHTML = rows.join('');
+        </div>`;
+      let html = '';
+      ROUTE_CATEGORIEEN.forEach(cat => {
+        if (!grouped[cat] || !grouped[cat].length) return;
+        const bg = CAT_COLORS[cat] || '#f1f5f9';
+        const tc = CAT_TEXT[cat] || '#475569';
+        html += `<div style="margin-bottom:10px">
+          <div style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:${tc};background:${bg};padding:3px 8px;border-radius:5px;margin-bottom:5px;display:inline-block">${cat}</div>
+          ${grouped[cat].map(({ naam, idx }) => renderRow(naam, idx)).join('')}
+        </div>`;
+      });
+      Object.keys(grouped).filter(c => !ROUTE_CATEGORIEEN.includes(c)).forEach(cat => {
+        html += `<div style="margin-bottom:10px">
+          <div style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#475569;background:#f1f5f9;padding:3px 8px;border-radius:5px;margin-bottom:5px;display:inline-block">${cat}</div>
+          ${grouped[cat].map(({ naam, idx }) => renderRow(naam, idx)).join('')}
+        </div>`;
+      });
+      if (ungrouped.length) {
+        if (Object.keys(grouped).length) html += `<div style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8;padding:3px 0;margin-bottom:5px">Geen categorie</div>`;
+        html += ungrouped.map(({ naam, idx }) => renderRow(naam, idx)).join('');
+      }
+      rl.innerHTML = html;
     }
   }
 
   // Populate ronde dropdowns
-  const rondeOptions = ['', ...S.routes].map(r =>
+  const rondeOptions = ['', ...S.routes.map(r => r.naam)].map(r =>
     `<option value="${r}">${r || '— geen ronde —'}</option>`
   ).join('');
   const modalDropdown = document.getElementById('inp-schema-modal-ronde');
@@ -3302,7 +3387,7 @@ function openSchemaModal(idx) {
   document.getElementById('schema-modal-title').textContent = isEdit ? 'Schema-item wijzigen' : 'Schema-item toevoegen';
 
   // Populate ronde dropdown
-  const rondeOptions = ['', ...S.routes].map(r =>
+  const rondeOptions = ['', ...S.routes.map(r => r.naam)].map(r =>
     `<option value="${r}">${r || '— geen ronde —'}</option>`
   ).join('');
   document.getElementById('inp-schema-modal-ronde').innerHTML = rondeOptions;
@@ -4053,7 +4138,7 @@ async function rmName(i) {
 function addRoute() { openRondeModal(null); } // legacy: delegate to modal
 
 async function rmRoute(i) {
-  const ronde = S.routes[i];
+  const ronde = S.routes[i].naam;
   if (!await customConfirm('Weet je zeker dat je "' + ronde + '" wilt verwijderen?')) return;
   S.routes.splice(i, 1);
   // Verwijder ronde-koppeling uit schema-items
@@ -4077,7 +4162,12 @@ function openRondeModal(idx) {
   _rondeEditIdx = idx;
   const isEdit = idx !== null;
   document.getElementById('ronde-modal-title').textContent = isEdit ? 'Ronde wijzigen' : 'Ronde toevoegen';
-  document.getElementById('inp-ronde-edit-naam').value = isEdit ? (S.routes[idx] || '') : '';
+  document.getElementById('inp-ronde-edit-naam').value = isEdit ? (S.routes[idx].naam || '') : '';
+  // Populate and set category dropdown
+  const catSel = document.getElementById('inp-ronde-edit-cat');
+  catSel.innerHTML = '<option value="">— geen categorie —</option>' +
+    ROUTE_CATEGORIEEN.map(c => `<option value="${c}">${c}</option>`).join('');
+  catSel.value = isEdit ? (S.routes[idx].categorie || '') : '';
   document.getElementById('ronde-modal-overlay').style.display = 'flex';
   setTimeout(() => document.getElementById('inp-ronde-edit-naam').focus(), 50);
 }
@@ -4087,29 +4177,28 @@ function editRonde(i) { openRondeModal(i); }
 function saveRondeEdit() {
   const naam = sanitizeInput(document.getElementById('inp-ronde-edit-naam').value || '').trim().slice(0, 60);
   if (!naam) { showToast('Vul een naam in'); return; }
+  const cat = document.getElementById('inp-ronde-edit-cat').value || '';
   const isEdit = _rondeEditIdx !== null;
-  const isDuplicate = S.routes.some((r, i) => r.toLowerCase() === naam.toLowerCase() && (!isEdit || i !== _rondeEditIdx));
+  const isDuplicate = S.routes.some((r, i) => r.naam.toLowerCase() === naam.toLowerCase() && (!isEdit || i !== _rondeEditIdx));
   if (isDuplicate) { showToast('Deze ronde bestaat al'); return; }
   if (isEdit) {
-    const oude = S.routes[_rondeEditIdx];
-    S.routes[_rondeEditIdx] = naam;
-    S.routes.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase(), 'nl'));
+    const oude = S.routes[_rondeEditIdx].naam;
+    S.routes[_rondeEditIdx] = { naam, categorie: cat };
+    S.routes.sort((a, b) => a.naam.toLowerCase().localeCompare(b.naam.toLowerCase(), 'nl'));
     // Update alle schema-items die naar de oude ronde verwijzen
     if (oude !== naam && S.schema && S.schema.length) {
       let schemaChanged = false;
-      S.schema.forEach(item => {
-        if (item.ronde === oude) { item.ronde = naam; schemaChanged = true; }
-      });
+      S.schema.forEach(item => { if (item.ronde === oude) { item.ronde = naam; schemaChanged = true; } });
       if (schemaChanged) LS.set('rn_schema', S.schema);
     }
     save();
-    logEvent('settings', 'Ronde gewijzigd: ' + oude + ' → ' + naam);
+    logEvent('settings', 'Ronde gewijzigd: ' + oude + ' → ' + naam + (cat ? ' [' + cat + ']' : ''));
     showToast(naam + ' bijgewerkt');
   } else {
-    S.routes.push(naam);
-    S.routes.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase(), 'nl'));
+    S.routes.push({ naam, categorie: cat });
+    S.routes.sort((a, b) => a.naam.toLowerCase().localeCompare(b.naam.toLowerCase(), 'nl'));
     save();
-    logEvent('settings', 'Ronde toegevoegd: ' + naam);
+    logEvent('settings', 'Ronde toegevoegd: ' + naam + (cat ? ' [' + cat + ']' : ''));
     showToast(naam + ' toegevoegd');
   }
   _rondeEditIdx = null;
