@@ -729,7 +729,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button class="cfg-rail-btn" onclick="manualLockCfg()">Vergrendelen</button>
         <button class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.79</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.81</span>
     </div>
   </nav>
 
@@ -754,7 +754,18 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <div><div class="cfg-sec-title">Rondes</div><div class="cfg-sec-sub">Vaste looproutes in het gebouw</div></div>
         <button class="cfg-action-btn" onclick="openRondeModal(null)">+ Ronde</button>
       </div>
-      <div id="rondes-list" style="margin-bottom:8px"></div>
+      <div id="rondes-list" style="margin-bottom:16px"></div>
+      <!-- Categoriebeheer -->
+      <div style="border-top:1px solid #f1f5f9;padding-top:14px;margin-top:4px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#1e293b">Categorieën</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:1px">Beheer de beschikbare categorieën</div>
+          </div>
+          <button class="cfg-action-btn" style="font-size:11px;padding:5px 10px" onclick="openCatModal(null)">+ Categorie</button>
+        </div>
+        <div id="route-cats-list"></div>
+      </div>
     </div>
 
     <!-- Dagdelen -->
@@ -887,6 +898,22 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
             </div>
           </div>
         </div>
+<div id="cat-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9000;align-items:center;justify-content:center;padding:16px" onmousedown="if(event.target===this)this._mdOnOverlay=true" onmouseup="if(event.target===this&&this._mdOnOverlay)cancelCatEdit();this._mdOnOverlay=false">
+  <div style="background:#fff;border-radius:14px;padding:20px;width:100%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,.18);position:relative">
+    <button onclick="cancelCatEdit()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
+    <p id="cat-modal-title" style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 16px">Categorie toevoegen</p>
+    <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:16px">
+      <label style="font-size:11px;color:#64748b">Naam</label>
+      <input type="text" id="inp-cat-naam" placeholder="bijv. Parkeren, Noodhulp…" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:100%;box-sizing:border-box" onkeydown="if(event.key==='Enter')saveCatEdit()">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="sm" onclick="cancelCatEdit()" style="background:#f1f5f9;color:#64748b">Annuleren</button>
+      <button class="sm" onclick="saveCatEdit()">
+        <svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" style="vertical-align:-2px;margin-right:4px"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan
+      </button>
+    </div>
+  </div>
+</div>
 <div id="dagdeel-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9000;align-items:center;justify-content:center;padding:16px" onmousedown="if(event.target===this)this._mdOnOverlay=true" onmouseup="if(event.target===this&&this._mdOnOverlay)cancelDagdeelEdit();this._mdOnOverlay=false">
           <div style="background:#fff;border-radius:14px;padding:20px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.18);position:relative">
             <button onclick="cancelDagdeelEdit()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
@@ -969,7 +996,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.79';
+const APP_VERSION = '2.1.81';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1082,7 +1109,8 @@ function fbSave() {
   updates['/dashboard/dienst']  = [...S.dienst];
   // medewerkers is de enige bron — names wordt niet meer naar Firebase geschreven
   updates['/dashboard/medewerkers'] = S.medewerkers || [];
-  updates['/dashboard/routes']  = S.routes;
+  updates['/dashboard/routes']    = S.routes;
+  updates['/dashboard/routeCats'] = S.routeCats || ROUTE_CATEGORIEEN_DEFAULT;
   if (S.schema) updates['/dashboard/schema'] = S.schema;
   if (S.dagdelen) updates['/dashboard/dagdelen'] = S.dagdelen;
   updates['/dashboard/gedrag'] = { timeoutWarn: S.timeoutWarn, meldingTTL: S.meldingTTL, pinCacheDur: S.pinCacheDur };
@@ -1248,11 +1276,12 @@ function sanitizeMedewerkers(arr) {
 
 function sanitizeRoutes(arr) {
   if (!Array.isArray(arr)) return [];
+  const decodeEntities = s => s.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"');
   return arr.map(r => {
-    if (typeof r === 'string') return { naam: sanitizeFromFirebase(r), categorie: '' };
+    if (typeof r === 'string') return { naam: decodeEntities(sanitizeFromFirebase(r)), categorie: '' };
     return {
-      naam:      sanitizeFromFirebase(r.naam      || ''),
-      categorie: sanitizeFromFirebase(r.categorie || '')
+      naam:      decodeEntities(sanitizeFromFirebase(r.naam      || '')),
+      categorie: decodeEntities(sanitizeFromFirebase(r.categorie || ''))
     };
   }).filter(r => r.naam);
 }
@@ -1402,6 +1431,13 @@ function fbListen() {
         LS.set('rn_routes', S.routes);
       }
     }
+    if (d.routeCats !== undefined && Array.isArray(d.routeCats) && d.routeCats.length) {
+      const fbCats = d.routeCats.map(c => sanitizeFromFirebase(String(c))).filter(Boolean);
+      if (JSON.stringify(fbCats) !== JSON.stringify(S.routeCats || [])) {
+        S.routeCats = fbCats;
+        LS.set('rn_route_cats', S.routeCats);
+      }
+    }
     // Sync schema from Firebase — only accept valid arrays
     if (d.schema !== undefined && Array.isArray(d.schema) && d.schema.length) {
       const fbSchemaStr = JSON.stringify(d.schema);
@@ -1445,6 +1481,7 @@ function fbListen() {
     // Only back up settings to localStorage (not active/log)
     LS.set('rn_dienst',      [...S.dienst]);
     LS.set('rn_routes',      S.routes);
+    LS.set('rn_route_cats',  S.routeCats || ROUTE_CATEGORIEEN_DEFAULT);
     LS.set('rn_medewerkers', S.medewerkers || []);
 
     setFbStatus('ok');
@@ -1488,7 +1525,7 @@ const DR = [
   {naam:'Vrije ronde',categorie:''}
 ];
 
-const ROUTE_CATEGORIEEN = ['Binnen', 'Buiten', 'Sluit & afdeling', 'Alarm & assistentie', 'Overig'];
+const ROUTE_CATEGORIEEN_DEFAULT = ['Binnen', 'Buiten', 'Sluit & afdeling', 'Alarm & assistentie', 'Overig'];
 
 if (LS.get('rn_version') !== VERSION) {
   // On version update: merge routes with defaults; medewerkers beheert eigen lijst
@@ -1509,6 +1546,7 @@ if (LS.get('rn_version') !== VERSION) {
 let S = {
   medewerkers: LS.get('rn_medewerkers') || DN.map(n => ({ naam: n, rol: '' })),
   routes: sanitizeRoutes(LS.get('rn_routes') || DR),
+  routeCats: LS.get('rn_route_cats') || ROUTE_CATEGORIEEN_DEFAULT.slice(),
   schema: LS.get('rn_schema') || null, // null = use hardcoded SCHEMA default
   dagdelen: LS.get('rn_dagdelen') || null, // null = use DAGDELEN_DEFAULT
   active: {},   // always loaded from Firebase — never from localStorage
@@ -1520,6 +1558,9 @@ let S = {
   meldingTTL:   LS.get('rn_melding_ttl')   ?? 8,   // uren: hoe lang gedeelde meldingen zichtbaar
   pinCacheDur:  LS.get('rn_pin_cache_dur') ?? 30,  // minuten: hoe lang instellingen ontgrendeld blijven
 };
+
+// Dynamic — always reflects S.routeCats
+Object.defineProperty(window, 'ROUTE_CATEGORIEEN', { get: () => S.routeCats, configurable: true });
 
 // ── In-flight write tracking ──────────────────────────────────────────────
 // When a write is in flight, fbListen could receive a snapshot from BEFORE
@@ -1566,6 +1607,7 @@ function save() {
   // medewerkers is de bron — names wordt er live uit afgeleid
   LS.set('rn_medewerkers', S.medewerkers || []);
   LS.set('rn_routes',      S.routes);
+  LS.set('rn_route_cats',  S.routeCats || ROUTE_CATEGORIEEN_DEFAULT);
   LS.set('rn_dienst',      [...S.dienst]);
   fbSave();
 }
@@ -3188,7 +3230,18 @@ function renderCfg() {
       // Group by category; preserve index into S.routes for edit/delete
       const grouped = {}; // cat -> [{naam, idx}]
       const ungrouped = [];
-      S.routes.forEach((r, i) => {
+      // Sort routes: by category order first, then alphabetically within group
+      const catOrder = S.routeCats || [];
+      const sorted = S.routes.map((r, i) => ({ r, i }))
+        .sort((a, b) => {
+          const ca = catOrder.indexOf(a.r.categorie || '');
+          const cb = catOrder.indexOf(b.r.categorie || '');
+          const oa = ca === -1 ? catOrder.length : ca;
+          const ob = cb === -1 ? catOrder.length : cb;
+          if (oa !== ob) return oa - ob;
+          return a.r.naam.toLowerCase().localeCompare(b.r.naam.toLowerCase(), 'nl');
+        });
+      sorted.forEach(({ r, i }) => {
         const c = r.categorie || '';
         if (c) { if (!grouped[c]) grouped[c] = []; grouped[c].push({ naam: r.naam, idx: i }); }
         else ungrouped.push({ naam: r.naam, idx: i });
@@ -3222,6 +3275,7 @@ function renderCfg() {
       rl.innerHTML = html;
     }
   }
+  renderRouteCatsList();
 
   // Populate ronde dropdowns
   const rondeOptions = ['', ...S.routes.map(r => r.naam)].map(r =>
@@ -4156,6 +4210,81 @@ async function rmRoute(i) {
 }
 
 // ── RONDE MODAL ───────────────────────────────────────────────────────────
+// ── Categorie beheer ──────────────────────────────────────────────────────
+let _catEditIdx = null;
+
+function renderRouteCatsList() {
+  const el = document.getElementById('route-cats-list');
+  if (!el) return;
+  const cats = S.routeCats || [];
+  if (!cats.length) { el.innerHTML = '<div style="font-size:12px;color:#94a3b8;padding:4px 0">Geen categorieën.</div>'; return; }
+  const CAT_COLORS = {'Binnen':'#dbeafe','Buiten':'#dcfce7','Sluit & afdeling':'#fef9c3','Alarm & assistentie':'#fee2e2','Overig':'#f1f5f9'};
+  const CAT_TEXT   = {'Binnen':'#1d4ed8','Buiten':'#15803d','Sluit & afdeling':'#92400e','Alarm & assistentie':'#991b1b','Overig':'#475569'};
+  el.innerHTML = cats.map((cat, i) => {
+    const bg = CAT_COLORS[cat] || '#f1f5f9';
+    const tc = CAT_TEXT[cat]   || '#475569';
+    const count = (S.routes || []).filter(r => r.categorie === cat).length;
+    return `<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px;border:0.5px solid #e2e8f0;background:#fafafa;margin-bottom:4px">
+      <span style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:${tc};background:${bg};padding:2px 7px;border-radius:4px;white-space:nowrap">${cat}</span>
+      <span style="font-size:11px;color:#94a3b8;flex:1">${count} ronde${count !== 1 ? 's' : ''}</span>
+      <button onclick="openCatModal(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:12px;padding:0 3px;line-height:1" title="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#94a3b8'">✎</button>
+      <button onclick="rmCat(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:13px;padding:0 3px;line-height:1" title="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function openCatModal(idx) {
+  _catEditIdx = idx;
+  const isEdit = idx !== null;
+  document.getElementById('cat-modal-title').textContent = isEdit ? 'Categorie wijzigen' : 'Categorie toevoegen';
+  document.getElementById('inp-cat-naam').value = isEdit ? (S.routeCats[idx] || '') : '';
+  document.getElementById('cat-modal-overlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('inp-cat-naam').focus(), 50);
+}
+
+function cancelCatEdit() {
+  _catEditIdx = null;
+  document.getElementById('cat-modal-overlay').style.display = 'none';
+}
+
+function saveCatEdit() {
+  const naam = sanitizeInput(document.getElementById('inp-cat-naam').value || '').trim().slice(0, 50);
+  if (!naam) { showToast('Vul een naam in'); return; }
+  const isEdit = _catEditIdx !== null;
+  const isDup = S.routeCats.some((c, i) => c.toLowerCase() === naam.toLowerCase() && (!isEdit || i !== _catEditIdx));
+  if (isDup) { showToast('Deze categorie bestaat al'); return; }
+  if (isEdit) {
+    const oude = S.routeCats[_catEditIdx];
+    S.routeCats[_catEditIdx] = naam;
+    // Update alle rondes die deze categorie hadden
+    S.routes.forEach(r => { if (r.categorie === oude) r.categorie = naam; });
+    logEvent('settings', 'Categorie gewijzigd: ' + oude + ' → ' + naam);
+    showToast(naam + ' bijgewerkt');
+  } else {
+    S.routeCats.push(naam);
+    logEvent('settings', 'Categorie toegevoegd: ' + naam);
+    showToast(naam + ' toegevoegd');
+  }
+  save(); renderCfg();
+  _catEditIdx = null;
+  document.getElementById('cat-modal-overlay').style.display = 'none';
+}
+
+async function rmCat(i) {
+  const cat = S.routeCats[i];
+  const count = S.routes.filter(r => r.categorie === cat).length;
+  const msg = count > 0
+    ? `"${cat}" verwijderen? ${count} ronde${count !== 1 ? 's' : ''} verlies${count !== 1 ? 'n' : 't'} deze categorie.`
+    : `Weet je zeker dat je "${cat}" wilt verwijderen?`;
+  if (!await customConfirm(msg)) return;
+  S.routeCats.splice(i, 1);
+  // Rondes met deze categorie krijgen lege categorie
+  S.routes.forEach(r => { if (r.categorie === cat) r.categorie = ''; });
+  save(); renderCfg();
+  logEvent('settings', 'Categorie verwijderd: ' + cat);
+  showToast(cat + ' verwijderd');
+}
+
 let _rondeEditIdx = null;
 
 function openRondeModal(idx) {
