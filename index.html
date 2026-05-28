@@ -729,7 +729,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button class="cfg-rail-btn" onclick="manualLockCfg()">Vergrendelen</button>
         <button class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.82</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.83</span>
     </div>
   </nav>
 
@@ -752,19 +752,20 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <div class="cfg-section" id="cfg-sec-rondes">
       <div class="cfg-sec-header">
         <div><div class="cfg-sec-title">Rondes</div><div class="cfg-sec-sub">Vaste looproutes in het gebouw</div></div>
-        <button class="cfg-action-btn" onclick="openRondeModal(null)">+ Ronde</button>
-      </div>
-      <div id="rondes-list" style="margin-bottom:16px"></div>
-      <!-- Categoriebeheer -->
-      <div style="border-top:1px solid #f1f5f9;padding-top:14px;margin-top:4px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div>
-            <div style="font-size:13px;font-weight:600;color:#1e293b">Categorieën</div>
-            <div style="font-size:11px;color:#94a3b8;margin-top:1px">Beheer de beschikbare categorieën</div>
-          </div>
-          <button class="cfg-action-btn" style="font-size:11px;padding:5px 10px" onclick="openCatModal(null)">+ Categorie</button>
+        <div style="display:flex;gap:6px">
+          <button class="cfg-action-btn cfg-action-btn-sec" style="font-size:11px;padding:5px 10px" onclick="openCatModal(null)">+ Categorie</button>
+          <button class="cfg-action-btn" onclick="openRondeModal(null)">+ Ronde</button>
         </div>
-        <div id="route-cats-list"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 260px;gap:20px;align-items:start">
+        <div>
+          <div style="font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px">Rondes</div>
+          <div id="rondes-list"></div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px">Categorieën</div>
+          <div id="route-cats-list"></div>
+        </div>
       </div>
     </div>
 
@@ -996,7 +997,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2.1.82';
+const APP_VERSION = '2.1.83';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
