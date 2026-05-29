@@ -729,7 +729,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="manualLockCfg()">Vergrendelen</button>
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.94</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.95</span>
     </div>
   </nav>
 
@@ -823,7 +823,6 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
       <div class="cfg-sec-header">
         <div><div class="cfg-sec-title">Audit log</div><div class="cfg-sec-sub">Systeem- en gebruikersacties (auto-wis na 7 dagen)</div></div>
         <div style="display:flex;gap:6px">
-          <button type="button" class="cfg-action-btn cfg-action-btn-sec" onclick="renderEventLog()">↻</button>
           <button type="button" class="cfg-action-btn cfg-action-btn-sec" onclick="exportEventLog()">Export</button>
           <button type="button" class="cfg-action-btn cfg-action-btn-sec" onclick="wisEventLog()">Wis log</button>
         </div>
@@ -998,7 +997,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.1.94';
+const APP_VERSION = '2.1.95';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1054,7 +1053,7 @@ function logEvent(type, msg, detail) {
   // Persist to Firebase (fire-and-forget; never block app on this)
   if (window.fbDb && window.fbPush && window.fbRef && window.fbSet) {
     try {
-      const ref = window.fbPush(window.fbRef(window.fbDb, 'dashboard/eventLog'));
+      const ref = window.fbPush(window.fbRef(window.fbDb, 'dashboard/auditLog'));
       window.fbSet(ref, evt).catch(() => {}); // silent — never trigger user-facing errors
     } catch (e) { /* silent */ }
   }
@@ -1068,7 +1067,7 @@ function logEvent(type, msg, detail) {
 
 function fbListenEventLog() {
   if (!window.fbDb) return;
-  window.fbOnValue(window.fbRef(window.fbDb, 'dashboard/eventLog'), snap => {
+  window.fbOnValue(window.fbRef(window.fbDb, 'dashboard/auditLog'), snap => {
     const data = snap.val();
     if (!data) { EVENT_LOG = []; return; }
     const cutoff = Date.now() - EVENT_LOG_TTL_MS;
@@ -1076,7 +1075,7 @@ function fbListenEventLog() {
     Object.entries(data).forEach(([key, e]) => {
       // Auto-prune entries older than 7 days
       if (e && e.ts && e.ts < cutoff) {
-        window.fbRemove(window.fbRef(window.fbDb, 'dashboard/eventLog/' + key))
+        window.fbRemove(window.fbRef(window.fbDb, 'dashboard/auditLog/' + key))
           .then(() => logEvent('auto', 'EventLog entry automatisch verwijderd (>7 dagen)', { key, ts: e.ts, type: e.type || '', msg: (e.msg || '').slice(0, 80) }))
           .catch(err => logEvent('error', 'EventLog auto-verwijdering MISLUKT', { key, error: String(err) }));
         return;
@@ -2615,7 +2614,7 @@ async function wisEventLog() {
   const count = EVENT_LOG.length;
   EVENT_LOG.length = 0;
   if (window.fbDb && window.fbRemove) {
-    window.fbRemove(window.fbRef(window.fbDb, 'dashboard/eventLog'))
+    window.fbRemove(window.fbRef(window.fbDb, 'dashboard/auditLog'))
       .then(() => logEvent('system', 'Audit log handmatig gewist (' + count + ' entries)'))
       .catch(e => logEvent('error', 'Audit log wissen MISLUKT', { error: String(e) }));
   }
