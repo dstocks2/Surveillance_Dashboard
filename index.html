@@ -729,7 +729,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="manualLockCfg()">Vergrendelen</button>
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.2.01</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.2.02</span>
     </div>
   </nav>
 
@@ -753,18 +753,18 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
       <div class="cfg-sec-header">
         <div><div class="cfg-sec-title">Rondes</div><div class="cfg-sec-sub">Vaste looproutes in het gebouw</div></div>
         <div style="display:flex;gap:6px">
-          <button type="button" class="cfg-action-btn cfg-action-btn-sec" style="font-size:11px;padding:5px 10px" onclick="openCatModal(null)">+ Categorie</button>
           <button type="button" class="cfg-action-btn" onclick="openRondeModal(null)">+ Ronde</button>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 260px;gap:20px;align-items:start">
+      <div style="display:grid;grid-template-columns:220px 1fr;gap:20px;align-items:start">
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 12px;display:flex;flex-direction:column">
+          <div style="font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:.07em;text-transform:uppercase;margin-bottom:10px">Categorieën</div>
+          <div id="route-cats-list"></div>
+          <button type="button" onclick="openCatModal(null)" style="margin-top:10px;background:none;border:none;cursor:pointer;color:#2563eb;font-size:12px;font-family:inherit;text-align:left;padding:4px 0;font-weight:500">+ Categorie toevoegen</button>
+        </div>
         <div>
           <div style="font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px">Rondes</div>
           <div id="rondes-list"></div>
-        </div>
-        <div>
-          <div style="font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px">Categorieën</div>
-          <div id="route-cats-list"></div>
         </div>
       </div>
     </div>
@@ -1009,7 +1009,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.2.01';
+const APP_VERSION = '2.2.02';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -4275,16 +4275,19 @@ function renderRouteCatsList() {
   const el = document.getElementById('route-cats-list');
   if (!el) return;
   const cats = S.routeCats || [];
-  if (!cats.length) { el.innerHTML = '<div style="font-size:12px;color:#94a3b8;padding:4px 0">Geen categorieën.</div>'; return; }
+  const uncat = (S.routes || []).filter(r => !r.categorie || !cats.includes(r.categorie)).length;
   el.innerHTML = cats.map((cat, i) => {
     const count = (S.routes || []).filter(r => r.categorie === cat).length;
-    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;margin-bottom:6px;background:#f8fafc;border:1px solid #e2e8f0;font-size:12px">
-      <span style="font-weight:700;color:#1e293b;text-transform:uppercase;letter-spacing:.05em;font-size:11px;flex:1">${cat}</span>
-      <span style="color:#94a3b8;font-size:11px;flex-shrink:0">${count} ronde${count !== 1 ? 's' : ''}</span>
-      <button type="button" onclick="openCatModal(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen" aria-label="Wijzigen">✎</button>
-      <button type="button" onclick="rmCat(${i})" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:14px;padding:0 4px;flex-shrink:0" title="Verwijderen" aria-label="Verwijderen">✕</button>
+    return `<div style="display:flex;align-items:center;padding:7px 4px;border-bottom:1px solid #f1f5f9;gap:6px">
+      <span style="flex:1;font-size:13px;color:#1e293b">${cat}</span>
+      <span style="background:#e2e8f0;color:#64748b;border-radius:99px;font-size:11px;font-weight:600;padding:1px 8px;flex-shrink:0">${count}</span>
+      <button type="button" onclick="openCatModal(${i})" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:13px;padding:0 2px;flex-shrink:0;line-height:1" title="Wijzigen" aria-label="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#cbd5e1'">✎</button>
     </div>`;
-  }).join('');
+  }).join('') +
+  `<div style="display:flex;align-items:center;padding:7px 4px;gap:6px;margin-top:2px">
+    <span style="flex:1;font-size:13px;color:#94a3b8;font-style:italic">Niet ingedeeld</span>
+    <span style="background:#f1f5f9;color:#94a3b8;border-radius:99px;font-size:11px;font-weight:600;padding:1px 8px;flex-shrink:0">${uncat}</span>
+  </div>`;
 }
 
 function openCatModal(idx) {
