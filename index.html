@@ -81,8 +81,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;min-height:1
   .cfg-rail{display:none}
   .cfg-detail{display:none}
   .cfg-mobile-master{display:block !important}
-  .cfg-mobile-detail.open ~ * .cfg-mobile-master,
-  .cfg-mobile-detail.open + .cfg-mobile-master{display:none !important}
+  .cfg-mobile-master.hidden{display:none !important}
 }
 .cfg-mobile-master{display:none;background:#f2f2f7;min-height:calc(100vh - 105px);padding-bottom:32px}
 .cfg-mobile-detail{display:none;background:#f2f2f7;min-height:calc(100vh - 105px);flex-direction:column}
@@ -213,7 +212,7 @@ input[type=text]:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px #d
   #timeline-legend{display:none}
   #timeline-legend.tl-open{display:flex !important}
   .lbl{font-size:11px}
-  .toast{font-size:12px;padding:10px 16px;max-width:90vw;white-space:normal;text-align:center}
+  .toast{font-size:12px;padding:10px 16px;max-width:90vw;white-space:normal;text-align:center;bottom:calc(66px + env(safe-area-inset-bottom) + 12px)}
 }
 
 /* ── Touch / iPad optimisations ── */
@@ -353,7 +352,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
       document.dispatchEvent(new Event('firebaseReady'));
     })
     .catch(e => {
-      console.warn('Anonymous auth failed, trying without auth:', e);
+      logEvent('error', 'Anonymous auth mislukt', { error: String(e) });
       // Fallback: still start app even if auth fails
       window.firebaseReady = true;
       document.dispatchEvent(new Event('firebaseReady'));
@@ -379,47 +378,47 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <p id="header-sub" style="margin-top:2px">&nbsp;</p>
   </div>
   <div id="header-right" style="display:flex;align-items:center;gap:10px;flex-shrink:0;margin-left:auto">
-    <span id="fb-status" style="font-size:10px;opacity:.7">⏳ verbinden...</span>
+    <span id="fb-status" aria-live="polite" aria-atomic="true" style="font-size:10px;opacity:.7">⏳ verbinden...</span>
     <div id="header-divider-right" style="width:1px;height:20px;background:rgba(255,255,255,.2)"></div>
     <span id="header-dienst" style="font-size:12px;color:rgba(255,255,255,.85);background:rgba(255,255,255,.12);padding:3px 9px;border-radius:20px;white-space:nowrap"></span>
     <span id="header-clock" style="font-size:16px;font-weight:600;color:#fff;font-variant-numeric:tabular-nums;min-width:42px;text-align:right"></span>
   </div>
 </div>
 
-<div class="tabs">
-  <button class="tab on" onclick="goTab('reg')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Registratie</button>
-  <button class="tab" onclick="goTab('live')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Overzicht</button>
-  <button class="tab" onclick="goTab('plan')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>Voorgestelde ronde</button>
-  <button class="tab" onclick="goTab('dienst')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Op dienst</button>
+<nav class="tabs" role="tablist" aria-label="Hoofdnavigatie">
+  <button type="button" class="tab on" role="tab" aria-selected="true" aria-controls="pane-reg" onclick="goTab('reg')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Registratie</button>
+  <button type="button" class="tab" role="tab" aria-selected="false" aria-controls="pane-live" onclick="goTab('live')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Overzicht</button>
+  <button type="button" class="tab" role="tab" aria-selected="false" aria-controls="pane-plan" onclick="goTab('plan')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>Voorgestelde ronde</button>
+  <button type="button" class="tab" role="tab" aria-selected="false" aria-controls="pane-dienst" onclick="goTab('dienst')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Op dienst</button>
   <div style="flex:1"></div>
-  <button class="bel-wrap" id="bel-btn" onclick="toggleMeldingen()" title="Meldingen">
+  <button type="button" class="bel-wrap" id="bel-btn" onclick="toggleMeldingen()" title="Meldingen" aria-label="Meldingen">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
     <span class="bel-badge" id="bel-badge"></span>
   </button>
-  <button class="tab tab-cfg" onclick="goTab('cfg')" title="Instellingen">
+  <button type="button" class="tab tab-cfg" onclick="goTab('cfg')" title="Instellingen" aria-label="Instellingen">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
   </button>
-</div>
+</nav>
 
 <!-- Mobile bottom tabbar (alleen zichtbaar op ≤700px) -->
 <div class="mobile-tabbar" id="mobile-tabbar">
-  <button class="mob-tab on" id="mob-tab-reg" onclick="goTab('reg')">
+  <button type="button" class="mob-tab on" id="mob-tab-reg" onclick="goTab('reg')">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
     Registratie
   </button>
-  <button class="mob-tab" id="mob-tab-live" onclick="goTab('live')">
+  <button type="button" class="mob-tab" id="mob-tab-live" onclick="goTab('live')">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
     Overzicht
   </button>
-  <button class="mob-tab" id="mob-tab-plan" onclick="goTab('plan')">
+  <button type="button" class="mob-tab" id="mob-tab-plan" onclick="goTab('plan')">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
     Voorstel
   </button>
-  <button class="mob-tab" id="mob-tab-dienst" onclick="goTab('dienst')">
+  <button type="button" class="mob-tab" id="mob-tab-dienst" onclick="goTab('dienst')">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
     Op dienst
   </button>
-  <button class="mob-tab" id="mob-tab-cfg" onclick="goTab('cfg')">
+  <button type="button" class="mob-tab" id="mob-tab-cfg" onclick="goTab('cfg')">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     Instellingen
   </button>
@@ -431,21 +430,22 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   <div class="meld-panel" id="meld-panel">
     <div class="meld-header">
       <span class="meld-title">Meldingen</span>
-      <button class="meld-wis" onclick="wisAlleMeldingen()">Alles wissen</button>
+      <button type="button" class="meld-wis" onclick="wisAlleMeldingen()">Alles wissen</button>
     </div>
-    <div class="meld-body" id="meld-body">
+    <div class="meld-body" id="meld-body" aria-live="polite" aria-atomic="false">
       <div class="meld-leeg">Geen meldingen</div>
     </div>
     <div class="meld-footer">
-      <button class="meld-sluiten" onclick="sluitMeldingen()">Sluiten</button>
+      <button type="button" class="meld-sluiten" onclick="sluitMeldingen()">Sluiten</button>
     </div>
   </div>
 </div>
 
+<main id="app-main">
 <div class="content">
 
   <!-- REGISTRATIE -->
-  <div id="pane-reg" class="pane on">
+  <div id="pane-reg" class="pane on" role="tabpanel" aria-label="Registratie">
     <p class="lbl">Stap 1 &mdash; Kies een persoon <span style="font-weight:400;color:#94a3b8;font-size:11px">(meerdere mogelijk)</span></p>
     <div class="btn-row" id="name-btns"></div>
     <div class="hr"></div>
@@ -456,15 +456,15 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
     <p class="lbl">Stap 3 &mdash; Actie</p>
     <div class="act-row">
-      <button class="abtn abtn-s" id="btn-start" onclick="doStart()" disabled>
+      <button type="button" class="abtn abtn-s" id="btn-start" onclick="doStart()" disabled>
         <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M3 2l7 4-7 4V2z"/></svg>
         Ronde starten
       </button>
-      <button class="abtn abtn-r" id="btn-retour" onclick="doRetour(null)" disabled>
+      <button type="button" class="abtn abtn-r" id="btn-retour" onclick="doRetour(null)" disabled>
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="2,6 5,9 10,3"/></svg>
         Retour melden
       </button>
-      <button class="abtn abtn-w" id="btn-wis" onclick="resetSel()" disabled>&#x2715; Wissen</button>
+      <button type="button" class="abtn abtn-w" id="btn-wis" onclick="resetSel()" disabled>&#x2715; Wissen</button>
     </div>
 
     <div class="hr"></div>
@@ -473,7 +473,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   </div>
 
   <!-- LIVE -->
-  <div id="pane-live" class="pane">
+  <div id="pane-live" class="pane" role="tabpanel" aria-label="Overzicht">
     <p class="lbl">Wie is er onderweg?</p>
     <div class="cards" id="live-cards-active"></div>
     <div class="hr" id="done-hr" style="margin-top:16px;display:none"></div>
@@ -482,7 +482,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <div class="hr" style="margin-top:20px"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;margin-bottom:0">
       <p class="lbl" style="margin-bottom:0">Tijdslijn afgelopen 24 uur</p>
-      <button class="tl-toggle-btn" onclick="toggleTimeline()" style="display:none;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;color:#64748b;font-size:12px;cursor:pointer;font-family:inherit" id="tl-toggle-btn">
+      <button type="button" class="tl-toggle-btn" onclick="toggleTimeline()" style="display:none;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;color:#64748b;font-size:12px;cursor:pointer;font-family:inherit" id="tl-toggle-btn">
         <span id="tl-toggle-icon">▼</span> <span id="tl-toggle-label">Toon tijdlijn</span>
       </button>
     </div>
@@ -499,7 +499,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   </div>
 
   <!-- VOORGESTELDE RONDE -->
-  <div id="pane-plan" class="pane">
+  <div id="pane-plan" class="pane" role="tabpanel" aria-label="Voorgestelde ronde">
     <div id="nu-blok" style="margin-bottom:20px"></div>
 
     <p class="lbl">Planning komende uren</p>
@@ -512,23 +512,23 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
 
   <!-- OP DIENST -->
-  <div id="pane-dienst" class="pane">
+  <div id="pane-dienst" class="pane" role="tabpanel" aria-label="Op dienst">
     <p class="lbl">Wie zijn er vandaag op dienst?</p>
     <p style="font-size:12px;color:#94a3b8;margin:-6px 0 10px">Vink de namen aan van de medewerkers die op dienst zijn. Alleen de geselecteerde namen worden weergegeven bij de registratie.</p>
     <div id="dienst-grid" style="margin-bottom:12px"></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="sm" onclick="dienstLeeg()">Selectie wissen</button>
+      <button type="button" class="sm" onclick="dienstLeeg()">Selectie wissen</button>
     </div>
     <div id="dienst-status" style="margin-top:14px;font-size:13px;color:#64748b"></div>
   </div>
 
   <!-- BEHEER -->
-  <div id="pane-cfg" class="pane cfg-shell" style="position:relative">
+  <div id="pane-cfg" class="pane cfg-shell" role="tabpanel" aria-label="Instellingen" style="position:relative">
 
     <!-- PIN lock overlay -->
     <div id="cfg-lock" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9500;flex-direction:column;align-items:center;justify-content:center;padding:20px;display:none">
       <div style="background:#fff;border-radius:16px;padding:28px 24px 24px;max-width:340px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.22);display:flex;flex-direction:column;align-items:center;position:relative">
-        <button onclick="hideCfgLock();goTab('reg')" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:22px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
+        <button type="button" onclick="hideCfgLock();goTab('reg')" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:22px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
         <div style="width:48px;height:48px;background:#f1f5f9;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         </div>
@@ -539,18 +539,18 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
           <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:260px">
-          <button class="pin-key" onclick="lockKeyPress('1')">1</button>
-          <button class="pin-key" onclick="lockKeyPress('2')">2</button>
-          <button class="pin-key" onclick="lockKeyPress('3')">3</button>
-          <button class="pin-key" onclick="lockKeyPress('4')">4</button>
-          <button class="pin-key" onclick="lockKeyPress('5')">5</button>
-          <button class="pin-key" onclick="lockKeyPress('6')">6</button>
-          <button class="pin-key" onclick="lockKeyPress('7')">7</button>
-          <button class="pin-key" onclick="lockKeyPress('8')">8</button>
-          <button class="pin-key" onclick="lockKeyPress('9')">9</button>
+          <button type="button" class="pin-key" onclick="lockKeyPress('1')">1</button>
+          <button type="button" class="pin-key" onclick="lockKeyPress('2')">2</button>
+          <button type="button" class="pin-key" onclick="lockKeyPress('3')">3</button>
+          <button type="button" class="pin-key" onclick="lockKeyPress('4')">4</button>
+          <button type="button" class="pin-key" onclick="lockKeyPress('5')">5</button>
+          <button type="button" class="pin-key" onclick="lockKeyPress('6')">6</button>
+          <button type="button" class="pin-key" onclick="lockKeyPress('7')">7</button>
+          <button type="button" class="pin-key" onclick="lockKeyPress('8')">8</button>
+          <button type="button" class="pin-key" onclick="lockKeyPress('9')">9</button>
           <div></div>
-          <button class="pin-key" onclick="lockKeyPress('0')">0</button>
-          <button class="pin-key pin-key-del" onclick="lockKeyDel()">
+          <button type="button" class="pin-key" onclick="lockKeyPress('0')">0</button>
+          <button type="button" class="pin-key pin-key-del" onclick="lockKeyDel()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="13" y2="14"/><line x1="13" y1="9" x2="18" y2="14"/></svg>
           </button>
         </div>
@@ -563,7 +563,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <!-- PIN keypad modal (setup + wijzigen, gedeeld) -->
     <div id="pin-keypad-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9600;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px">
       <div style="background:#fff;border-radius:16px;padding:28px 24px 24px;max-width:340px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.22);display:flex;flex-direction:column;align-items:center;position:relative">
-        <button id="pin-keypad-close" onclick="pinKeypadClose()" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:22px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
+        <button type="button" id="pin-keypad-close" onclick="pinKeypadClose()" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:22px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
         <div style="width:48px;height:48px;background:#f1f5f9;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         </div>
@@ -578,25 +578,25 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
           <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:260px">
-          <button class="pin-key" onclick="pinKeyPress('1')">1</button>
-          <button class="pin-key" onclick="pinKeyPress('2')">2</button>
-          <button class="pin-key" onclick="pinKeyPress('3')">3</button>
-          <button class="pin-key" onclick="pinKeyPress('4')">4</button>
-          <button class="pin-key" onclick="pinKeyPress('5')">5</button>
-          <button class="pin-key" onclick="pinKeyPress('6')">6</button>
-          <button class="pin-key" onclick="pinKeyPress('7')">7</button>
-          <button class="pin-key" onclick="pinKeyPress('8')">8</button>
-          <button class="pin-key" onclick="pinKeyPress('9')">9</button>
+          <button type="button" class="pin-key" onclick="pinKeyPress('1')">1</button>
+          <button type="button" class="pin-key" onclick="pinKeyPress('2')">2</button>
+          <button type="button" class="pin-key" onclick="pinKeyPress('3')">3</button>
+          <button type="button" class="pin-key" onclick="pinKeyPress('4')">4</button>
+          <button type="button" class="pin-key" onclick="pinKeyPress('5')">5</button>
+          <button type="button" class="pin-key" onclick="pinKeyPress('6')">6</button>
+          <button type="button" class="pin-key" onclick="pinKeyPress('7')">7</button>
+          <button type="button" class="pin-key" onclick="pinKeyPress('8')">8</button>
+          <button type="button" class="pin-key" onclick="pinKeyPress('9')">9</button>
           <div></div>
-          <button class="pin-key" onclick="pinKeyPress('0')">0</button>
-          <button class="pin-key pin-key-del" onclick="pinKeyDel()">
+          <button type="button" class="pin-key" onclick="pinKeyPress('0')">0</button>
+          <button type="button" class="pin-key pin-key-del" onclick="pinKeyDel()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="13" y2="14"/><line x1="13" y1="9" x2="18" y2="14"/></svg>
           </button>
         </div>
         <div id="pin-keypad-error" style="font-size:12px;color:#ef4444;min-height:18px;margin-top:10px"></div>
         <div style="width:100%;max-width:260px;margin-top:14px">
-          <button id="pin-btn-back" onclick="pinKeypadBack()" style="display:none;width:100%;max-width:260px;padding:11px;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;font-size:14px;color:#475569;cursor:pointer;font-weight:500">← Terug</button>
-          <button id="pin-btn-next" onclick="pinKeypadNext()" style="width:100%;max-width:260px;padding:11px;border:none;border-radius:8px;background:#1e40af;color:#fff;font-size:14px;font-weight:600;cursor:pointer">Doorgaan →</button>
+          <button type="button" id="pin-btn-back" onclick="pinKeypadBack()" style="display:none;width:100%;max-width:260px;padding:11px;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;font-size:14px;color:#475569;cursor:pointer;font-weight:500">← Terug</button>
+          <button type="button" id="pin-btn-next" onclick="pinKeypadNext()" style="width:100%;max-width:260px;padding:11px;border:none;border-radius:8px;background:#1e40af;color:#fff;font-size:14px;font-weight:600;cursor:pointer">Doorgaan →</button>
         </div>
       </div>
     </div>
@@ -617,38 +617,38 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
       <span class="cfg-mob-strip-dot">·</span>
       <span id="cfg-mob-lock-sub" class="cfg-mob-strip-sub">beveiligd met pincode</span>
     </div>
-    <button class="cfg-mob-strip-btn" id="cfg-mob-lock-btn" onclick="manualLockCfg()">Vergrendel</button>
+    <button type="button" class="cfg-mob-strip-btn" id="cfg-mob-lock-btn" onclick="manualLockCfg()">Vergrendel</button>
   </div>
 
   <div class="cfg-mob-page-title">Instellingen</div>
 
   <div class="cfg-mob-section-label">Categorieën</div>
   <div class="cfg-mob-list">
-    <button class="cfg-mob-row" onclick="cfgMobGoSection('medewerkers')">
+    <button type="button" class="cfg-mob-row" onclick="cfgMobGoSection('medewerkers')">
       <div class="cfg-mob-row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3b5fc0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/></svg></div>
       <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Medewerkers</div><div class="cfg-mob-row-sub">Actieve beveiligers</div></div>
       <span class="cfg-mob-badge" id="cfg-mob-badge-medewerkers"></span>
       <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
-    <button class="cfg-mob-row" onclick="cfgMobGoSection('rondes')">
+    <button type="button" class="cfg-mob-row" onclick="cfgMobGoSection('rondes')">
       <div class="cfg-mob-row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3b5fc0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></div>
       <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Rondes</div><div class="cfg-mob-row-sub">Vaste looproutes</div></div>
       <span class="cfg-mob-badge" id="cfg-mob-badge-rondes"></span>
       <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
-    <button class="cfg-mob-row" onclick="cfgMobGoSection('dagdelen')">
+    <button type="button" class="cfg-mob-row" onclick="cfgMobGoSection('dagdelen')">
       <div class="cfg-mob-row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3b5fc0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg></div>
       <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Dagdelen</div><div class="cfg-mob-row-sub">Naam, tijdvak, kleur</div></div>
       <span class="cfg-mob-badge" id="cfg-mob-badge-dagdelen"></span>
       <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
-    <button class="cfg-mob-row" onclick="cfgMobGoSection('schema')">
+    <button type="button" class="cfg-mob-row" onclick="cfgMobGoSection('schema')">
       <div class="cfg-mob-row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3b5fc0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
       <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Dagplanning</div><div class="cfg-mob-row-sub">Tijden en taken</div></div>
       <span class="cfg-mob-badge" id="cfg-mob-badge-schema"></span>
       <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
-    <button class="cfg-mob-row" onclick="cfgMobGoSection('gedrag')">
+    <button type="button" class="cfg-mob-row" onclick="cfgMobGoSection('gedrag')">
       <div class="cfg-mob-row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3b5fc0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></div>
       <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Gedrag</div><div class="cfg-mob-row-sub">Limieten en lock</div></div>
       <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
@@ -657,13 +657,13 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
   <div class="cfg-mob-section-label">Systeem</div>
   <div class="cfg-mob-list">
-    <button class="cfg-mob-row" onclick="cfgMobGoSection('auditlog')">
+    <button type="button" class="cfg-mob-row" onclick="cfgMobGoSection('auditlog')">
       <div class="cfg-mob-row-icon cfg-mob-row-icon-slate"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
       <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Audit log</div><div class="cfg-mob-row-sub">Auto-wis na 7 dagen</div></div>
       <span class="cfg-mob-badge" id="cfg-mob-badge-auditlog"></span>
       <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
-    <button class="cfg-mob-row" onclick="changePinDialog()">
+    <button type="button" class="cfg-mob-row" onclick="changePinDialog()">
       <div class="cfg-mob-row-icon cfg-mob-row-icon-slate"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
       <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Pincode wijzigen</div><div class="cfg-mob-row-sub">4-cijferige toegangscode</div></div>
       <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
@@ -676,12 +676,12 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <!-- MOBILE DETAIL VIEW -->
 <div id="cfg-mobile-detail" class="cfg-mobile-detail">
   <div class="cfg-mob-detail-header">
-    <button class="cfg-mob-back" onclick="cfgMobBack()">
+    <button type="button" class="cfg-mob-back" onclick="cfgMobBack()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       Instellingen
     </button>
     <div class="cfg-mob-detail-title" id="cfg-mob-detail-title"></div>
-    <button class="cfg-mob-detail-action" id="cfg-mob-detail-action" style="display:none" onclick="cfgMobDetailAction()"></button>
+    <button type="button" class="cfg-mob-detail-action" id="cfg-mob-detail-action" style="display:none" onclick="cfgMobDetailAction()"></button>
   </div>
   <div class="cfg-mob-detail-body" id="cfg-mob-detail-body"></div>
 </div>
@@ -695,27 +695,27 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   <nav class="cfg-rail">
     <div class="cfg-rail-title">Instellingen</div>
 
-    <button class="cfg-nav-item active" id="cfg-nav-medewerkers" onclick="cfgGoSection('medewerkers')">
+    <button type="button" class="cfg-nav-item active" id="cfg-nav-medewerkers" onclick="cfgGoSection('medewerkers')">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/></svg>
       Medewerkers
     </button>
-    <button class="cfg-nav-item" id="cfg-nav-rondes" onclick="cfgGoSection('rondes')">
+    <button type="button" class="cfg-nav-item" id="cfg-nav-rondes" onclick="cfgGoSection('rondes')">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
       Rondes
     </button>
-    <button class="cfg-nav-item" id="cfg-nav-dagdelen" onclick="cfgGoSection('dagdelen')">
+    <button type="button" class="cfg-nav-item" id="cfg-nav-dagdelen" onclick="cfgGoSection('dagdelen')">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       Dagdelen
     </button>
-    <button class="cfg-nav-item" id="cfg-nav-schema" onclick="cfgGoSection('schema')">
+    <button type="button" class="cfg-nav-item" id="cfg-nav-schema" onclick="cfgGoSection('schema')">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       Dagplanning
     </button>
-    <button class="cfg-nav-item" id="cfg-nav-gedrag" onclick="cfgGoSection('gedrag')">
+    <button type="button" class="cfg-nav-item" id="cfg-nav-gedrag" onclick="cfgGoSection('gedrag')">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
       Gedrag
     </button>
-    <button class="cfg-nav-item" id="cfg-nav-auditlog" onclick="cfgGoSection('auditlog')">
+    <button type="button" class="cfg-nav-item" id="cfg-nav-auditlog" onclick="cfgGoSection('auditlog')">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
       Audit log
     </button>
@@ -726,10 +726,10 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <span id="cfg-rail-lock-label">Ontgrendeld</span>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
-        <button class="cfg-rail-btn" onclick="manualLockCfg()">Vergrendelen</button>
-        <button class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
+        <button type="button" class="cfg-rail-btn" onclick="manualLockCfg()">Vergrendelen</button>
+        <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.83</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.92</span>
     </div>
   </nav>
 
@@ -740,11 +740,11 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <div class="cfg-section active" id="cfg-sec-medewerkers">
       <div class="cfg-sec-header">
         <div><div class="cfg-sec-title">Medewerkers</div><div class="cfg-sec-sub">Actieve beveiligers in het systeem</div></div>
-        <button class="cfg-action-btn" onclick="openMedewerkerModal(null)">+ Medewerker</button>
+        <button type="button" class="cfg-action-btn" onclick="openMedewerkerModal(null)">+ Medewerker</button>
       </div>
       <div id="medewerkers-list" style="margin-bottom:8px"></div>
       <div style="display:flex;align-items:center;justify-content:flex-end;margin-top:8px">
-        <button id="med-sort-btn" onclick="toggleMedewerkerSort()" style="background:none;border:none;cursor:pointer;font-size:11px;color:#94a3b8;padding:4px 2px;font-family:inherit" title="Sorteervolgorde wisselen">Sortering: naam ↕</button>
+        <button type="button" id="med-sort-btn" onclick="toggleMedewerkerSort()" style="background:none;border:none;cursor:pointer;font-size:11px;color:#94a3b8;padding:4px 2px;font-family:inherit" title="Sorteervolgorde wisselen">Sortering: naam ↕</button>
       </div>
     </div>
 
@@ -753,8 +753,8 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
       <div class="cfg-sec-header">
         <div><div class="cfg-sec-title">Rondes</div><div class="cfg-sec-sub">Vaste looproutes in het gebouw</div></div>
         <div style="display:flex;gap:6px">
-          <button class="cfg-action-btn cfg-action-btn-sec" style="font-size:11px;padding:5px 10px" onclick="openCatModal(null)">+ Categorie</button>
-          <button class="cfg-action-btn" onclick="openRondeModal(null)">+ Ronde</button>
+          <button type="button" class="cfg-action-btn cfg-action-btn-sec" style="font-size:11px;padding:5px 10px" onclick="openCatModal(null)">+ Categorie</button>
+          <button type="button" class="cfg-action-btn" onclick="openRondeModal(null)">+ Ronde</button>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 260px;gap:20px;align-items:start">
@@ -773,7 +773,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <div class="cfg-section" id="cfg-sec-dagdelen">
       <div class="cfg-sec-header">
         <div><div class="cfg-sec-title">Dagdelen</div><div class="cfg-sec-sub">Diensten: naam, tijdvak en kleur</div></div>
-        <button class="cfg-action-btn" onclick="openDagdeelModal(null)">+ Dagdeel</button>
+        <button type="button" class="cfg-action-btn" onclick="openDagdeelModal(null)">+ Dagdeel</button>
       </div>
       <div id="dagdelen-list" style="margin-bottom:12px"></div>
       <div style="font-size:10px;color:#94a3b8;padding:4px 0">Tip: een dagdeel mag middernacht overschrijden (bv. nacht 23:00 → 07:00). Tijdvakken mogen niet overlappen.</div>
@@ -783,7 +783,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <div class="cfg-section" id="cfg-sec-schema">
       <div class="cfg-sec-header">
         <div><div class="cfg-sec-title">Dagplanning</div><div class="cfg-sec-sub">Tijden en taken per dienst</div></div>
-        <button class="cfg-action-btn" onclick="openSchemaModal(null)">+ Item</button>
+        <button type="button" class="cfg-action-btn" onclick="openSchemaModal(null)">+ Item</button>
       </div>
       <div id="schema-list" style="margin-bottom:12px"></div>
     </div>
@@ -823,9 +823,9 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
       <div class="cfg-sec-header">
         <div><div class="cfg-sec-title">Audit log</div><div class="cfg-sec-sub">Systeem- en gebruikersacties (auto-wis na 7 dagen)</div></div>
         <div style="display:flex;gap:6px">
-          <button class="cfg-action-btn cfg-action-btn-sec" onclick="renderEventLog()">↻</button>
-          <button class="cfg-action-btn cfg-action-btn-sec" onclick="exportEventLog()">Export</button>
-          <button class="cfg-action-btn cfg-action-btn-sec" onclick="wisLog()">Wis log</button>
+          <button type="button" class="cfg-action-btn cfg-action-btn-sec" onclick="renderEventLog()">↻</button>
+          <button type="button" class="cfg-action-btn cfg-action-btn-sec" onclick="exportEventLog()">Export</button>
+          <button type="button" class="cfg-action-btn cfg-action-btn-sec" onclick="wisLog()">Wis log</button>
         </div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
@@ -855,7 +855,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 ════════════════════════════════════════════════════════════════════════ -->
 <div id="medewerker-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9000;align-items:center;justify-content:center;padding:16px" onmousedown="if(event.target===this)this._mdOnOverlay=true" onmouseup="if(event.target===this&&this._mdOnOverlay)cancelMedewerkerEdit();this._mdOnOverlay=false">
           <div style="background:#fff;border-radius:14px;padding:20px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.18);position:relative">
-            <button onclick="cancelMedewerkerEdit()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
+            <button type="button" onclick="cancelMedewerkerEdit()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
             <p id="medewerker-modal-title" style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 16px">Medewerker toevoegen</p>
             <div style="display:flex;flex-direction:column;gap:12px">
               <div style="display:flex;flex-direction:column;gap:4px">
@@ -868,8 +868,8 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
               </div>
             </div>
             <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end">
-              <button class="sm" onclick="cancelMedewerkerEdit()" style="background:#f1f5f9;color:#64748b">Annuleren</button>
-              <button class="sm" onclick="saveMedewerkerEdit()">
+              <button type="button" class="sm" onclick="cancelMedewerkerEdit()" style="background:#f1f5f9;color:#64748b">Annuleren</button>
+              <button type="button" class="sm" onclick="saveMedewerkerEdit()">
                 <svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" style="vertical-align:-2px;margin-right:4px"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan
               </button>
             </div>
@@ -877,7 +877,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         </div>
 <div id="ronde-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9000;align-items:center;justify-content:center;padding:16px" onmousedown="if(event.target===this)this._mdOnOverlay=true" onmouseup="if(event.target===this&&this._mdOnOverlay)cancelRondeEdit();this._mdOnOverlay=false">
           <div style="background:#fff;border-radius:14px;padding:20px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.18);position:relative">
-            <button onclick="cancelRondeEdit()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
+            <button type="button" onclick="cancelRondeEdit()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
             <p id="ronde-modal-title" style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 16px">Ronde toevoegen</p>
             <div style="display:flex;flex-direction:column;gap:12px">
               <div style="display:flex;flex-direction:column;gap:4px">
@@ -892,8 +892,8 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
               </div>
             </div>
             <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end">
-              <button class="sm" onclick="cancelRondeEdit()" style="background:#f1f5f9;color:#64748b">Annuleren</button>
-              <button class="sm" onclick="saveRondeEdit()">
+              <button type="button" class="sm" onclick="cancelRondeEdit()" style="background:#f1f5f9;color:#64748b">Annuleren</button>
+              <button type="button" class="sm" onclick="saveRondeEdit()">
                 <svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" style="vertical-align:-2px;margin-right:4px"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan
               </button>
             </div>
@@ -901,15 +901,15 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         </div>
 <div id="cat-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9000;align-items:center;justify-content:center;padding:16px" onmousedown="if(event.target===this)this._mdOnOverlay=true" onmouseup="if(event.target===this&&this._mdOnOverlay)cancelCatEdit();this._mdOnOverlay=false">
   <div style="background:#fff;border-radius:14px;padding:20px;width:100%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,.18);position:relative">
-    <button onclick="cancelCatEdit()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
+    <button type="button" onclick="cancelCatEdit()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
     <p id="cat-modal-title" style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 16px">Categorie toevoegen</p>
     <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:16px">
       <label style="font-size:11px;color:#64748b">Naam</label>
       <input type="text" id="inp-cat-naam" placeholder="bijv. Parkeren, Noodhulp…" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:100%;box-sizing:border-box" onkeydown="if(event.key==='Enter')saveCatEdit()">
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end">
-      <button class="sm" onclick="cancelCatEdit()" style="background:#f1f5f9;color:#64748b">Annuleren</button>
-      <button class="sm" onclick="saveCatEdit()">
+      <button type="button" class="sm" onclick="cancelCatEdit()" style="background:#f1f5f9;color:#64748b">Annuleren</button>
+      <button type="button" class="sm" onclick="saveCatEdit()">
         <svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" style="vertical-align:-2px;margin-right:4px"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan
       </button>
     </div>
@@ -917,7 +917,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 </div>
 <div id="dagdeel-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9000;align-items:center;justify-content:center;padding:16px" onmousedown="if(event.target===this)this._mdOnOverlay=true" onmouseup="if(event.target===this&&this._mdOnOverlay)cancelDagdeelEdit();this._mdOnOverlay=false">
           <div style="background:#fff;border-radius:14px;padding:20px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.18);position:relative">
-            <button onclick="cancelDagdeelEdit()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
+            <button type="button" onclick="cancelDagdeelEdit()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
             <p id="dagdeel-modal-title" style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 16px">Dagdeel wijzigen</p>
             <div style="display:flex;flex-direction:column;gap:12px">
               <div style="display:flex;flex-direction:column;gap:4px">
@@ -940,8 +940,8 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
               </div>
             </div>
             <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end">
-              <button class="sm" onclick="cancelDagdeelEdit()" style="background:#f1f5f9;color:#64748b">Annuleren</button>
-              <button class="sm" onclick="saveDagdeelEdit()">
+              <button type="button" class="sm" onclick="cancelDagdeelEdit()" style="background:#f1f5f9;color:#64748b">Annuleren</button>
+              <button type="button" class="sm" onclick="saveDagdeelEdit()">
                 <svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" style="vertical-align:-2px;margin-right:4px"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan
               </button>
             </div>
@@ -949,7 +949,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         </div>
 <div id="schema-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9000;align-items:center;justify-content:center;padding:16px" onmousedown="if(event.target===this)this._mdOnOverlay=true" onmouseup="if(event.target===this&&this._mdOnOverlay)closeSchemaModal();this._mdOnOverlay=false">
       <div style="background:#fff;border-radius:14px;padding:20px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.18);position:relative">
-        <button onclick="closeSchemaModal()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
+        <button type="button" onclick="closeSchemaModal()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;line-height:1">&times;</button>
         <p id="schema-modal-title" style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 16px">Schema-item toevoegen</p>
         <div style="display:flex;flex-direction:column;gap:12px">
           <div style="display:flex;gap:10px;flex-wrap:wrap">
@@ -972,8 +972,8 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
           </div>
         </div>
         <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end">
-          <button class="sm" onclick="closeSchemaModal()" style="background:#f1f5f9;color:#64748b">Annuleren</button>
-          <button id="schema-modal-save-btn" class="sm" onclick="saveSchemaModal()" disabled style="opacity:.4;cursor:not-allowed">
+          <button type="button" class="sm" onclick="closeSchemaModal()" style="background:#f1f5f9;color:#64748b">Annuleren</button>
+          <button type="button" id="schema-modal-save-btn" class="sm" onclick="saveSchemaModal()" disabled style="opacity:.4;cursor:not-allowed">
             <svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" style="vertical-align:-2px;margin-right:4px"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan
           </button>
         </div>
@@ -989,15 +989,16 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   <div class="modal-box" onclick="event.stopPropagation()">
     <div class="modal-msg" id="modal-msg"></div>
     <div class="modal-btns">
-      <button class="modal-btn modal-btn-nee" onclick="modalCancel()">Nee</button>
-      <button class="modal-btn modal-btn-ja"  onclick="modalConfirm()">Ja</button>
+      <button type="button" class="modal-btn modal-btn-nee" onclick="modalCancel()">Nee</button>
+      <button type="button" class="modal-btn modal-btn-ja"  onclick="modalConfirm()">Ja</button>
     </div>
   </div>
 </div>
-<div class="toast" id="toast"></div>
+</main>
+<div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.1.83';
+const APP_VERSION = '2.1.92';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1098,7 +1099,7 @@ function fbListenEventLog() {
       const eventLogEl = document.getElementById('event-log-list');
       if (pane && pane.classList.contains('on') && eventLogEl) renderEventLog();
     }
-  }, e => { console.warn('eventLog listener error:', e); logEvent('error', 'EventLog listener MISLUKT', { error: String(e) }); });
+  }, e => { logEvent('error', 'EventLog listener MISLUKT', { error: String(e) }); });
 }
 
 // ── Firebase sync ─────────────────────────────────────────────────────────
@@ -1119,14 +1120,14 @@ function fbSave() {
   const storedPin = LS.get('rn_cfg_pin');
   if (storedPin && storedPin.length === 64) updates['/dashboard/pin'] = storedPin;
   window.fbUpdate(window.fbRef(window.fbDb), updates)
-    .catch(e => { console.warn('Firebase settings write error:', e); logEvent('error', 'Instellingen opslaan MISLUKT', { error: String(e) }); setFbStatus('error'); });
+    .catch(e => { logEvent('error', 'Instellingen opslaan MISLUKT', { error: String(e) }); setFbStatus('error'); });
 }
 
 function fbSavePin(pin) {
   if (!window.fbDb) return;
   window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/pin': pin })
     .then(() => setFbStatus('ok'))
-    .catch(e => { console.warn('Firebase pin write error:', e); logEvent('error', 'PIN opslaan MISLUKT', { error: String(e) }); });
+    .catch(e => { logEvent('error', 'PIN opslaan MISLUKT', { error: String(e) }); });
 }
 
 // Writes active + log atomically to Firebase — this is the ONLY place these are saved
@@ -1147,7 +1148,7 @@ function fbSaveActive() {
   // Log wordt NIET meer als array overschreven — elke entry heeft eigen push-key
   window.fbUpdate(window.fbRef(window.fbDb), updates)
     .then(() => { setFbStatus('ok'); })
-    .catch(e => { console.warn('Firebase active write error:', e); setFbStatus('error'); logEvent('error', 'fbSaveActive MISLUKT', { error: String(e) }); voegMeldingToe('rood', 'Synchronisatie mislukt', 'Data kon niet worden opgeslagen. Controleer de verbinding.', null, null); });
+    .catch(e => { setFbStatus('error'); logEvent('error', 'fbSaveActive MISLUKT', { error: String(e) }); voegMeldingToe('rood', 'Synchronisatie mislukt', 'Data kon niet worden opgeslagen. Controleer de verbinding.', null, null); });
 }
 
 // Push één log-entry naar Firebase als eigen node (geen array-overschrijf)
@@ -1157,7 +1158,7 @@ function fbPushLogEntry(entry) {
   const ref = window.fbRef(window.fbDb, 'dashboard/log');
   return window.fbPush(ref, entry)
     .then(snap => { entry._fbKey = snap.key; })
-    .catch(e => { console.warn('Firebase log push error:', e); });
+    .catch(e => { logEvent('error', 'Log push MISLUKT', { error: String(e) }); });
 }
 
 // Verwijder één log-entry uit Firebase op basis van _fbKey
@@ -1204,7 +1205,7 @@ function showUpdateBanner() {
       <div style="font-size:32px;margin-bottom:12px">🔄</div>
       <div style="font-size:16px;font-weight:600;color:#1e293b;margin-bottom:8px">Nieuwe versie beschikbaar</div>
       <div style="font-size:13px;color:#64748b;margin-bottom:20px;line-height:1.5">De versie van de webapplicatie is gewijzigd. Vernieuw de pagina om door te gaan.</div>
-      <button onclick="location.reload(true)"
+      <button type="button" onclick="location.reload(true)"
         style="width:100%;padding:13px;border-radius:8px;border:none;background:#1d4ed8;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
         Pagina vernieuwen
       </button>
@@ -1498,7 +1499,7 @@ function fbListen() {
     if (document.getElementById('pane-dienst').classList.contains('on')) renderDienst();
     if (document.getElementById('pane-cfg').classList.contains('on'))    renderCfg();
     updBtn();
-  }, e => { console.warn('Firebase read error:', e); setFbStatus('error'); });
+  }, e => { logEvent('error', 'Firebase read MISLUKT', { error: String(e) }); setFbStatus('error'); });
 }
 
 
@@ -1554,6 +1555,10 @@ let S = {
   log:    [],   // always loaded from Firebase — never from localStorage
   sns: new Set(), sr: null, dienst: new Set(LS.get('rn_dienst') || []),
   tick: null, tickL: null, tickTL: null,
+  _dienstPendingTimers: {}, // clearTimeout refs per naam
+  _tlTimer: null,           // debounce ref for drawTimeline
+  _headerTimer: null,       // setTimeout ref for scheduleHeader
+  _headerInterval: null,    // setInterval ref for updateHeader
   // Gedrag-instellingen (beheersbaar via instellingen-tab)
   timeoutWarn:  LS.get('rn_timeout_warn')  ?? 4,   // uren: oranje melding bij lange ronde
   meldingTTL:   LS.get('rn_melding_ttl')   ?? 8,   // uren: hoe lang gedeelde meldingen zichtbaar
@@ -1584,12 +1589,14 @@ function markLogPending(id) {
 }
 function markDienstPending(name, op) {
   _pendingDienst.set(name, { op, ts: Date.now() });
-  // Auto-clear after TTL so a permanently stuck pending can't block forever
-  setTimeout(() => {
+  // Cancel any previous auto-clear for this name to prevent stacking
+  if (S._dienstPendingTimers[name]) clearTimeout(S._dienstPendingTimers[name]);
+  S._dienstPendingTimers[name] = setTimeout(() => {
     const cur = _pendingDienst.get(name);
     if (cur && cur.op === op && Date.now() - cur.ts >= PENDING_DIENST_TTL - 50) {
       _pendingDienst.delete(name);
     }
+    delete S._dienstPendingTimers[name];
   }, PENDING_DIENST_TTL);
 }
 // Auto-cleanup very old pending markers (safety net) — 60s window for slow networks
@@ -1646,7 +1653,7 @@ function goTab(id) {
   document.querySelectorAll('.pane').forEach(p => p.classList.remove('on'));
   document.getElementById('pane-' + id).classList.add('on');
   if (id === 'reg')   renderAllActive();
-  if (id === 'live')  { renderLive(); setTimeout(() => drawTimeline(
+  if (id === 'live')  { renderLive(); clearTimeout(S._tlTimer); S._tlTimer = setTimeout(() => drawTimeline(
     logInWindow(Date.now()-86400000),
     Object.entries(S.active), Date.now()-86400000, Date.now()), 50); }
   if (id === 'plan')  renderPlan();
@@ -1654,6 +1661,11 @@ function goTab(id) {
   if (id === 'cfg') {
     if (isMobile()) { cfgShowMobile(); checkCfgLock(); } else { cfgGoSection(_cfgActiveSection || 'medewerkers'); checkCfgLock(); }
   }
+  // Sync tab aria-selected
+  document.querySelectorAll('.tab[role="tab"]').forEach(btn => {
+    const controls = btn.getAttribute('aria-controls');
+    btn.setAttribute('aria-selected', controls === 'pane-' + id ? 'true' : 'false');
+  });
   // Sync mobile bottom tabbar
   ['reg','live','plan','dienst','cfg'].forEach(function(t) {
     var btn = document.getElementById('mob-tab-' + t);
@@ -1737,7 +1749,7 @@ function toggleTimeline() {
   icon.textContent = isOpen ? '▲' : '▼';
   const lbl = document.getElementById('tl-toggle-label');
   if (lbl) lbl.textContent = isOpen ? 'Verberg tijdlijn' : 'Toon tijdlijn';
-  if (isOpen) setTimeout(() => drawTimeline(logInWindow(Date.now()-86400000), Object.entries(S.active), Date.now()-86400000, Date.now()), 50);
+  if (isOpen) { clearTimeout(S._tlTimer); S._tlTimer = setTimeout(() => drawTimeline(logInWindow(Date.now()-86400000), Object.entries(S.active), Date.now()-86400000, Date.now()), 50); }
 }
 
 function updBtn() {
@@ -1811,7 +1823,7 @@ function doStart() {
         }
       })
       .catch(e => {
-        console.warn('Firebase start write error:', e);
+        
         // Rollback: clear pending markers AND remove optimistically added active entries
         started.forEach(s => {
           const fullName = (S.medewerkers.find(m => m.naam.split(' ')[0] === s) || {naam: s}).naam;
@@ -1908,7 +1920,7 @@ async function doRetour(name) {
         schrijfGedeeldeMelding('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.');
       })
       .catch(e => {
-        console.warn('Firebase retour write error:', e);
+        
         clearActivePending(n);
         _pendingLog.delete(logEntry.id);
         S.active[n] = a;
@@ -1968,7 +1980,7 @@ function groupCardHTML(route, start, members, btn) {
   const names = members.map(([n]) => n);
   const namesEncoded = names.map(n => n.replace(/"/g,'&quot;'));
   const bothBtn = btn && names.length > 1
-    ? `<button class="rbtn" onclick="doRetourAllen([${namesEncoded.map(n=>`'${n.replace(/'/g,"\\'")}'`).join(',')}])"
+    ? `<button type="button" class="rbtn" onclick="doRetourAllen([${namesEncoded.map(n=>`'${n.replace(/'/g,"\\'")}'`).join(',')}])"
         style="margin-top:8px;width:100%;font-weight:600">
         &#10003; Alle ${names.length} retour
        </button>`
@@ -1980,7 +1992,7 @@ function groupCardHTML(route, start, members, btn) {
     <div class="ct" style="margin-bottom:2px">Gestart om ${fmtT(start)}</div>
     <div class="ct">Duur &nbsp;<span class="cel">${elaps(start)}</span></div>
     ${btn ? bothBtn + `<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">` + names.map(n =>
-      `<button class="rbtn" data-name="${n.replace(/"/g,'&quot;')}" onclick="doRetourBtn(this)" style="flex:1;min-width:0">&#10003; ${n.split(' ')[0]} retour</button>`
+      `<button type="button" class="rbtn" data-name="${n.replace(/"/g,'&quot;')}" onclick="doRetourBtn(this)" style="flex:1;min-width:0">&#10003; ${n.split(' ')[0]} retour</button>`
     ).join('') + `</div>` : ''}
   </div>`;
 }
@@ -2435,6 +2447,10 @@ function drawTimeline(recent, active, cutoff, now) {
     TL_HITS.push({ x1, x2, by, bh, route, name: members.map(([n]) => n).join(', '), start: minStart, end: null, isActive: true });
   });
 
+  // Sort hits so shortest bars (smallest x2-x1) take priority in hit-test.
+  // This makes a short bar overlapping a longer one still hoverable.
+  TL_HITS.sort((a, b) => (a.x2 - a.x1) - (b.x2 - b.x1));
+
   const tip  = document.getElementById('tl-tooltip');
   const wrap = document.getElementById('timeline-wrap');
   if (tip && wrap) {
@@ -2458,9 +2474,9 @@ function drawTimeline(recent, active, cutoff, now) {
       tip.innerHTML =
         '<div style="font-weight:700;font-size:13px;margin-bottom:5px;border-bottom:1px solid #334155;padding-bottom:4px">' + h.route + '</div>' +
         '<div style="margin-bottom:2px">👤 ' + h.name + '</div>' +
-        '<div>🕐 Start: <b>' + fmtMs(h.start) + '</b></div>' +
-        (h.end ? '<div>🕑 Eind: <b>' + fmtMs(h.end) + '</b></div>' : '<div style="color:#fca5a5">● Nog onderweg</div>') +
-        '<div>⏱ Duur: <b>' + dur + '</b></div>';
+        '<div>🕐 Start: <strong>' + fmtMs(h.start) + '</strong></div>' +
+        (h.end ? '<div>🕑 Eind: <strong>' + fmtMs(h.end) + '</strong></div>' : '<div style="color:#fca5a5">● Nog onderweg</div>') +
+        '<div>⏱ Duur: <strong>' + dur + '</strong></div>';
       tip.style.display = 'block';
       // Keep tooltip inside viewport
       const vw = window.innerWidth, vh = window.innerHeight;
@@ -3096,7 +3112,7 @@ function renderPlan() {
             <span style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#64748b">Voorgesteld aan</span>
             <div style="font-size:14px;font-weight:600;color:#1e293b;margin-top:2px">${suggested}</div>
           </div>
-          <button onclick='startRondeVoorgesteld(${JSON.stringify(s.ronde)}, ${JSON.stringify(suggested)})'
+          <button type="button" onclick='startRondeVoorgesteld(${JSON.stringify(s.ronde)}, ${JSON.stringify(suggested)})'
             style="padding:9px 16px;border-radius:8px;border:none;background:#1d4ed8;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;min-height:44px;transition:opacity .13s"
             onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
             ▶ Ronde starten
@@ -3208,8 +3224,8 @@ function renderCfg() {
             ${rol ? `<div style="font-size:10px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${rol}</div>` : ''}
           </div>
           ${isOnDienst ? '<span style="font-size:11px;font-weight:600;color:#15803d;background:#dcfce7;border-radius:4px;padding:2px 7px;flex-shrink:0;white-space:nowrap">op dienst</span>' : ''}
-          <button onclick="editMedewerker(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:12px;padding:0 3px;flex-shrink:0;line-height:1" title="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#94a3b8'">✎</button>
-          <button onclick="rmName(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:13px;padding:0 3px;flex-shrink:0;line-height:1" title="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">✕</button>
+          <button type="button" onclick="editMedewerker(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:12px;padding:0 3px;flex-shrink:0;line-height:1" title="Wijzigen" aria-label="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#94a3b8'">✎</button>
+          <button type="button" onclick="rmName(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:13px;padding:0 3px;flex-shrink:0;line-height:1" title="Verwijderen" aria-label="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">✕</button>
         </div>`;
       });
       ml.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">${rows.join('')}</div>`;
@@ -3220,14 +3236,6 @@ function renderCfg() {
     if (!S.routes.length) {
       rl.innerHTML = '<div style="font-size:13px;color:#94a3b8;padding:8px 0">Geen rondes.</div>';
     } else {
-      const CAT_COLORS = {
-        'Binnen': '#dbeafe', 'Buiten': '#dcfce7', 'Sluit & afdeling': '#fef9c3',
-        'Alarm & assistentie': '#fee2e2', 'Overig': '#f1f5f9'
-      };
-      const CAT_TEXT = {
-        'Binnen': '#1d4ed8', 'Buiten': '#15803d', 'Sluit & afdeling': '#92400e',
-        'Alarm & assistentie': '#991b1b', 'Overig': '#475569'
-      };
       // Group by category; preserve index into S.routes for edit/delete
       const grouped = {}; // cat -> [{naam, idx}]
       const ungrouped = [];
@@ -3248,30 +3256,31 @@ function renderCfg() {
         else ungrouped.push({ naam: r.naam, idx: i });
       });
       const renderRow = (naam, i) =>
-        `<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;border:0.5px solid #e2e8f0;background:#f8fafc;margin-bottom:4px;min-width:0">
-          <span style="font-weight:600;color:#1e293b;font-size:12px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${naam}">${naam}</span>
-          <button onclick="editRonde(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:12px;padding:0 3px;flex-shrink:0;line-height:1" title="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#94a3b8'">✎</button>
-          <button onclick="rmRoute(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:13px;padding:0 3px;flex-shrink:0;line-height:1" title="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">✕</button>
+        `<div style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:0.5px solid rgba(148,163,184,.15);font-size:12px">
+          <span style="font-weight:500;color:#1e293b;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${naam}</span>
+          <button type="button" onclick="editRonde(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen" aria-label="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#94a3b8'">✎</button>
+          <button type="button" onclick="rmRoute(${i})" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:14px;padding:0 4px;flex-shrink:0" title="Verwijderen" aria-label="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#cbd5e1'">✕</button>
         </div>`;
       let html = '';
+      const renderCard = (cat, rows, headerExtra) => {
+        const count = rows.length;
+        return `<div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:#f8fafc;border-bottom:1px solid #e2e8f0">
+            <span style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#475569">${cat}</span>
+            <span style="font-size:11px;color:#94a3b8">${count} ronde${count !== 1 ? 's' : ''}</span>
+          </div>
+          ${rows.map(({ naam, idx }) => renderRow(naam, idx)).join('')}
+        </div>`;
+      };
       ROUTE_CATEGORIEEN.forEach(cat => {
         if (!grouped[cat] || !grouped[cat].length) return;
-        const bg = CAT_COLORS[cat] || '#f1f5f9';
-        const tc = CAT_TEXT[cat] || '#475569';
-        html += `<div style="margin-bottom:10px">
-          <div style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:${tc};background:${bg};padding:3px 8px;border-radius:5px;margin-bottom:5px;display:inline-block">${cat}</div>
-          ${grouped[cat].map(({ naam, idx }) => renderRow(naam, idx)).join('')}
-        </div>`;
+        html += renderCard(cat, grouped[cat]);
       });
       Object.keys(grouped).filter(c => !ROUTE_CATEGORIEEN.includes(c)).forEach(cat => {
-        html += `<div style="margin-bottom:10px">
-          <div style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#475569;background:#f1f5f9;padding:3px 8px;border-radius:5px;margin-bottom:5px;display:inline-block">${cat}</div>
-          ${grouped[cat].map(({ naam, idx }) => renderRow(naam, idx)).join('')}
-        </div>`;
+        html += renderCard(cat, grouped[cat]);
       });
       if (ungrouped.length) {
-        if (Object.keys(grouped).length) html += `<div style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8;padding:3px 0;margin-bottom:5px">Geen categorie</div>`;
-        html += ungrouped.map(({ naam, idx }) => renderRow(naam, idx)).join('');
+        html += renderCard('Geen categorie', ungrouped);
       }
       rl.innerHTML = html;
     }
@@ -3362,8 +3371,8 @@ function renderCfg() {
           ${item.ronde ? `<span style="background:#fff;color:#1d4ed8;border:1px solid #dbeafe;border-radius:20px;padding:1px 7px;font-size:11px;flex-shrink:0">${item.ronde}</span>` : ''}
           <span style="color:#475569;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.taak}</span>
           ${dagenBadge}
-          <button onclick="openSchemaModal(${origIdx})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#94a3b8'">✎</button>
-          <button onclick="rmSchemaItem(${origIdx})" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:14px;padding:0 4px;flex-shrink:0" title="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#cbd5e1'">✕</button>
+          <button type="button" onclick="openSchemaModal(${origIdx})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen" aria-label="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#94a3b8'">✎</button>
+          <button type="button" onclick="rmSchemaItem(${origIdx})" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:14px;padding:0 4px;flex-shrink:0" title="Verwijderen" aria-label="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#cbd5e1'">✕</button>
         </div>`;
       };
 
@@ -3413,8 +3422,8 @@ function renderCfg() {
           <span style="font-weight:700;color:${tx};text-transform:uppercase;letter-spacing:.05em;font-size:11px;min-width:60px">${d.naam || '—'}</span>
           <span style="color:${tx};font-family:monospace;font-size:12px;opacity:.85">${d.start} – ${d.eind}</span>
           <span style="flex:1"></span>
-          <button onclick="editDagdeel(${origIdx})" style="background:none;border:none;cursor:pointer;color:${tx};opacity:.7;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen">✎</button>
-          <button onclick="rmDagdeel(${origIdx})" style="background:none;border:none;cursor:pointer;color:${tx};opacity:.7;font-size:14px;padding:0 4px;flex-shrink:0" title="Verwijderen">✕</button>
+          <button type="button" onclick="editDagdeel(${origIdx})" style="background:none;border:none;cursor:pointer;color:${tx};opacity:.7;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen" aria-label="Wijzigen">✎</button>
+          <button type="button" onclick="rmDagdeel(${origIdx})" style="background:none;border:none;cursor:pointer;color:${tx};opacity:.7;font-size:14px;padding:0 4px;flex-shrink:0" title="Verwijderen" aria-label="Verwijderen">✕</button>
         </div>`;
       }).join('');
     }
@@ -3543,7 +3552,7 @@ function closeSchemaModal() {
 
 function saveSchemaModal() {
   const tijdVal  = document.getElementById('inp-schema-modal-tijd').value;
-  const taakVal  = sanitizeInput(document.getElementById('inp-schema-modal-taak').value || '').trim();
+  const taakVal  = sanitizeForStorage(document.getElementById('inp-schema-modal-taak').value || '');
   const rondeVal = document.getElementById('inp-schema-modal-ronde').value;
   if (!tijdVal || !taakVal) { showToast('Vul minimaal een tijd en taakomschrijving in'); return; }
 
@@ -3602,7 +3611,7 @@ function openDagdeelModal(idx) {
 function editDagdeel(i) { openDagdeelModal(i); }
 
 function saveDagdeelEdit() {
-  const naam  = sanitizeInput(document.getElementById('inp-dagdeel-edit-naam').value || '').trim().slice(0, 24);
+  const naam  = sanitizeForStorage(document.getElementById('inp-dagdeel-edit-naam').value || '').slice(0, 24);
   const start = document.getElementById('inp-dagdeel-edit-start').value;
   const eind  = document.getElementById('inp-dagdeel-edit-eind').value;
   const kleur = document.getElementById('inp-dagdeel-edit-kleur').value || '#fef9c3';
@@ -3718,8 +3727,8 @@ function toggleMedewerkerSort() {
 }
 
 function saveMedewerkerEdit() {
-  const naam = sanitizeInput(document.getElementById('inp-medewerker-edit-naam').value || '').trim().slice(0, 60);
-  const rol  = sanitizeInput(document.getElementById('inp-medewerker-edit-rol').value  || '').trim().slice(0, 40);
+  const naam = sanitizeForStorage(document.getElementById('inp-medewerker-edit-naam').value || '').slice(0, 60);
+  const rol  = sanitizeForStorage(document.getElementById('inp-medewerker-edit-rol').value  || '').slice(0, 40);
   if (!naam) { showToast('Vul een naam in'); return; }
   const isEdit = _medewerkerEditIdx !== null;
   if (!S.medewerkers) S.medewerkers = [];
@@ -3819,7 +3828,7 @@ function cfgMobGoSection(id) {
     if (id === 'gedrag') _rewireGedragInputs(body);
     if (id === 'auditlog') _rewireAuditlog(body);
   }
-  document.getElementById('cfg-mobile-master').style.display = 'none';
+  document.getElementById('cfg-mobile-master').classList.add('hidden');
   document.getElementById('cfg-mobile-detail').classList.add('open');
 }
 
@@ -3830,7 +3839,7 @@ function cfgMobDetailAction() {
 
 function cfgMobBack() {
   document.getElementById('cfg-mobile-detail').classList.remove('open');
-  document.getElementById('cfg-mobile-master').style.display = 'block';
+  document.getElementById('cfg-mobile-master').classList.remove('hidden');
 }
 
 function _rewireGedragInputs(container) {
@@ -3850,7 +3859,7 @@ function _rewireAuditlog(container) {
 }
 
 function cfgShowMobile() {
-  document.getElementById('cfg-mobile-master').style.display = 'block';
+  document.getElementById('cfg-mobile-master').classList.remove('hidden');
   document.getElementById('cfg-mobile-detail').classList.remove('open');
   var unlocked = LS.get('rn_cfg_unlocked');
   var isUnlocked = unlocked && (Date.now() - Number(unlocked)) < S.pinCacheDur * 60000;
@@ -4076,7 +4085,7 @@ async function pinKeypadNext() {
     LS.set(CFG_PIN_KEY, hash);
     if (window.fbDb) {
       await window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/pin': hash })
-        .catch(e => console.warn('Firebase pin error:', e));
+        .catch(e => logEvent('error', 'PIN Firebase write MISLUKT', { error: String(e) }));
     }
     logEvent('pin', _pinMode === 'setup' ? 'Pincode aangemaakt' : 'Pincode gewijzigd');
     pinKeypadClose();
@@ -4175,6 +4184,16 @@ function sanitizeInput(str) {
     .trim();
 }
 
+// For storing user input in state/Firebase — strips dangerous chars but keeps & as-is
+function sanitizeForStorage(str) {
+  return str
+    .replace(/</g, '')
+    .replace(/>/g, '')
+    .replace(/"/g, '')
+    .replace(/`/g, '')
+    .trim();
+}
+
 function addName() {
   // Legacy: delegate to modal
   openMedewerkerModal(null);
@@ -4221,17 +4240,13 @@ function renderRouteCatsList() {
   if (!el) return;
   const cats = S.routeCats || [];
   if (!cats.length) { el.innerHTML = '<div style="font-size:12px;color:#94a3b8;padding:4px 0">Geen categorieën.</div>'; return; }
-  const CAT_COLORS = {'Binnen':'#dbeafe','Buiten':'#dcfce7','Sluit & afdeling':'#fef9c3','Alarm & assistentie':'#fee2e2','Overig':'#f1f5f9'};
-  const CAT_TEXT   = {'Binnen':'#1d4ed8','Buiten':'#15803d','Sluit & afdeling':'#92400e','Alarm & assistentie':'#991b1b','Overig':'#475569'};
   el.innerHTML = cats.map((cat, i) => {
-    const bg = CAT_COLORS[cat] || '#f1f5f9';
-    const tc = CAT_TEXT[cat]   || '#475569';
     const count = (S.routes || []).filter(r => r.categorie === cat).length;
-    return `<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px;border:0.5px solid #e2e8f0;background:#fafafa;margin-bottom:4px">
-      <span style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:${tc};background:${bg};padding:2px 7px;border-radius:4px;white-space:nowrap">${cat}</span>
-      <span style="font-size:11px;color:#94a3b8;flex:1">${count} ronde${count !== 1 ? 's' : ''}</span>
-      <button onclick="openCatModal(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:12px;padding:0 3px;line-height:1" title="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#94a3b8'">✎</button>
-      <button onclick="rmCat(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:13px;padding:0 3px;line-height:1" title="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">✕</button>
+    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;margin-bottom:6px;background:#f8fafc;border:1px solid #e2e8f0;font-size:12px">
+      <span style="font-weight:700;color:#1e293b;text-transform:uppercase;letter-spacing:.05em;font-size:11px;flex:1">${cat}</span>
+      <span style="color:#94a3b8;font-size:11px;flex-shrink:0">${count} ronde${count !== 1 ? 's' : ''}</span>
+      <button type="button" onclick="openCatModal(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen" aria-label="Wijzigen">✎</button>
+      <button type="button" onclick="rmCat(${i})" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:14px;padding:0 4px;flex-shrink:0" title="Verwijderen" aria-label="Verwijderen">✕</button>
     </div>`;
   }).join('');
 }
@@ -4251,7 +4266,7 @@ function cancelCatEdit() {
 }
 
 function saveCatEdit() {
-  const naam = sanitizeInput(document.getElementById('inp-cat-naam').value || '').trim().slice(0, 50);
+  const naam = sanitizeForStorage(document.getElementById('inp-cat-naam').value || '').slice(0, 50);
   if (!naam) { showToast('Vul een naam in'); return; }
   const isEdit = _catEditIdx !== null;
   const isDup = S.routeCats.some((c, i) => c.toLowerCase() === naam.toLowerCase() && (!isEdit || i !== _catEditIdx));
@@ -4308,7 +4323,7 @@ function openRondeModal(idx) {
 function editRonde(i) { openRondeModal(i); }
 
 function saveRondeEdit() {
-  const naam = sanitizeInput(document.getElementById('inp-ronde-edit-naam').value || '').trim().slice(0, 60);
+  const naam = sanitizeForStorage(document.getElementById('inp-ronde-edit-naam').value || '').slice(0, 60);
   if (!naam) { showToast('Vul een naam in'); return; }
   const cat = document.getElementById('inp-ronde-edit-cat').value || '';
   const isEdit = _rondeEditIdx !== null;
@@ -4650,7 +4665,7 @@ function renderMeldingen() {
       <div class="meld-tekst">
         <div class="meld-naam">${m.naam}</div>
         <div class="meld-sub">${m.sub}</div>
-        ${m.actieLabel ? `<button class="meld-actie ${m.type}" onclick="meldActie(${m.id})">${m.actieLabel} →</button>` : ''}
+        ${m.actieLabel ? `<button type="button" class="meld-actie ${m.type}" onclick="meldActie(${m.id})">${m.actieLabel} →</button>` : ''}
         <div class="meld-tijd">${m.tijdStr}</div>
       </div>
     </div>`).join('');
@@ -4716,7 +4731,12 @@ updateHeader();
 // Sync op de minuutwissel, daarna elke 60s exact
 (function scheduleHeader() {
   const msToNextMinute = (60 - new Date().getSeconds()) * 1000;
-  setTimeout(() => { updateHeader(); setInterval(updateHeader, 60000); }, msToNextMinute);
+  clearTimeout(S._headerTimer);
+  clearInterval(S._headerInterval);
+  S._headerTimer = setTimeout(() => {
+    updateHeader();
+    S._headerInterval = setInterval(updateHeader, 60000);
+  }, msToNextMinute);
 })();
 
 render();
@@ -4753,7 +4773,7 @@ function initFirebase() {
   // Schrijf altijd eigen versie naar Firebase — ook bij rollback.
   // Andere sessies detecteren elke versieverschil en reloaden.
   window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/appVersion': APP_VERSION })
-    .catch(e => console.warn('Version write error:', e));
+    .catch(e => logEvent('error', 'Versie write MISLUKT', { error: String(e) }));
 }
 
 // Track already-shown shared notification IDs to avoid duplicates
@@ -4812,7 +4832,7 @@ function fbListenMeldingen() {
         renderMeldingen();
       }
     });
-  }, e => { console.warn('Firebase meldingen listener error:', e); logEvent('error', 'Meldingen listener MISLUKT', { error: String(e) }); });
+  }, e => { logEvent('error', 'Meldingen listener MISLUKT', { error: String(e) }); });
 }
 
 function fbListenConnected() {
@@ -4844,7 +4864,7 @@ function schrijfGedeeldeMelding(type, naam, sub) {
   const nu = new Date();
   const tijdStr = String(nu.getHours()).padStart(2,'0') + ':' + String(nu.getMinutes()).padStart(2,'0');
   const ref = window.fbPush(window.fbRef(window.fbDb, 'dashboard/meldingen'));
-  window.fbSet(ref, { type, naam, sub, tijdStr, ts: Date.now() }).catch(e => console.warn('Melding schrijf fout:', e));
+  window.fbSet(ref, { type, naam, sub, tijdStr, ts: Date.now() }).catch(e => logEvent('error', 'Melding schrijven MISLUKT', { error: String(e) })); // rijf fout:', e));
 }
 
 // Clear any stale active/log from localStorage on startup
