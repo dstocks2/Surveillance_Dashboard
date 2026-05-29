@@ -729,7 +729,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="manualLockCfg()">Vergrendelen</button>
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.98</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.99</span>
     </div>
   </nav>
 
@@ -1008,7 +1008,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.1.98';
+const APP_VERSION = '2.1.99';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1445,7 +1445,8 @@ function fbListen() {
       }
     }
     if (d.routeCats !== undefined && Array.isArray(d.routeCats) && d.routeCats.length) {
-      const fbCats = d.routeCats.map(c => sanitizeFromFirebase(String(c))).filter(Boolean);
+      const decodeEntities = s => s.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"');
+      const fbCats = d.routeCats.map(c => decodeEntities(sanitizeFromFirebase(String(c)))).filter(Boolean);
       if (JSON.stringify(fbCats) !== JSON.stringify(S.routeCats || [])) {
         S.routeCats = fbCats;
         LS.set('rn_route_cats', S.routeCats);
@@ -1562,7 +1563,7 @@ if (LS.get('rn_version') !== VERSION) {
 let S = {
   medewerkers: LS.get('rn_medewerkers') || DN.map(n => ({ naam: n, rol: '' })),
   routes: sanitizeRoutes(LS.get('rn_routes') || DR),
-  routeCats: LS.get('rn_route_cats') || ROUTE_CATEGORIEEN_DEFAULT.slice(),
+  routeCats: (LS.get('rn_route_cats') || ROUTE_CATEGORIEEN_DEFAULT.slice()).map(c => c.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>')),
   schema: LS.get('rn_schema') || null, // null = use hardcoded SCHEMA default
   dagdelen: LS.get('rn_dagdelen') || null, // null = use DAGDELEN_DEFAULT
   active: {},   // always loaded from Firebase — never from localStorage
