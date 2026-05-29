@@ -729,7 +729,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="manualLockCfg()">Vergrendelen</button>
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.93</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.94</span>
     </div>
   </nav>
 
@@ -825,7 +825,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <div style="display:flex;gap:6px">
           <button type="button" class="cfg-action-btn cfg-action-btn-sec" onclick="renderEventLog()">↻</button>
           <button type="button" class="cfg-action-btn cfg-action-btn-sec" onclick="exportEventLog()">Export</button>
-          <button type="button" class="cfg-action-btn cfg-action-btn-sec" onclick="wisLog()">Wis log</button>
+          <button type="button" class="cfg-action-btn cfg-action-btn-sec" onclick="wisEventLog()">Wis log</button>
         </div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
@@ -998,7 +998,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.1.93';
+const APP_VERSION = '2.1.94';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -2608,6 +2608,19 @@ async function wisLog() {
   renderAllActive();
   logEvent('system', 'Log handmatig gewist (' + wipedLog + ' entries, ' + wipedActive.length + ' actieve)', { entries: wipedLog, active: wipedActive });
   showToast('Log gewist');
+}
+
+async function wisEventLog() {
+  if (!await customConfirm('Weet je zeker dat je de volledige audit log wilt wissen?')) return;
+  const count = EVENT_LOG.length;
+  EVENT_LOG.length = 0;
+  if (window.fbDb && window.fbRemove) {
+    window.fbRemove(window.fbRef(window.fbDb, 'dashboard/eventLog'))
+      .then(() => logEvent('system', 'Audit log handmatig gewist (' + count + ' entries)'))
+      .catch(e => logEvent('error', 'Audit log wissen MISLUKT', { error: String(e) }));
+  }
+  renderEventLog();
+  showToast('Audit log gewist');
 }
 
 
