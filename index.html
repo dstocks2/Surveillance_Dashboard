@@ -729,7 +729,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="manualLockCfg()">Vergrendelen</button>
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.95</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.1.98</span>
     </div>
   </nav>
 
@@ -814,6 +814,17 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
             <input type="number" id="inp-pin-cache" min="5" max="480" step="5" style="width:68px;padding:5px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;text-align:center;font-family:inherit" oninput="saveGedrag()">
             <span style="font-size:12px;color:#64748b">min</span>
           </div>
+        </div>
+        <div class="cfg-gedrag-row">
+          <div><div class="cfg-gedrag-label">Ronde-log bewaar-duur</div><div class="cfg-gedrag-sub">Hoe lang gelopen rondes bewaard blijven (auto-opruiming elke 30 min). Minimaal 25 uur wordt altijd bewaard voor de 24u-tijdlijn.</div></div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            <input type="number" id="inp-log-retention" min="1" max="30" step="1" style="width:60px;padding:5px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;text-align:center;font-family:inherit" oninput="saveGedrag()">
+            <span style="font-size:12px;color:#64748b">dagen</span>
+          </div>
+        </div>
+        <div class="cfg-gedrag-row" style="border-bottom:none">
+          <div><div class="cfg-gedrag-label">Ronde-log wissen</div><div class="cfg-gedrag-sub">Verwijdert alle gelopen rondes en actieve rondes direct uit Firebase</div></div>
+          <button type="button" onclick="wisLog()" style="flex-shrink:0;padding:6px 14px;border:1.5px solid #ef4444;border-radius:6px;background:#fff;color:#ef4444;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .12s" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">Wis ronde-log</button>
         </div>
       </div>
     </div>
@@ -997,7 +1008,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.1.95';
+const APP_VERSION = '2.1.98';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1114,7 +1125,7 @@ function fbSave() {
   updates['/dashboard/routeCats'] = S.routeCats || ROUTE_CATEGORIEEN_DEFAULT;
   if (S.schema) updates['/dashboard/schema'] = S.schema;
   if (S.dagdelen) updates['/dashboard/dagdelen'] = S.dagdelen;
-  updates['/dashboard/gedrag'] = { timeoutWarn: S.timeoutWarn, meldingTTL: S.meldingTTL, pinCacheDur: S.pinCacheDur };
+  updates['/dashboard/gedrag'] = { timeoutWarn: S.timeoutWarn, meldingTTL: S.meldingTTL, pinCacheDur: S.pinCacheDur, logRetention: S.logRetention };
   // PIN: alleen schrijven als er een geldige hash in localStorage staat
   const storedPin = LS.get('rn_cfg_pin');
   if (storedPin && storedPin.length === 64) updates['/dashboard/pin'] = storedPin;
@@ -1478,6 +1489,9 @@ function fbListen() {
       if (typeof g.pinCacheDur === 'number' && g.pinCacheDur >= 5 && g.pinCacheDur <= 480 && g.pinCacheDur !== S.pinCacheDur) {
         S.pinCacheDur = g.pinCacheDur; LS.set('rn_pin_cache_dur', g.pinCacheDur);
       }
+      if (typeof g.logRetention === 'number' && g.logRetention >= 1 && g.logRetention <= 30 && g.logRetention !== S.logRetention) {
+        S.logRetention = g.logRetention; LS.set('rn_log_retention', g.logRetention);
+      }
     }
 
     // Only back up settings to localStorage (not active/log)
@@ -1560,9 +1574,10 @@ let S = {
   _headerTimer: null,       // setTimeout ref for scheduleHeader
   _headerInterval: null,    // setInterval ref for updateHeader
   // Gedrag-instellingen (beheersbaar via instellingen-tab)
-  timeoutWarn:  LS.get('rn_timeout_warn')  ?? 4,   // uren: oranje melding bij lange ronde
-  meldingTTL:   LS.get('rn_melding_ttl')   ?? 8,   // uren: hoe lang gedeelde meldingen zichtbaar
-  pinCacheDur:  LS.get('rn_pin_cache_dur') ?? 30,  // minuten: hoe lang instellingen ontgrendeld blijven
+  timeoutWarn:  LS.get('rn_timeout_warn')  ?? 4,
+  meldingTTL:   LS.get('rn_melding_ttl')   ?? 8,
+  pinCacheDur:  LS.get('rn_pin_cache_dur') ?? 30,
+  logRetention: LS.get('rn_log_retention') ?? 2,   // dagen: hoe lang ronde-log bewaard blijft
 };
 
 // Dynamic — always reflects S.routeCats
@@ -2519,7 +2534,9 @@ function roundRect(ctx, x, y, w, h, r) {
 function pruneLog() {
   const before = S.log.length;
   const beforeIds = new Set(S.log.map(r => r.id));
-  const cutoff = Date.now() - 48 * 60 * 60 * 1000;
+  // Always keep at least 25h regardless of logRetention — timeline needs full 24h buffer
+  const retentionMs = Math.max((S.logRetention ?? 2) * 24 * 60 * 60 * 1000, 25 * 60 * 60 * 1000);
+  const cutoff = Date.now() - retentionMs;
   const sorted = S.log.filter(r => r.end && r.start)
                       .sort((a, b) => (b.end || 0) - (a.end || 0));
   S.log = sorted.filter((r, i) => i < 300 && r.end >= cutoff);
@@ -3207,9 +3224,11 @@ function renderCfg() {
   const inpTW = document.getElementById('inp-timeout-warn');
   const inpMT = document.getElementById('inp-melding-ttl');
   const inpPC = document.getElementById('inp-pin-cache');
+  const inpLR = document.getElementById('inp-log-retention');
   if (inpTW && document.activeElement !== inpTW) inpTW.value = S.timeoutWarn;
   if (inpMT && document.activeElement !== inpMT) inpMT.value = S.meldingTTL;
   if (inpPC && document.activeElement !== inpPC) inpPC.value = S.pinCacheDur;
+  if (inpLR && document.activeElement !== inpLR) inpLR.value = S.logRetention;
 
   // Render medewerkers list — sorted alphabetically, styled like dagdelen
   const ml = document.getElementById('medewerkers-list');
@@ -4121,6 +4140,7 @@ async function saveGedrag() {
   const tw  = parseInt(document.getElementById('inp-timeout-warn')?.value, 10);
   const mt  = parseInt(document.getElementById('inp-melding-ttl')?.value, 10);
   const pc  = parseInt(document.getElementById('inp-pin-cache')?.value, 10);
+  const lr  = parseInt(document.getElementById('inp-log-retention')?.value, 10);
 
   // Waarschuw als meldingTTL omlaag gaat en actieve gedeelde meldingen afkapt
   if (!isNaN(mt) && mt < S.meldingTTL) {
@@ -4140,8 +4160,9 @@ async function saveGedrag() {
   if (!isNaN(tw) && tw >= 1  && tw <= 24)  { S.timeoutWarn  = tw;  LS.set('rn_timeout_warn',  tw); }
   if (!isNaN(mt) && mt >= 1  && mt <= 72)  { S.meldingTTL   = mt;  LS.set('rn_melding_ttl',   mt); }
   if (!isNaN(pc) && pc >= 5  && pc <= 480) { S.pinCacheDur  = pc;  LS.set('rn_pin_cache_dur', pc); }
+  if (!isNaN(lr) && lr >= 1  && lr <= 30)  { S.logRetention = lr;  LS.set('rn_log_retention', lr); }
   save();
-  logEvent('settings', 'Gedrag-instellingen gewijzigd', { timeoutWarn: S.timeoutWarn, meldingTTL: S.meldingTTL, pinCacheDur: S.pinCacheDur });
+  logEvent('settings', 'Gedrag-instellingen gewijzigd', { timeoutWarn: S.timeoutWarn, meldingTTL: S.meldingTTL, pinCacheDur: S.pinCacheDur, logRetention: S.logRetention });
 }
 
 function checkCfgLock() {
