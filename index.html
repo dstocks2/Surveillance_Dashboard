@@ -730,7 +730,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="manualLockCfg()">Vergrendelen</button>
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.2.05</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.2.06</span>
     </div>
   </nav>
 
@@ -751,12 +751,8 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
             <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
             <input type="text" id="med-search" placeholder="Zoek op naam of functie..." oninput="renderMedewerkersList()" style="width:100%;padding:7px 10px 7px 30px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;font-family:inherit;box-sizing:border-box;outline:none" onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#e2e8f0'">
           </div>
-          <!-- Rolfilter -->
-          <div style="display:flex;gap:2px;background:#f1f5f9;border-radius:8px;padding:3px">
-            <button type="button" id="med-fil-alle" onclick="setMedFilter('alle')" class="med-fil-btn med-fil-active" style="padding:4px 10px;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;background:#fff;color:#1e293b;box-shadow:0 1px 3px rgba(0,0,0,.08)">Alle</button>
-            <button type="button" id="med-fil-beveiliging" onclick="setMedFilter('beveiliging')" class="med-fil-btn" style="padding:4px 10px;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:#64748b">Beveiliging</button>
-            <button type="button" id="med-fil-meldkamer" onclick="setMedFilter('meldkamer')" class="med-fil-btn" style="padding:4px 10px;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:#64748b">Meldkamer</button>
-          </div>
+          <!-- Rolfilter — dynamisch gevuld via renderMedRolFilter() -->
+          <div id="med-rol-filter" style="display:flex;gap:2px;background:#f1f5f9;border-radius:8px;padding:3px"></div>
           <!-- Op dienst toggle -->
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#64748b;flex-shrink:0;user-select:none">
             <span id="med-toggle-track" onclick="toggleMedDienst()" style="display:inline-block;width:34px;height:19px;border-radius:99px;background:#e2e8f0;position:relative;cursor:pointer;transition:background .15s;flex-shrink:0">
@@ -1032,7 +1028,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.2.05';
+const APP_VERSION = '2.2.06';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -3248,14 +3244,23 @@ TIMERS.set('planRefresh', () => {
 let _medFilterRol = 'alle';
 let _medFilterDienst = false;
 
+function renderMedRolFilter() {
+  const el = document.getElementById('med-rol-filter');
+  if (!el) return;
+  // Collect unique rollen from S.medewerkers, sorted alphabetically
+  const rollen = [...new Set((S.medewerkers || []).map(m => (m.rol || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'nl'));
+  const btnStyle = (active) => `padding:4px 10px;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;background:${active ? '#fff' : 'transparent'};color:${active ? '#1e293b' : '#64748b'};box-shadow:${active ? '0 1px 3px rgba(0,0,0,.08)' : 'none'}`;
+  const options = ['alle', ...rollen];
+  el.innerHTML = options.map(r => {
+    const label = r === 'alle' ? 'Alle' : r;
+    const active = _medFilterRol === r;
+    return `<button type="button" class="med-fil-btn" onclick="setMedFilter(${JSON.stringify(r)})" style="${btnStyle(active)}">${label}</button>`;
+  }).join('');
+}
+
 function setMedFilter(rol) {
   _medFilterRol = rol;
-  document.querySelectorAll('.med-fil-btn').forEach(b => {
-    const isActive = b.id === 'med-fil-' + rol;
-    b.style.background = isActive ? '#fff' : 'transparent';
-    b.style.color = isActive ? '#1e293b' : '#64748b';
-    b.style.boxShadow = isActive ? '0 1px 3px rgba(0,0,0,.08)' : 'none';
-  });
+  renderMedRolFilter();
   renderMedewerkersList();
 }
 
@@ -3275,6 +3280,7 @@ function _highlight(text, query) {
 }
 
 function renderMedewerkersList() {
+  renderMedRolFilter();
   const ml = document.getElementById('medewerkers-list');
   if (!ml) return;
   const query = (document.getElementById('med-search')?.value || '').trim().toLowerCase();
@@ -3350,7 +3356,9 @@ function clearMedFilters() {
   const thumb = document.getElementById('med-toggle-thumb');
   if (track) track.style.background = '#e2e8f0';
   if (thumb) thumb.style.left = '2px';
-  setMedFilter('alle');
+  _medFilterRol = 'alle';
+  renderMedRolFilter();
+  renderMedewerkersList();
 }
 
 function renderCfg() {
