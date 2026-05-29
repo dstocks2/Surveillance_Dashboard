@@ -711,6 +711,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       Dagplanning
     </button>
+    <div style="margin:10px 0 6px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:.07em;text-transform:uppercase;padding-left:10px">Systeembeheer</div>
     <button type="button" class="cfg-nav-item" id="cfg-nav-gedrag" onclick="cfgGoSection('gedrag')">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
       Gedrag
@@ -729,7 +730,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="manualLockCfg()">Vergrendelen</button>
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.2.03</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.2.05</span>
     </div>
   </nav>
 
@@ -742,10 +743,32 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <div><div class="cfg-sec-title">Medewerkers</div><div class="cfg-sec-sub">Actieve beveiligers in het systeem</div></div>
         <button type="button" class="cfg-action-btn" onclick="openMedewerkerModal(null)">+ Medewerker</button>
       </div>
-      <div id="medewerkers-list" style="margin-bottom:8px"></div>
-      <div style="display:flex;align-items:center;justify-content:flex-end;margin-top:8px">
-        <button type="button" id="med-sort-btn" onclick="toggleMedewerkerSort()" style="background:none;border:none;cursor:pointer;font-size:11px;color:#94a3b8;padding:4px 2px;font-family:inherit" title="Sorteervolgorde wisselen">Sortering: naam ↕</button>
+      <!-- Sticky filterbar -->
+      <div id="med-filterbar" style="position:sticky;top:0;z-index:10;background:#fff;padding:10px 0 12px;margin-bottom:4px;border-bottom:1px solid #e2e8f0">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <!-- Zoekveld -->
+          <div style="flex:1;min-width:180px;position:relative">
+            <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="med-search" placeholder="Zoek op naam of functie..." oninput="renderMedewerkersList()" style="width:100%;padding:7px 10px 7px 30px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;font-family:inherit;box-sizing:border-box;outline:none" onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+          <!-- Rolfilter -->
+          <div style="display:flex;gap:2px;background:#f1f5f9;border-radius:8px;padding:3px">
+            <button type="button" id="med-fil-alle" onclick="setMedFilter('alle')" class="med-fil-btn med-fil-active" style="padding:4px 10px;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;background:#fff;color:#1e293b;box-shadow:0 1px 3px rgba(0,0,0,.08)">Alle</button>
+            <button type="button" id="med-fil-beveiliging" onclick="setMedFilter('beveiliging')" class="med-fil-btn" style="padding:4px 10px;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:#64748b">Beveiliging</button>
+            <button type="button" id="med-fil-meldkamer" onclick="setMedFilter('meldkamer')" class="med-fil-btn" style="padding:4px 10px;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:#64748b">Meldkamer</button>
+          </div>
+          <!-- Op dienst toggle -->
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#64748b;flex-shrink:0;user-select:none">
+            <span id="med-toggle-track" onclick="toggleMedDienst()" style="display:inline-block;width:34px;height:19px;border-radius:99px;background:#e2e8f0;position:relative;cursor:pointer;transition:background .15s;flex-shrink:0">
+              <span id="med-toggle-thumb" style="position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:99px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .15s"></span>
+            </span>
+            Op dienst
+          </label>
+        </div>
+        <!-- Teller -->
+        <div id="med-count-label" style="font-size:11px;color:#94a3b8;margin-top:7px"></div>
       </div>
+      <div id="medewerkers-list" style="margin-bottom:8px"></div>
     </div>
 
     <!-- Rondes -->
@@ -1009,7 +1032,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.2.03';
+const APP_VERSION = '2.2.05';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -3221,6 +3244,115 @@ TIMERS.set('planRefresh', () => {
 }, 60000);
 
 
+// ── Medewerkers filter state ──────────────────────────────────────────────
+let _medFilterRol = 'alle';
+let _medFilterDienst = false;
+
+function setMedFilter(rol) {
+  _medFilterRol = rol;
+  document.querySelectorAll('.med-fil-btn').forEach(b => {
+    const isActive = b.id === 'med-fil-' + rol;
+    b.style.background = isActive ? '#fff' : 'transparent';
+    b.style.color = isActive ? '#1e293b' : '#64748b';
+    b.style.boxShadow = isActive ? '0 1px 3px rgba(0,0,0,.08)' : 'none';
+  });
+  renderMedewerkersList();
+}
+
+function toggleMedDienst() {
+  _medFilterDienst = !_medFilterDienst;
+  const track = document.getElementById('med-toggle-track');
+  const thumb = document.getElementById('med-toggle-thumb');
+  if (track) track.style.background = _medFilterDienst ? '#2563eb' : '#e2e8f0';
+  if (thumb) thumb.style.left = _medFilterDienst ? '17px' : '2px';
+  renderMedewerkersList();
+}
+
+function _highlight(text, query) {
+  if (!query) return text;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return text.replace(new RegExp('(' + escaped + ')', 'gi'), '<mark style="background:#fef08a;color:inherit;border-radius:2px;padding:0 1px">$1</mark>');
+}
+
+function renderMedewerkersList() {
+  const ml = document.getElementById('medewerkers-list');
+  if (!ml) return;
+  const query = (document.getElementById('med-search')?.value || '').trim().toLowerCase();
+  const total = (S.medewerkers || []).length;
+
+  // Filter
+  const filtered = (S.medewerkers || []).map((med, i) => ({ med, i })).filter(({ med }) => {
+    if (_medFilterDienst && !S.dienst.has(med.naam)) return false;
+    if (_medFilterRol !== 'alle') {
+      const rol = (med.rol || '').toLowerCase();
+      if (_medFilterRol === 'beveiliging' && !rol.includes('beveiliging')) return false;
+      if (_medFilterRol === 'meldkamer' && !rol.includes('meldkamer')) return false;
+    }
+    if (query) {
+      const naam = (med.naam || '').toLowerCase();
+      const rol = (med.rol || '').toLowerCase();
+      if (!naam.includes(query) && !rol.includes(query)) return false;
+    }
+    return true;
+  });
+
+  // Count label
+  const lbl = document.getElementById('med-count-label');
+  if (lbl) {
+    const isFiltered = query || _medFilterRol !== 'alle' || _medFilterDienst;
+    lbl.textContent = isFiltered ? `${filtered.length} van ${total} medewerkers` : `${total} medewerker${total !== 1 ? 's' : ''}`;
+  }
+
+  // Empty state
+  if (!filtered.length) {
+    const isFiltered = query || _medFilterRol !== 'alle' || _medFilterDienst;
+    ml.innerHTML = `<div style="text-align:center;padding:32px 16px;color:#94a3b8">
+      <div style="font-size:13px;margin-bottom:8px">${total === 0 ? 'Geen medewerkers.' : 'Geen medewerkers gevonden.'}</div>
+      ${isFiltered ? '<button type="button" onclick="clearMedFilters()" style="font-size:12px;color:#2563eb;background:none;border:none;cursor:pointer;font-family:inherit;text-decoration:underline">Filters wissen</button>' : ''}
+    </div>`;
+    return;
+  }
+
+  // Sort
+  const _medSort = window._medSortMode || 'naam';
+  if (_medSort === 'rol') {
+    filtered.sort((a, b) => {
+      const ra = (a.med.rol || '').toLowerCase(), rb = (b.med.rol || '').toLowerCase();
+      if (ra !== rb) return ra.localeCompare(rb, 'nl');
+      return a.med.naam.toLowerCase().localeCompare(b.med.naam.toLowerCase(), 'nl');
+    });
+  }
+
+  const rows = filtered.map(({ med, i }) => {
+    const n = med.naam;
+    const rol = med.rol || '';
+    const isOnDienst = S.dienst.has(n);
+    const hn = _highlight(n, query);
+    const hr = _highlight(rol, query);
+    return `<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;border:0.5px solid #e2e8f0;background:#f8fafc;min-width:0">
+      <div style="flex:1;min-width:0;overflow:hidden">
+        <div style="font-weight:600;color:#1e293b;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${n}">${hn}</div>
+        ${rol ? `<div style="font-size:10px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${hr}</div>` : ''}
+      </div>
+      ${isOnDienst ? '<span style="font-size:11px;font-weight:600;color:#15803d;background:#dcfce7;border-radius:4px;padding:2px 7px;flex-shrink:0;white-space:nowrap">op dienst</span>' : ''}
+      <button type="button" onclick="editMedewerker(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:12px;padding:0 3px;flex-shrink:0;line-height:1" title="Wijzigen" aria-label="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#94a3b8'">✎</button>
+      <button type="button" onclick="rmName(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:13px;padding:0 3px;flex-shrink:0;line-height:1" title="Verwijderen" aria-label="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">✕</button>
+    </div>`;
+  });
+  ml.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">${rows.join('')}</div>`;
+}
+
+function clearMedFilters() {
+  const inp = document.getElementById('med-search');
+  if (inp) inp.value = '';
+  _medFilterDienst = false;
+  const track = document.getElementById('med-toggle-track');
+  const thumb = document.getElementById('med-toggle-thumb');
+  if (track) track.style.background = '#e2e8f0';
+  if (thumb) thumb.style.left = '2px';
+  setMedFilter('alle');
+}
+
 function renderCfg() {
   // Vul gedrag-inputs in met huidige waarden
   const inpTW = document.getElementById('inp-timeout-warn');
@@ -3233,38 +3365,7 @@ function renderCfg() {
   if (inpLR && document.activeElement !== inpLR) inpLR.value = S.logRetention;
 
   // Render medewerkers list — sorted alphabetically, styled like dagdelen
-  const ml = document.getElementById('medewerkers-list');
-  if (ml) {
-    if (!S.medewerkers.length) {
-      ml.innerHTML = '<div style="font-size:13px;color:#94a3b8;padding:8px 0">Geen medewerkers.</div>';
-    } else {
-      // Sorteren op naam of rol, originele index bewaren voor edit/delete
-      const _medSort = window._medSortMode || 'naam';
-      const indexed = (S.medewerkers || []).map((med, i) => ({ med, i }));
-      if (_medSort === 'rol') {
-        indexed.sort((a, b) => {
-          const ra = (a.med.rol || '').toLowerCase(), rb = (b.med.rol || '').toLowerCase();
-          if (ra !== rb) return ra.localeCompare(rb, 'nl');
-          return a.med.naam.toLowerCase().localeCompare(b.med.naam.toLowerCase(), 'nl');
-        });
-      }
-      const rows = indexed.map(({ med, i }) => {
-        const n = med.naam;
-        const rol = med.rol || '';
-        const isOnDienst = S.dienst.has(n);
-        return `<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;border:0.5px solid #e2e8f0;background:#f8fafc;min-width:0">
-          <div style="flex:1;min-width:0;overflow:hidden">
-            <div style="font-weight:600;color:#1e293b;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${n}">${n}</div>
-            ${rol ? `<div style="font-size:10px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${rol}</div>` : ''}
-          </div>
-          ${isOnDienst ? '<span style="font-size:11px;font-weight:600;color:#15803d;background:#dcfce7;border-radius:4px;padding:2px 7px;flex-shrink:0;white-space:nowrap">op dienst</span>' : ''}
-          <button type="button" onclick="editMedewerker(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:12px;padding:0 3px;flex-shrink:0;line-height:1" title="Wijzigen" aria-label="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#94a3b8'">✎</button>
-          <button type="button" onclick="rmName(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:13px;padding:0 3px;flex-shrink:0;line-height:1" title="Verwijderen" aria-label="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">✕</button>
-        </div>`;
-      });
-      ml.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">${rows.join('')}</div>`;
-    }
-  }
+  renderMedewerkersList();
   const rl = document.getElementById('rondes-list');
   if (rl) {
     if (!S.routes.length) {
@@ -3755,9 +3856,7 @@ function editMedewerker(i) { openMedewerkerModal(i); }
 
 function toggleMedewerkerSort() {
   window._medSortMode = (window._medSortMode || 'naam') === 'naam' ? 'rol' : 'naam';
-  const btn = document.getElementById('med-sort-btn');
-  if (btn) btn.textContent = 'Sortering: ' + window._medSortMode + ' ↕';
-  renderCfg();
+  renderMedewerkersList();
 }
 
 function saveMedewerkerEdit() {
