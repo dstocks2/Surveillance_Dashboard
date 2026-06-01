@@ -933,7 +933,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.14</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.16</span>
     </div>
   </nav>
 
@@ -1249,7 +1249,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.3.14';
+const APP_VERSION = '2.3.16';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1915,6 +1915,24 @@ const _pendingActive = new Map();  // name -> { route, start, op: 'add'|'remove'
 const _pendingLog = new Set();     // log entry ids we've just added
 const _pendingDienst = new Map();  // name -> { op: 'add'|'remove', ts: number }
 const PENDING_DIENST_TTL = 5000;   // 5s — long enough for slow networks
+// Short-lived VISUAL lock to prevent double-tap on the same name. Decoupled from
+// _pendingDienst (which has a 5s sync TTL): the sync marker must keep doing its
+// fbListen-merge job for up to 5s, but it must NOT keep the button greyed out
+// that long. Only names in _dienstUiLock are rendered as locked/greyed.
+const _dienstUiLock = new Set();   // names currently visually locked (~800ms)
+const DIENST_UI_LOCK_MS = 800;
+function lockDienstUi(name) {
+  _dienstUiLock.add(name);
+  setTimeout(() => {
+    _dienstUiLock.delete(name);
+    // Re-render so the just-unlocked name becomes tappable again immediately,
+    // even if no other event triggers a render in the meantime.
+    if (document.getElementById('pane-dienst') &&
+        document.getElementById('pane-dienst').classList.contains('on')) {
+      renderDienst();
+    }
+  }, DIENST_UI_LOCK_MS);
+}
 
 function markActivePending(name, op, entry) {
   _pendingActive.set(name, { op, entry, ts: Date.now() });
@@ -3639,6 +3657,7 @@ function renderMedewerkersList() {
     const hn = _highlight(n, query);
     const hr = _highlight(rol, query);
     return `<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;border:0.5px solid #e2e8f0;background:#f8fafc;min-width:0">
+      <span style="width:22px;height:22px;border-radius:50%;background:#cdd6e2;color:#445;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;letter-spacing:.02em" aria-hidden="true">${escHtml(dienstInitialen(n))}</span>
       <div style="flex:1;min-width:0;overflow:hidden">
         <div style="font-weight:600;color:#1e293b;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${escHtml(n)}">${hn}</div>
         ${rol ? `<div style="font-size:10px;color:#5b6b7f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${hr}</div>` : ''}
@@ -4833,7 +4852,8 @@ const _CHECK_SVG = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" 
 
 // Gedeelde toggle-logica voor zowel kaart als chip. Behoudt alle sync-/lock-bescherming.
 function dienstToggle(n, srcEl) {
-  if (srcEl && (srcEl.disabled || srcEl._busy)) return;
+  // Negeer kliks zolang deze naam nog visueel vergrendeld is (double-tap-guard).
+  if (_dienstUiLock.has(n)) return;
   if (S.dienst.has(n)) {
     if (S.active[n]) {
       showToast('⚠ ' + n.split(' ')[0] + ' heeft nog een actieve ronde (' + S.active[n].route + '). Meld eerst retour.', 4000);
@@ -4842,6 +4862,7 @@ function dienstToggle(n, srcEl) {
     }
     markDienstPending(n, 'remove');
     S.dienst.delete(n);
+    lockDienstUi(n);
     save();
     renderDienst();
     renderNameBtns();
@@ -4850,25 +4871,13 @@ function dienstToggle(n, srcEl) {
   } else {
     markDienstPending(n, 'add');
     S.dienst.add(n);
+    lockDienstUi(n);
     save();
     renderDienst();
     renderNameBtns();
     logEvent('dienst', n + ' op dienst');
     schrijfGedeeldeMelding('grijs', 'Aanvang dienst', n);
   }
-  // Tijdelijk vergrendelen over alle instances (re-render maakt DOM opnieuw).
-  if (srcEl) srcEl._busy = true;
-  document.querySelectorAll('[data-dienst-name="' + CSS.escape(n) + '"]').forEach(b => {
-    b.style.opacity = '0.55';
-    b.style.pointerEvents = 'none';
-  });
-  setTimeout(() => {
-    if (srcEl) srcEl._busy = false;
-    document.querySelectorAll('[data-dienst-name="' + CSS.escape(n) + '"]').forEach(b => {
-      b.style.opacity = '';
-      b.style.pointerEvents = '';
-    });
-  }, 800);
 }
 
 function renderDienst() {
@@ -4902,8 +4911,9 @@ function renderDienst() {
       btn.className = 'dienst-kaart' + (isOn ? ' on' : '');
       btn.setAttribute('data-dienst-name', n);
       btn.setAttribute('aria-pressed', isOn ? 'true' : 'false');
-      // Pending toggle? Toon kaart als vergrendeld (voorkomt double-tap).
-      if (_pendingDienst.has(n)) {
+      // Alleen visueel vergrendelen tijdens de korte UI-lock (~800ms), niet de
+      // volledige 5s sync-pending — anders blijft de knop te lang grijs.
+      if (_dienstUiLock.has(n)) {
         btn.style.opacity = '0.55';
         btn.style.pointerEvents = 'none';
       }
@@ -4942,7 +4952,7 @@ function renderDienst() {
       chip.className = 'dienst-chip';
       chip.setAttribute('data-dienst-name', n);
       chip.setAttribute('aria-label', n + ' van dienst halen');
-      if (_pendingDienst.has(n)) { chip.style.opacity = '0.55'; chip.style.pointerEvents = 'none'; }
+      if (_dienstUiLock.has(n)) { chip.style.opacity = '0.55'; chip.style.pointerEvents = 'none'; }
       chip.innerHTML =
         '<span class="dienst-av">' + escHtml(dienstInitialen(n)) + '</span>'
         + '<span>' + escHtml(n) + '</span>'
