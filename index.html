@@ -934,7 +934,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.17</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.18</span>
     </div>
   </nav>
 
@@ -1250,7 +1250,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.3.17';
+const APP_VERSION = '2.3.18';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1741,7 +1741,13 @@ function fbListen() {
     // PENDING_DIENST_TTL ms. We merge the incoming Firebase value with our
     // pending intents — adds force the name IN, removes force it OUT — so a
     // stale snapshot can't undo a fresh local click.
-    if (d.dienst !== undefined) {
+    // Firebase RTDB slaat een lege array NIET op — die wordt null/weggelaten.
+    // Daarom mag een ontbrekende d.dienst niet als "geen update" gelden: zodra
+    // de root-snapshot bestaat, betekent een ontbrekende/lege dienst-key dat de
+    // selectie leeg is. Anders zou de laatste uitvink-actie (of "alles wissen")
+    // op andere sessies blijven staan. We draaien dit blok dus altijd zodra de
+    // root bestaat, en interpreteren undefined/null als lege lijst.
+    {
       let fbDienst = sanitizeNames(Array.isArray(d.dienst) ? d.dienst : []);
       if (_pendingDienst.size) {
         const merged = new Set(fbDienst);
