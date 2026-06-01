@@ -1,119 +1,90 @@
-Surveillance Dashboard — Project Instructies
-Wat dit is
-Een single-file HTML webapp voor ronderegistratie bij beveiligingsdiensten (UMC Utrecht). Hosting via GitHub Pages, data-synchronisatie via Firebase Realtime Database met anonymous auth. Werkt op tablet, telefoon en desktop.
-Huidige versie
-v2.1.65 — staat in const APP_VERSION = '...' en als badge op het ⚙ tabblad.
-Werkwijze per wijziging
+# Projectinstructie — Surveillance Dashboard
 
-Lees eerst het projectbestand via bash of view
-Maak de wijziging zo gericht mogelijk (geen brede refactors)
-Verhoog versienummer met 0.0.1 in:
+> Deze instructie vervangt alle voorgaande. Lees dit eerst bij elke nieuwe sessie.
 
-const APP_VERSION = '...'
-<span id="app-version-badge">v...</span>
+## Wat het is
 
+Het **Surveillance Dashboard** is een **single-file HTML-webapplicatie** voor de beveiliging van UMC Utrecht. Alles (HTML, CSS, JavaScript) zit in één bestand. D is de primaire ontwikkelaar en communiceert in het Nederlands. Antwoord beknopt en praktisch.
 
-Sla op als Surveillance_Dashboard_vX.X.X.html in /home/claude/ én /mnt/user-data/outputs/
-Update memory met nieuwe versie
-Houd antwoorden kort — geen overbodige uitleg
+De app draait op meerdere sessies tegelijk en synchroniseert live via **Firebase Realtime Database**.
 
-Architectuur
+## Huidige versie
 
-State: alles in S object (names, routes, schema, active, log, dienst, sns, sr, tick, tickL, tickTL)
-Persistence: Firebase = source of truth, localStorage = fallback
-Firebase paden: /dashboard/{names, routes, dienst, active, log, pin, appVersion, meldingen, dagdelen, gedrag, eventLog}
-Firebase listeners: fbListen() op root /dashboard, fbListenMeldingen(), fbListenConnected(), fbListenEventLog()
-Sanitization: alle Firebase-input via sanitizeFromFirebase()
-Nacht-tijden: 00:00–06:59 opgeslagen als h+24 (24–30)
+- **v2.3.0** is de actuele versie: getest in de sandbox, klaar voor uitrol naar productie.
+- Productie draait mogelijk nog op een oudere versie tot de uitrol is gedaan.
 
-Log-architectuur (v2.1.65+)
+## Vaste werkwijze (belangrijk — altijd volgen)
 
-/dashboard/log is een object van {pushKey: entry} — geen array meer
-Schrijven: fbPushLogEntry(entry) per retour — nooit de hele log overschrijven
-Lezen: object → array in fbListen (backward compatible met oud array-formaat)
-fbSaveActive() schrijft alleen /dashboard/active, nooit de log
-pruneLog() verwijdert individuele entries via fbRemoveLogEntry(fbKey)
-wisLog() verwijdert het hele /dashboard/log pad via fbRemove
-logInWindow(cutoff) filtert alleen op r.end >= cutoff (niet op r.start)
-Dubbele retour geblokkeerd in doRetour() op basis van name+route+start
-Log-merge in fbListen dedupliceet op name+route+start
+1. **Werk op een kopie** van het laatste versiebestand in `/home/claude`, lever eindresultaat in `/mnt/user-data/outputs/`.
+2. **Hoog de versie op bij elke wijziging**, op drie plekken consistent:
+   - de `APP_VERSION`-constante in het niet-module script,
+   - de `version-badge`/`app-version-badge` span in de HTML,
+   - de bestandsnaam.
+   Gebruik patch-niveau voor fixes (2.3.0 → 2.3.1) en minor voor grotere functionele wijzigingen (2.2.x → 2.3.0).
+3. **Patch gericht** via Python (`str.replace` voor kleine edits; grotere herschrijvingen mogen, mits zorgvuldig).
+4. **Syntax-check na elke wijziging**: extraheer beide `<script>`-blokken en draai `node --check`.
+   - Het niet-module script controleren als `.js`.
+   - Het module script (met `import`) controleren als `.mjs`.
+5. **Raad de datastructuur of het gedrag niet** — als iets onzeker is, vraag om een verse Firebase-export of een screenshot van de Console/devtools-console voordat je rules of logica wijzigt.
+6. **Eén wijziging per keer waar mogelijk**, en benoem expliciet de risico's op regressie.
 
-PIN
+## Architectuur
 
-SHA-256 gehasht opgeslagen in Firebase /dashboard/pin
-Nooit plaintext opslaan, tonen of in code schrijven
-Firebase is leidend: geen pin in Firebase = localStorage wissen + setup-popup
-Cache: 30 min na ontgrendelen (localStorage rn_cfg_unlocked)
-PIN invoer via numeriek keypad (4 dots, auto-submit bij 4e cijfer, keyboard-support)
-Setup en wijzigen delen dezelfde modal (pin-keypad-overlay)
-Vergrendelen → direct naar registratie-tab, geen PIN-venster tonen
+- **Twee `<script>`-blokken**: een `type="module"` blok (Firebase SDK-imports + config + auth-gate) en een groot niet-module blok (alle app-logica). Het module-script exposeert helpers op `window` (`window.fbDb`, `window.fbRef`, `window.fbSignIn`, enz.) voor het niet-module script.
+- **`S.medewerkers`** is `[{naam, rol}]` en de **enige** bron voor namen en rollen. `S.names` bestaat niet meer; `dashboard/names` wordt niet meer geschreven.
+- `renderLive()` en `renderPlan()` worden **altijd** vanuit `fbListen` aangeroepen (niet conditioneel op pane-zichtbaarheid). `drawTimeline()` (canvas) tekent alleen als de live-pane zichtbaar is (`_liveVisible`-guard).
+- **Firebase-paden**: `dashboard/medewerkers`, `dashboard/active`, `dashboard/log`, `dashboard/meldingen`, `dashboard/dagdelen`, `dashboard/schema`, `dashboard/routes`, `dashboard/routeCats`, `dashboard/dienst`, `dashboard/appVersion`, `dashboard/gedrag`, `dashboard/auditLog`, `dashboard/pin`.
+- **Datatypes (belangrijk voor rules):**
+  - `log`, `auditLog`, `meldingen` = pushID-dicts (sleutel is een gegenereerde `-Ou...`-key).
+  - `medewerkers`, `routes`, `dienst`, `routeCats` = arrays.
+  - `active` = object gekeyd op naam → `{route, start}`.
+  - `gedrag` = object met 4 numerieke velden (`timeoutWarn`, `meldingTTL`, `pinCacheDur`, `logRetention`).
 
-Header
+## Authenticatie (sinds v2.3.0)
 
-Links: logo + divider + "Surveillance Dashboard" + datum/dagdeel subtekst
-Rechts: sync-status + divider + dienst-badge + klok (HH:MM)
-Klok: verborgen op mobiel (@media max-width:600px), desktop-only
-Dienst-badge mobiel: compact ● 4/40 formaat, donkere pill-stijl
-Klok-timer: synct op minuutwissel via scheduleHeader()
-updateHeader() aangeroepen vanuit render() en elke 30s
+- **Email/password** met **één gedeeld dienst-account** (geen anonieme login meer).
+- Een **inlogscherm-overlay** (`#login-overlay`) schermt de hele app af tot er een geldige sessie is.
+- **Auth-gate**: `onAuthStateChanged` in het module-script roept `window.onAuthChanged` aan in het niet-module script. De app boot **exact één keer** via `initFirebase()`, beschermd door een `_appStarted`-guard. `__pendingAuthFired` vangt het geval dat auth resolvet vóór het hoofdscript geparsed is.
+- **`browserLocalPersistence`**: bewakers blijven permanent ingelogd. Opnieuw inloggen alleen na: handmatig uitloggen, browserdata wissen, wachtwoordwijziging van het dienst-account, of incognito.
+- `doLogin()` en `doLogout()` met Nederlandse foutmeldingen per `error.code`.
+- De **uitlog-knop staat bewust in Instellingen achter de pincode** (beheerdershandeling), niet in de tabbar. Niet verplaatsen tenzij D het scenario expliciet wijzigt.
 
-Tabs (in volgorde)
+## XSS- en veiligheidsarchitectuur (sinds v2.2.09)
 
-Registratie — naam + ronde selecteren → start/retour
-Overzicht — wie is onderweg + 24u tijdlijn
-Voorgestelde ronde — planning op basis van schema
-Op dienst — alfabetische lettergroepen
-⚙ Instellingen — PIN-vergrendeld, bevat medewerkers/rondes/dagplanning beheer
+- **State houdt natuurlijke (gedecodeerde) waarden**; HTML-escaping gebeurt op het **renderpunt** via `escHtml()`. Nooit pre-encoderen in state (dat geeft dubbele encoding).
+- **`safeColor()`** valideert `#hex` strikt vóór gebruik in een inline `style`-attribuut (tegen attribuut-/CSS-breakout).
+- Eén gedeelde **`decodeEntities()`** op moduleniveau.
+- **`sanitizeSchema()` / `sanitizeDagdelen()`** draaien bij het inlezen uit Firebase.
+- Houd deze conventie aan bij nieuwe render-code: elke door gebruiker/Firebase bestuurde waarde die in `innerHTML` of een attribuut belandt, via `escHtml()` (of `safeColor()` voor kleuren).
 
-Dagdelen
+## Toegankelijkheid & mobiel (sinds v2.2.10)
 
-S.dagdelen = array {naam, start, eind, kleur} — tekstKleur auto-afgeleid via autoTekstKleur(hex)
-Default DAGDELEN_DEFAULT (vroeg/laat/nacht), sync via /dashboard/dagdelen
-Overlap niet toegestaan; wrapping shifts (start > eind) ondersteund
-Helpers: hhmmToMin, dagdeelAtMinute, dagdeelAtHour, dagdeelBoundariesInWindow
+- Viewport **zonder** `user-scalable=no`/`maximum-scale` (pinch-zoom toegestaan).
+- Invoervelden **16px op mobiel** via een `@media(max-width:600px)`-regel met `!important` (voorkomt iOS-autozoom).
+- `maxlength` op de inhoudelijke invoervelden.
+- Muted tekstkleuren opgehoogd naar **`#5b6b7f`** (desktop) en **`#68686d`** (iOS-stijl mobiel) voor WCAG-contrast. Decoratieve SVG-icoonstrepen bewust ongemoeid.
 
-Meldingen systeem
+## Test/productie-opzet
 
-MELDINGEN[] array lokaal, voegMeldingToe(type, naam, sub, actieLabel, actieFn)
-Gedeelde meldingen (grijs) via Firebase /dashboard/meldingen met TTL (instelbaar)
-schrijfGedeeldeMelding() altijd NA save()+render() — anders race condition
-saveGedrag() waarschuwt bij TTL-verlaging als er actieve gedeelde meldingen zijn
+- **Twee gescheiden Firebase-projecten:**
+  - **Productie**: `surveillance-dashboard-bab07` (regio europe-west1).
+  - **Test/sandbox**: `surveillance-dashboard-test` (projectnummer 235953749425).
+- **Hosting**: GitHub Pages onder `dstocks2.github.io/Surveillance_Dashboard/`.
+  - Live = `index.html` (productie-config).
+  - Test = `test.html` (test-config, met geel **TEST**-label in header, inlogscherm en browsertitel).
+- De `firebaseConfig` is het enige verschil tussen beide bestanden. **Nooit** de test-config in productie zetten of andersom.
+- **Authorized domain**: `dstocks2.github.io` moet in Firebase Authentication → Settings → Authorized domains staan, anders faalt inloggen.
 
-Retour flow
+## Firebase Security Rules
 
-Optimistic update: kaart verdwijnt direct
-Firebase write (active via update, log via push) → bij fout: rollback + toast + rode melding
-Live-kaarten gebruiken event delegation (elActive.onclick)
+- Gebruik een **gevalideerd vangnet**, geen rigide schema. Actuele rules: `firebase_rules_v2_3_1.json`.
+- Type- en lengte-checks per pad. **Gebruik NOOIT `"$other": { ".validate": false }`** — dat blokkeert volledige tak-writes (de app schrijft hele takken zoals `routes`/`medewerkers` in één keer) en veroorzaakt `PERMISSION_DENIED`.
+- Bij twijfel over velden: vraag een verse export en finetune op de echte structuur.
 
-Event log
+## Openstaande volgende stap
 
-Audit-log in Firebase /dashboard/eventLog, TTL 7 dagen
-Types: start, retour, dienst, settings, auto, sync, system, melding, pin, error
-UI in instellingen-tab (PIN-vergrendeld): filter, zoek, CSV export
-
-Bekende bugfixes (niet opnieuw introduceren)
-
-_slotStartMs in minuten ipv ms — fixed v2.0.55
-cfg-lock dubbele display property — fixed v2.0.54
-tl-toggle-icon duplicate ID — fixed v2.0.54
-dienst toggle race (schrijfGedeeldeMelding vóór save) — fixed v2.0.62
-doStart fire-and-forget zonder rollback — fixed v2.0.64
-Dubbele retour bij sync-conflict (twee apparaten) — fixed v2.1.64
-logInWindow filterde op r.start waardoor nachtrondes verdwenen — fixed v2.1.64
-
-Conventies
-
-Nederlands voor UI-tekst, Engels voor code/comments
-showToast() voor korte meldingen, customConfirm() voor bevestigingen, sanitizeInput() bij alle user-invoer
-Mobile-first: alles werkt op kleine schermen
-Geen breaking changes zonder waarschuwing
-
-Wat NIET doen
-
-Geen automatische refactors van werkende code
-Geen nieuwe Firebase paden zonder rules-update te vermelden
-Geen kleuren/uiterlijk-aanpassingen
-Geen externe libraries toevoegen
-Geen wijzigingen aan firebaseConfig
-Nooit de PIN in plaintext schrijven, tonen of opslaan
-Nooit de log als array overschrijven via fbUpdate — altijd fbPushLogEntry()
+Productie-`index.html` (v2.3.0) klaarmaken met de **bab07-config** en zonder TEST-label, daarna:
+1. In het productie-project Email/Password aanzetten + dienst-account aanmaken.
+2. `firebase_rules_v2_3_1.json` deployen.
+3. Testen dat inloggen + opslaan werkt.
+4. **Pas dáárna** anonieme login uitzetten in de Console (volgorde belangrijk om lock-out te voorkomen).
