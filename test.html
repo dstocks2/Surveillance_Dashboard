@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Surveillance Dashboard">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Surveillance Dashboard</title>
+<title>Surveillance Dashboard — TEST</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;min-height:100vh;color:#1e293b;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
@@ -325,14 +325,18 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   import { getDatabase, ref, set, get, onValue, update, remove, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
+  // ════════════════════════════════════════════════════════════════════════
+  //  ⚠️  TEST / SANDBOX CONFIG — wijst naar het project 'surveillance-dashboard-test'
+  //      Deze versie NOOIT als productie deployen. Gebruik hiervoor test.html.
+  // ════════════════════════════════════════════════════════════════════════
   const firebaseConfig = {
-    apiKey: "AIzaSyB9D09JXjLPp0Pdz-F3iIFHWdNCTKFtDOk",
-    authDomain: "surveillance-dashboard-bab07.firebaseapp.com",
-    databaseURL: "https://surveillance-dashboard-bab07-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "surveillance-dashboard-bab07",
-    storageBucket: "surveillance-dashboard-bab07.firebasestorage.app",
-    messagingSenderId: "463291924795",
-    appId: "1:463291924795:web:8ea56aed92b83a8e5c371e"
+    apiKey: "AIzaSyB-hz0MZyWEwwlsb3h6Ccamjo2lNwV2Z3Y",
+    authDomain: "surveillance-dashboard-test.firebaseapp.com",
+    databaseURL: "https://surveillance-dashboard-test-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "surveillance-dashboard-test",
+    storageBucket: "surveillance-dashboard-test.firebasestorage.app",
+    messagingSenderId: "235953749425",
+    appId: "1:235953749425:web:fa32258f016093b21b1190"
   };
 
   const app   = initializeApp(firebaseConfig);
@@ -380,7 +384,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
      style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:#f1f5f9;padding:20px;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)">
   <div style="width:100%;max-width:360px;background:#fff;border:1px solid #e2e8f0;border-radius:14px;box-shadow:0 10px 40px rgba(15,23,42,.08);padding:28px 24px">
     <div id="login-title" style="font-size:18px;font-weight:700;color:#1e293b;margin-bottom:4px">Inloggen</div>
-    <div style="font-size:13px;color:#5b6b7f;margin-bottom:20px">Surveillance Dashboard</div>
+    <div style="font-size:13px;color:#5b6b7f;margin-bottom:20px">Surveillance Dashboard <span style="color:#854d0e;background:#fef08a;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700">TEST</span></div>
 
     <label for="login-email" style="display:block;font-size:12px;font-weight:600;color:#475569;margin-bottom:5px">E-mailadres</label>
     <input type="email" id="login-email" autocomplete="username" inputmode="email" autocapitalize="off" spellcheck="false"
@@ -767,6 +771,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
       <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.0</span>
+      <span style="background:#fef08a;border:1px solid #facc15;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#854d0e;font-weight:700;margin-left:4px">TEST</span>
     </div>
   </nav>
 
