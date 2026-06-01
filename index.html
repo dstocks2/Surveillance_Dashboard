@@ -196,16 +196,16 @@ input[type=text]:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px #d
 .dienst-chip .x{font-size:14px;line-height:1;color:#5d6e80;margin-left:1px}
 #dienst-leeg{font-size:13px;color:#5d6e80;margin-top:9px}
 .dienst-groep{display:flex;align-items:flex-start;gap:10px;margin-bottom:9px}
-.dienst-letter{font-size:11px;font-weight:700;letter-spacing:.06em;color:#5d6e80;width:14px;flex-shrink:0;padding-top:12px;position:sticky;top:64px}
-.dienst-rij{display:grid;grid-template-columns:repeat(auto-fill,minmax(186px,1fr));gap:7px;flex:1}
-.dienst-kaart{display:flex;align-items:center;gap:9px;padding:7px 11px;border-radius:9px;border:1px solid #dce3ec;background:#fff;cursor:pointer;font-family:inherit;text-align:left;min-height:42px;transition:background .12s,border-color .12s;width:100%}
+.dienst-letter{font-size:11px;font-weight:700;letter-spacing:.06em;color:#5d6e80;width:14px;flex-shrink:0;padding-top:10px;position:sticky;top:64px}
+.dienst-rij{display:grid;grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:6px;flex:1}
+.dienst-kaart{display:flex;align-items:center;gap:7px;padding:5px 9px;border-radius:8px;border:1px solid #dce3ec;background:#fff;cursor:pointer;font-family:inherit;text-align:left;min-height:36px;transition:background .12s,border-color .12s;width:100%}
 .dienst-kaart:hover{border-color:#b9c6d8}
 .dienst-kaart.on{background:#eaf0f7;border-color:#163a5c}
-.dienst-av{width:27px;height:27px;border-radius:50%;background:#cdd6e2;color:#445;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;letter-spacing:.02em}
+.dienst-av{width:23px;height:23px;border-radius:50%;background:#cdd6e2;color:#445;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;letter-spacing:.02em}
 .dienst-kaart.on .dienst-av{background:#163a5c;color:#fff}
-.dienst-naam{flex:1;font-size:13.5px;color:#18283a;font-weight:500;line-height:1.2}
+.dienst-naam{flex:1;font-size:12.5px;color:#18283a;font-weight:500;line-height:1.2}
 .dienst-kaart.on .dienst-naam{color:#163a5c;font-weight:600}
-.dienst-check{width:20px;height:20px;border-radius:50%;border:1.5px solid #cbd5e1;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .12s}
+.dienst-check{width:17px;height:17px;border-radius:50%;border:1.5px solid #cbd5e1;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .12s}
 .dienst-kaart.on .dienst-check{border-color:#163a5c;background:#163a5c}
 .dienst-check svg{display:none}
 .dienst-kaart.on .dienst-check svg{display:block}
@@ -933,7 +933,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.13</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.14</span>
     </div>
   </nav>
 
@@ -1249,7 +1249,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.3.13';
+const APP_VERSION = '2.3.14';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
