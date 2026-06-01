@@ -182,6 +182,41 @@ input[type=text]:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px #d
 .sm.del:hover{background:#fee2e2;color:#dc2626}
 .toast{position:fixed;bottom:max(20px,calc(env(safe-area-inset-bottom) + 12px));left:50%;transform:translateX(-50%) translateY(120px);background:#1e293b;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-family:inherit;transition:transform .25s ease;z-index:999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.2)}
 .toast.show{transform:translateX(-50%) translateY(0)}
+/* ── Op dienst-tab (v2.3.13) ───────────────────────────────────────── */
+#dienst-selectiebalk{position:sticky;top:0;z-index:5;background:#fff;border:1px solid #dce3ec;border-radius:11px;box-shadow:0 1px 2px rgba(17,42,68,.04),0 4px 16px rgba(17,42,68,.05);padding:13px 15px;margin-bottom:18px}
+#dienst-selectiebalk-top{display:flex;align-items:center;gap:9px}
+#dienst-teller{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 7px;border-radius:7px;background:#163a5c;color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
+#dienst-teller-label{font-size:13px;font-weight:600;color:#18283a}
+#dienst-wis{margin-left:auto;border:none;background:none;color:#5d6e80;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;padding:4px 6px;border-radius:6px}
+#dienst-wis:hover{color:#163a5c;background:#eaf0f7}
+#dienst-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.dienst-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 9px 4px 4px;border-radius:999px;background:#eaf0f7;border:1px solid #cdd9e8;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;color:#163a5c;flex-shrink:0;transition:background .12s}
+.dienst-chip:hover{background:#dde7f3}
+.dienst-chip .dienst-av{width:22px;height:22px;font-size:9px}
+.dienst-chip .x{font-size:14px;line-height:1;color:#5d6e80;margin-left:1px}
+#dienst-leeg{font-size:13px;color:#5d6e80;margin-top:9px}
+.dienst-groep{display:flex;align-items:flex-start;gap:10px;margin-bottom:9px}
+.dienst-letter{font-size:11px;font-weight:700;letter-spacing:.06em;color:#5d6e80;width:14px;flex-shrink:0;padding-top:12px;position:sticky;top:64px}
+.dienst-rij{display:grid;grid-template-columns:repeat(auto-fill,minmax(186px,1fr));gap:7px;flex:1}
+.dienst-kaart{display:flex;align-items:center;gap:9px;padding:7px 11px;border-radius:9px;border:1px solid #dce3ec;background:#fff;cursor:pointer;font-family:inherit;text-align:left;min-height:42px;transition:background .12s,border-color .12s;width:100%}
+.dienst-kaart:hover{border-color:#b9c6d8}
+.dienst-kaart.on{background:#eaf0f7;border-color:#163a5c}
+.dienst-av{width:27px;height:27px;border-radius:50%;background:#cdd6e2;color:#445;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;letter-spacing:.02em}
+.dienst-kaart.on .dienst-av{background:#163a5c;color:#fff}
+.dienst-naam{flex:1;font-size:13.5px;color:#18283a;font-weight:500;line-height:1.2}
+.dienst-kaart.on .dienst-naam{color:#163a5c;font-weight:600}
+.dienst-check{width:20px;height:20px;border-radius:50%;border:1.5px solid #cbd5e1;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .12s}
+.dienst-kaart.on .dienst-check{border-color:#163a5c;background:#163a5c}
+.dienst-check svg{display:none}
+.dienst-kaart.on .dienst-check svg{display:block}
+.dienst-kaart:focus-visible{outline:2px solid #163a5c;outline-offset:2px}
+@media(max-width:720px){
+  .dienst-groep{display:block;margin-bottom:14px}
+  .dienst-letter{width:auto;padding:0 0 5px;position:static;top:auto}
+  .dienst-rij{grid-template-columns:1fr}
+  #dienst-chips{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  #dienst-chips::-webkit-scrollbar{display:none}
+}
 @media(max-width:600px){
   .content{padding:12px 10px}
   .header{padding:10px 14px;gap:8px;align-items:center}
@@ -671,12 +706,17 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   <!-- OP DIENST -->
   <div id="pane-dienst" class="pane" role="tabpanel" aria-label="Op dienst">
     <p class="lbl">Wie zijn er vandaag op dienst?</p>
-    <p style="font-size:12px;color:#5b6b7f;margin:-6px 0 10px">Vink de namen aan van de medewerkers die op dienst zijn. Alleen de geselecteerde namen worden weergegeven bij de registratie.</p>
-    <div id="dienst-grid" style="margin-bottom:12px"></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button type="button" class="sm" onclick="dienstLeeg()">Selectie wissen</button>
+    <p style="font-size:12px;color:#5b6b7f;margin:-6px 0 14px">Selecteer de collega's die op dienst zijn. Alleen geselecteerde namen verschijnen bij de registratie.</p>
+    <div id="dienst-selectiebalk">
+      <div id="dienst-selectiebalk-top">
+        <span id="dienst-teller">0</span>
+        <span id="dienst-teller-label">collega's op dienst</span>
+        <button type="button" id="dienst-wis" onclick="dienstLeeg()" style="display:none">Selectie wissen</button>
+      </div>
+      <div id="dienst-chips"></div>
+      <div id="dienst-leeg">Nog niemand geselecteerd — tik hieronder op een naam.</div>
     </div>
-    <div id="dienst-status" style="margin-top:14px;font-size:13px;color:#64748b"></div>
+    <div id="dienst-grid"></div>
   </div>
 
   <!-- BEHEER -->
@@ -893,7 +933,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.12</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.13</span>
     </div>
   </nav>
 
@@ -1209,7 +1249,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.3.12';
+const APP_VERSION = '2.3.13';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -4775,11 +4815,67 @@ function cancelRondeEdit() {
   document.getElementById('ronde-modal-overlay').style.display = 'none';
 }
 
+// Initialen: eerste letter voornaam + eerste letter achternaam, tussenvoegsels overslaan.
+const _TUSSENVOEGSELS = new Set(['van','de','den','der','het','te','ten','ter','v.d.','vd','op','aan','in','tot','het']);
+function dienstInitialen(naam) {
+  const delen = String(naam || '').trim().split(/\s+/).filter(Boolean);
+  if (!delen.length) return '?';
+  const voor = delen[0];
+  let achter = '';
+  for (let i = 1; i < delen.length; i++) {
+    if (!_TUSSENVOEGSELS.has(delen[i].toLowerCase())) { achter = delen[i]; break; }
+  }
+  if (!achter && delen.length > 1) achter = delen[delen.length - 1];
+  return ((voor[0] || '') + (achter[0] || '')).toUpperCase();
+}
+
+const _CHECK_SVG = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+
+// Gedeelde toggle-logica voor zowel kaart als chip. Behoudt alle sync-/lock-bescherming.
+function dienstToggle(n, srcEl) {
+  if (srcEl && (srcEl.disabled || srcEl._busy)) return;
+  if (S.dienst.has(n)) {
+    if (S.active[n]) {
+      showToast('⚠ ' + n.split(' ')[0] + ' heeft nog een actieve ronde (' + S.active[n].route + '). Meld eerst retour.', 4000);
+      voegMeldingToe('oranje', 'Nog onderweg — ' + n.split(' ')[0], S.active[n].route + ' is nog actief. Meld retour voor verwijderen.', 'Retour melden', () => doRetour(n), n);
+      return;
+    }
+    markDienstPending(n, 'remove');
+    S.dienst.delete(n);
+    save();
+    renderDienst();
+    renderNameBtns();
+    logEvent('dienst', n + ' einde dienst');
+    schrijfGedeeldeMelding('grijs', 'Einde dienst', n);
+  } else {
+    markDienstPending(n, 'add');
+    S.dienst.add(n);
+    save();
+    renderDienst();
+    renderNameBtns();
+    logEvent('dienst', n + ' op dienst');
+    schrijfGedeeldeMelding('grijs', 'Aanvang dienst', n);
+  }
+  // Tijdelijk vergrendelen over alle instances (re-render maakt DOM opnieuw).
+  if (srcEl) srcEl._busy = true;
+  document.querySelectorAll('[data-dienst-name="' + CSS.escape(n) + '"]').forEach(b => {
+    b.style.opacity = '0.55';
+    b.style.pointerEvents = 'none';
+  });
+  setTimeout(() => {
+    if (srcEl) srcEl._busy = false;
+    document.querySelectorAll('[data-dienst-name="' + CSS.escape(n) + '"]').forEach(b => {
+      b.style.opacity = '';
+      b.style.pointerEvents = '';
+    });
+  }, 800);
+}
+
 function renderDienst() {
   const el = document.getElementById('dienst-grid');
   el.innerHTML = '';
 
-  // Group names by first letter, skip empty letters
+  // Group names by first letter
   const groepen = {};
   S.medewerkers.forEach(med => { const n = med.naam;
     const l = n[0].toUpperCase();
@@ -4789,69 +4885,33 @@ function renderDienst() {
 
   Object.keys(groepen).sort().forEach(l => {
     const groepEl = document.createElement('div');
-    groepEl.style.cssText = 'display:flex;align-items:baseline;gap:8px;margin-bottom:8px';
+    groepEl.className = 'dienst-groep';
 
     const letterEl = document.createElement('div');
-    letterEl.style.cssText = 'font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5b6b7f;width:12px;flex-shrink:0';
+    letterEl.className = 'dienst-letter';
     letterEl.textContent = l;
     groepEl.appendChild(letterEl);
 
     const rij = document.createElement('div');
-    rij.style.cssText = 'display:flex;flex-wrap:wrap;gap:5px;flex:1';
+    rij.className = 'dienst-rij';
 
-    groepen[l].forEach(n => {
+    groepen[l].sort((a, b) => a.localeCompare(b, 'nl')).forEach(n => {
       const isOn = S.dienst.has(n);
       const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'dienst-kaart' + (isOn ? ' on' : '');
       btn.setAttribute('data-dienst-name', n);
-      // If a recent toggle is still pending, show button as locked (prevents
-      // double-tap that would queue conflicting writes)
+      btn.setAttribute('aria-pressed', isOn ? 'true' : 'false');
+      // Pending toggle? Toon kaart als vergrendeld (voorkomt double-tap).
       if (_pendingDienst.has(n)) {
         btn.style.opacity = '0.55';
         btn.style.pointerEvents = 'none';
       }
-      btn.style.cssText = `padding:5px 11px;border-radius:20px;border:1.5px solid ${isOn?'#1e3a5c':'#cbd5e1'};background:${isOn?'#1e3a5c':'#fff'};color:${isOn?'#fff':'#334155'};font-size:12px;cursor:pointer;font-family:inherit;font-weight:${isOn?'600':'400'};transition:all .13s`;
-      btn.textContent = (isOn ? '✓ ' : '') + n;
-      btn.addEventListener('click', () => {
-        // Debounce: ignore clicks while previous toggle still in flight
-        if (btn.disabled || btn._busy) return;
-        if (S.dienst.has(n)) {
-          if (S.active[n]) {
-            showToast('⚠ ' + n.split(' ')[0] + ' heeft nog een actieve ronde (' + S.active[n].route + '). Meld eerst retour.', 4000);
-            voegMeldingToe('oranje', 'Nog onderweg — ' + n.split(' ')[0], S.active[n].route + ' is nog actief. Meld retour voor verwijderen.', 'Retour melden', () => doRetour(n), n);
-            return;
-          }
-          // Mark intent BEFORE state change so any in-flight fbListen respects it
-          markDienstPending(n, 'remove');
-          S.dienst.delete(n);
-          save();
-          renderDienst();
-          renderNameBtns();
-          logEvent('dienst', n + ' einde dienst');
-          schrijfGedeeldeMelding('grijs', 'Einde dienst', n);
-        } else {
-          markDienstPending(n, 'add');
-          S.dienst.add(n);
-          save();
-          renderDienst();
-          renderNameBtns();
-          logEvent('dienst', n + ' op dienst');
-          schrijfGedeeldeMelding('grijs', 'Aanvang dienst', n);
-        }
-        // Temporarily lock this name's buttons across all instances (re-render
-        // recreates the DOM). We re-find buttons via data-name to apply the lock.
-        btn._busy = true;
-        document.querySelectorAll('[data-dienst-name="' + CSS.escape(n) + '"]').forEach(b => {
-          b.style.opacity = '0.55';
-          b.style.pointerEvents = 'none';
-        });
-        setTimeout(() => {
-          btn._busy = false;
-          document.querySelectorAll('[data-dienst-name="' + CSS.escape(n) + '"]').forEach(b => {
-            b.style.opacity = '';
-            b.style.pointerEvents = '';
-          });
-        }, 800);
-      });
+      btn.innerHTML =
+        '<span class="dienst-av">' + escHtml(dienstInitialen(n)) + '</span>'
+        + '<span class="dienst-naam">' + escHtml(n) + '</span>'
+        + '<span class="dienst-check">' + _CHECK_SVG + '</span>';
+      btn.addEventListener('click', () => dienstToggle(n, btn));
       rij.appendChild(btn);
     });
 
@@ -4859,12 +4919,39 @@ function renderDienst() {
     el.appendChild(groepEl);
   });
 
-  const st = document.getElementById('dienst-status');
-  if (S.dienst.size === 0) {
-    st.textContent = 'Geen selectie — alle ' + S.medewerkers.length + ' medewerkers worden getoond bij registratie.';
-  } else {
-    st.innerHTML = '<strong>' + S.dienst.size + '</strong> medewerker' + (S.dienst.size !== 1 ? 's' : '') + ' op dienst: ' + [...S.dienst].map(escHtml).join(', ');
+  // ── Selectiebalk ──────────────────────────────────────────────
+  const aantal = S.dienst.size;
+  const tellerEl = document.getElementById('dienst-teller');
+  const labelEl  = document.getElementById('dienst-teller-label');
+  const wisEl    = document.getElementById('dienst-wis');
+  const chipsEl  = document.getElementById('dienst-chips');
+  const leegEl   = document.getElementById('dienst-leeg');
+
+  if (tellerEl) tellerEl.textContent = aantal;
+  if (labelEl)  labelEl.textContent = aantal === 1 ? 'collega op dienst' : "collega's op dienst";
+  if (wisEl)    wisEl.style.display = aantal > 0 ? '' : 'none';
+
+  if (chipsEl) {
+    chipsEl.innerHTML = '';
+    // Chips in vaste medewerker-volgorde voor stabiliteit
+    S.medewerkers.forEach(med => {
+      const n = med.naam;
+      if (!S.dienst.has(n)) return;
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'dienst-chip';
+      chip.setAttribute('data-dienst-name', n);
+      chip.setAttribute('aria-label', n + ' van dienst halen');
+      if (_pendingDienst.has(n)) { chip.style.opacity = '0.55'; chip.style.pointerEvents = 'none'; }
+      chip.innerHTML =
+        '<span class="dienst-av">' + escHtml(dienstInitialen(n)) + '</span>'
+        + '<span>' + escHtml(n) + '</span>'
+        + '<span class="x" aria-hidden="true">×</span>';
+      chip.addEventListener('click', () => dienstToggle(n, chip));
+      chipsEl.appendChild(chip);
+    });
   }
+  if (leegEl) leegEl.style.display = aantal > 0 ? 'none' : '';
 
   // Houd de header-badge ("x van y op dienst") in sync. renderDienst() wordt door
   // elke dienst-mutatie aangeroepen (toggle, leegmaken, medewerker verwijderen/
