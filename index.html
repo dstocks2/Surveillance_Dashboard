@@ -15,6 +15,11 @@
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;min-height:100vh;color:#1e293b;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
 .header{background:#1e3a5c;padding:max(16px,env(safe-area-inset-top)) 24px 16px;display:flex;align-items:center;gap:14px;justify-content:space-between}
 .topbar-sticky{position:sticky;top:0;z-index:7000}
+/* Vóór de eerste auth-check: app-chrome verbergen zodat noch dashboard noch
+   inlogscherm flitst bij F5. Achtergrond blijft neutraal. */
+body.pre-auth .topbar-sticky,
+body.pre-auth #app-main,
+body.pre-auth .mobile-tabbar{visibility:hidden}
 
 /* Mobiele header */
 @media(max-width:600px){
@@ -381,12 +386,12 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   });
 </script>
 </head>
-<body>
+<body class="pre-auth">
 
 <!-- Login gate. Covers the entire app (opaque) until a real user is signed in.
-     Shows a neutral loading state first; the form only appears once we know there
-     is no active session (prevents a login-form flash for already-signed-in users). -->
-<div id="login-overlay" role="dialog" aria-modal="true" aria-labelledby="login-title">
+     Initially hidden: a short grace timer reveals it only if the auth check has
+     not resolved yet, so a quick "already signed in" F5 shows no login flash. -->
+<div id="login-overlay" role="dialog" aria-modal="true" aria-labelledby="login-title" style="display:none">
 
   <!-- Brandpaneel (links) -->
   <div class="login-brand">
@@ -888,7 +893,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.10</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.11</span>
     </div>
   </nav>
 
@@ -1204,7 +1209,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.3.10';
+const APP_VERSION = '2.3.11';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -5319,7 +5324,18 @@ function showLoginOverlay(show) {
   if (ov) ov.style.display = show ? 'flex' : 'none';
 }
 
+// Grace-timer: toont het inlogscherm pas als de auth-check niet binnen ~250ms
+// resolvet. Bij een bestaande sessie (browserLocalPersistence) is dat meestal
+// zo, dus geen kortstondige inlog-flits meer bij F5.
+let _authResolved = false;
+const _loginGraceTimer = setTimeout(() => {
+  if (!_authResolved) showLoginOverlay(true);
+}, 250);
+
 function onAuthChanged(user) {
+  _authResolved = true;
+  clearTimeout(_loginGraceTimer);
+  document.body.classList.remove('pre-auth');
   if (user) {
     // Signed in — hide login, reveal + boot the dashboard (once).
     showLoginOverlay(false);
@@ -5330,7 +5346,7 @@ function onAuthChanged(user) {
       initFirebase();
     }
   } else {
-    // No session — now (and only now) reveal the form, replacing the loading state.
+    // No session — reveal the form, replacing the loading state.
     const loading = document.getElementById('login-loading');
     const form    = document.getElementById('login-form');
     if (loading) loading.style.display = 'none';
