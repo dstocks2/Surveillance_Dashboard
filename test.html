@@ -46,7 +46,7 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .content{padding:20px 24px;max-width:960px;margin:0 auto}
 /* ── Mobile bottom tabbar ──────────────────────────────────────────────── */
 .mobile-tabbar{display:none;position:fixed;bottom:0;left:0;right:0;height:66px;background:#fff;border-top:0.5px solid #e2e8f0;z-index:8000;padding-bottom:env(safe-area-inset-bottom)}
-.mob-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;font-family:inherit;color:#68686d;font-size:10px;font-weight:500;padding:8px 2px 4px;-webkit-tap-highlight-color:transparent;transition:color .12s}
+.mob-tab{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;font-family:inherit;color:#68686d;font-size:9.5px;font-weight:500;padding:8px 1px 4px;-webkit-tap-highlight-color:transparent;transition:color .12s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .mob-tab.on{color:#1d4ed8}
 .mob-tab svg{flex-shrink:0}
 /* ── Desktop sidebar cfg layout ───────────────────────────────────────── */
@@ -371,7 +371,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, set, get, onValue, update, remove, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getDatabase, ref, set, get, onValue, update, remove, push, onDisconnect, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
   // ════════════════════════════════════════════════════════════════════════
@@ -401,6 +401,8 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   window.fbUpdate  = update;
   window.fbRemove  = remove;
   window.fbPush    = push;
+  window.fbOnDisconnect = onDisconnect;
+  window.fbServerTimestamp = serverTimestamp;
   window.fbAuth    = auth;
   window.firebaseReady = false; // wait for a real signed-in user before signalling ready
 
@@ -586,6 +588,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   <button type="button" class="tab" role="tab" aria-selected="false" aria-controls="pane-live" onclick="goTab('live')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Overzicht</button>
   <button type="button" class="tab" role="tab" aria-selected="false" aria-controls="pane-plan" onclick="goTab('plan')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>Voorgestelde ronde</button>
   <button type="button" class="tab" role="tab" aria-selected="false" aria-controls="pane-dienst" onclick="goTab('dienst')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Op dienst</button>
+  <button type="button" class="tab" role="tab" aria-selected="false" aria-controls="pane-clients" onclick="goTab('clients')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>Clients <span id="clients-tab-count" style="background:#dbeafe;color:#1d4ed8;border-radius:10px;padding:0 6px;font-size:10px;font-weight:700;margin-left:2px;display:none"></span></button>
   <div style="flex:1"></div>
   <button type="button" class="bel-wrap" id="bel-btn" onclick="toggleMeldingen()" title="Meldingen" aria-label="Meldingen">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
@@ -614,6 +617,10 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   <button type="button" class="mob-tab" id="mob-tab-dienst" onclick="goTab('dienst')">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
     Op dienst
+  </button>
+  <button type="button" class="mob-tab" id="mob-tab-clients" onclick="goTab('clients')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+    Clients
   </button>
   <button type="button" class="mob-tab" id="mob-tab-cfg" onclick="goTab('cfg')">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -722,6 +729,19 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
       <div id="dienst-leeg">Nog niemand geselecteerd — tik hieronder op een naam.</div>
     </div>
     <div id="dienst-grid"></div>
+  </div>
+
+  <!-- CLIENTS (alleen test) -->
+  <div id="pane-clients" class="pane" role="tabpanel" aria-label="Verbonden clients">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px">
+      <div>
+        <p class="lbl" style="margin-bottom:2px">Verbonden clients</p>
+        <p style="font-size:12px;color:#5b6b7f;margin:0">Alle apparaten die met dit dashboard verbonden zijn (of recent waren). Online sessies kun je op afstand uitloggen.</p>
+      </div>
+      <button type="button" class="sm" onclick="wisOfflineClients()" style="flex-shrink:0">Offline opruimen</button>
+    </div>
+    <div id="clients-stats" style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 14px"></div>
+    <div id="clients-list"></div>
   </div>
 
   <!-- BEHEER -->
@@ -938,7 +958,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.22</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.4.0</span>
     </div>
   </nav>
 
@@ -1103,6 +1123,18 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   </div>
 </div>
 
+<!-- Tekstinvoer-prompt (voor o.a. client-labels) -->
+<div class="modal-overlay" id="prompt-overlay" style="display:none" onclick="promptCancel()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-msg" id="prompt-msg" style="margin-bottom:12px"></div>
+    <input type="text" id="prompt-input" maxlength="40" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:16px;font-family:inherit;margin-bottom:16px" onkeydown="if(event.key==='Enter')promptConfirm();if(event.key==='Escape')promptCancel()">
+    <div class="modal-btns">
+      <button type="button" class="modal-btn modal-btn-nee" onclick="promptCancel()">Annuleren</button>
+      <button type="button" class="modal-btn modal-btn-ja" style="background:#1d4ed8" onclick="promptConfirm()">Opslaan</button>
+    </div>
+  </div>
+</div>
+
 <!-- Uitlog-bevestiging (eigen, niet-destructief ontwerp: blauw accent) -->
 <div class="modal-overlay" id="logout-overlay" style="display:none" onclick="logoutCancel()">
   <div class="modal-box logout-box" onclick="event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="logout-title">
@@ -1254,7 +1286,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.3.22';
+const APP_VERSION = '2.4.0';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1925,7 +1957,7 @@ let S = {
   active: {},   // always loaded from Firebase — never from localStorage
   log:    [],   // always loaded from Firebase — never from localStorage
   sns: new Set(), sr: null, dienst: new Set(LS.get('rn_dienst') || []),
-  tick: null, tickL: null, tickTL: null,
+  tick: null, tickL: null, tickTL: null, tickClients: null,
   _dienstPendingTimers: {}, // clearTimeout refs per naam
   _tlTimer: null,           // debounce ref for drawTimeline
   _headerTimer: null,       // setTimeout ref for scheduleHeader
@@ -2041,8 +2073,16 @@ function goTab(id) {
     clearInterval(S.tickL);  S.tickL  = null;
     clearInterval(S.tickTL); S.tickTL = null;
   }
-  document.querySelectorAll('.tab').forEach((b,i) =>
-    b.classList.toggle('on', ['reg','live','plan','dienst','cfg'][i] === id));
+  if (id !== 'clients') { clearInterval(S.tickClients); S.tickClients = null; }
+  // Toggle active state on header tabs by matching aria-controls (robust to
+  // tab order — never rely on positional index).
+  document.querySelectorAll('.tab[role="tab"]').forEach(b => {
+    const ctrl = b.getAttribute('aria-controls');
+    b.classList.toggle('on', ctrl === 'pane-' + id);
+  });
+  // cfg tab has no role="tab"/aria-controls; toggle it explicitly
+  const cfgTab = document.querySelector('.tab-cfg');
+  if (cfgTab) cfgTab.classList.toggle('on', id === 'cfg');
   document.querySelectorAll('.pane').forEach(p => p.classList.remove('on'));
   document.getElementById('pane-' + id).classList.add('on');
   if (id === 'reg')   renderAllActive();
@@ -2051,6 +2091,11 @@ function goTab(id) {
     Object.entries(S.active), Date.now()-86400000, Date.now()), 50); }
   if (id === 'plan')  renderPlan();
   if (id === 'dienst') renderDienst();
+  if (id === 'clients') {
+    renderClients();
+    clearInterval(S.tickClients);
+    S.tickClients = setInterval(renderClients, 10000); // herbereken online/offline + "laatst actief"
+  }
   if (id === 'cfg') {
     if (isMobile()) { cfgShowMobile(); checkCfgLock(); } else { cfgGoSection(_cfgActiveSection || 'medewerkers'); checkCfgLock(); }
   }
@@ -2060,7 +2105,7 @@ function goTab(id) {
     btn.setAttribute('aria-selected', controls === 'pane-' + id ? 'true' : 'false');
   });
   // Sync mobile bottom tabbar
-  ['reg','live','plan','dienst','cfg'].forEach(function(t) {
+  ['reg','live','plan','dienst','clients','cfg'].forEach(function(t) {
     var btn = document.getElementById('mob-tab-' + t);
     if (btn) btn.classList.toggle('on', t === id);
   });
@@ -5167,6 +5212,31 @@ function modalCancel() {
   if (_modalResolve) { _modalResolve(false); _modalResolve = null; }
 }
 
+// ── Custom prompt (tekstinvoer, iPad/Safari-proof) ─────────────────────────
+let _promptResolve = null;
+let _promptOpen = false;
+function customPrompt(msg, defaultVal) {
+  if (_promptOpen) return Promise.resolve(null);
+  _promptOpen = true;
+  return new Promise(resolve => {
+    _promptResolve = (val) => { _promptOpen = false; resolve(val); };
+    document.getElementById('prompt-msg').textContent = msg;
+    const inp = document.getElementById('prompt-input');
+    inp.value = defaultVal || '';
+    document.getElementById('prompt-overlay').style.display = 'flex';
+    setTimeout(() => { inp.focus(); inp.select(); }, 50);
+  });
+}
+function promptConfirm() {
+  const val = document.getElementById('prompt-input').value;
+  document.getElementById('prompt-overlay').style.display = 'none';
+  if (_promptResolve) { _promptResolve(val); _promptResolve = null; }
+}
+function promptCancel() {
+  document.getElementById('prompt-overlay').style.display = 'none';
+  if (_promptResolve) { _promptResolve(null); _promptResolve = null; }
+}
+
 // Init
 // Set version badge from APP_VERSION constant
 const _vb = document.getElementById('app-version-badge');
@@ -5454,12 +5524,302 @@ document.addEventListener('keydown', e => {
   }
 });
 
+// ── CLIENTS / PRESENCE (alleen test) ───────────────────────────────────────
+// Elke client registreert zichzelf onder dashboard/clients/{deviceId} met een
+// heartbeat (lastSeen) + onDisconnect() die de online-vlag uitzet bij verbreken.
+// Andere clients lezen de lijst live. "Remote uitloggen" werkt via een commando
+// in de node: de doelclient ziet 'cmd: logout' en voert ZELF signOut() uit —
+// een browser kan een andere browser niet direct uitloggen.
+
+const CLIENTS_PATH = 'dashboard/clients';
+const CLIENT_ONLINE_MS = 45 * 1000;        // lastSeen jonger dan dit = "online"
+const CLIENT_HEARTBEAT_MS = 20 * 1000;     // hoe vaak we onze eigen lastSeen verversen
+const CLIENT_STALE_OFFLINE_MS = 7 * 24 * 60 * 60 * 1000; // offline + ouder dan dit = auto-opruimbaar
+let CLIENTS = {};                          // deviceId -> client object (uit Firebase)
+let _clientsHeartbeatStarted = false;
+
+// Detecteer browser + OS uit de user-agent (best-effort, puur informatief).
+function detectBrowserOS() {
+  const ua = navigator.userAgent || '';
+  let browser = 'Onbekend', os = 'Onbekend';
+  // OS
+  if (/iPhone|iPad|iPod/.test(ua)) os = /iPad/.test(ua) ? 'iPadOS' : 'iOS';
+  else if (/Android/.test(ua))     os = 'Android';
+  else if (/Windows NT/.test(ua))  os = 'Windows';
+  else if (/Mac OS X/.test(ua))    os = 'macOS';
+  else if (/Linux/.test(ua))       os = 'Linux';
+  // iPadOS 13+ doet zich voor als Mac met touch
+  if (os === 'macOS' && navigator.maxTouchPoints > 1) os = 'iPadOS';
+  // Browser (volgorde belangrijk: Edge/Chrome bevatten ook "Safari" etc.)
+  if (/Edg\//.test(ua))                         browser = 'Edge';
+  else if (/OPR\//.test(ua) || /Opera/.test(ua)) browser = 'Opera';
+  else if (/Firefox\//.test(ua))                browser = 'Firefox';
+  else if (/CriOS\//.test(ua))                  browser = 'Chrome';
+  else if (/Chrome\//.test(ua))                 browser = 'Chrome';
+  else if (/Safari\//.test(ua))                 browser = 'Safari';
+  return { browser, os };
+}
+
+// Apparaat-label: vrij in te vullen door de beheerder, lokaal opgeslagen per
+// toestel zodat het de eigen heartbeat steeds meeschrijft.
+function getClientLabel() {
+  return LS.get('rn_client_label') || '';
+}
+
+function startClientPresence() {
+  if (_clientsHeartbeatStarted || !window.fbDb || !window.fbRef || !window.fbSet) return;
+  _clientsHeartbeatStarted = true;
+  const myRef = window.fbRef(window.fbDb, CLIENTS_PATH + '/' + DEVICE_ID);
+  const { browser, os } = detectBrowserOS();
+
+  // Eerste, volledige registratie via set (cmd bewust afwezig = geen commando).
+  const initialWrite = () => {
+    window.fbSet(myRef, {
+      deviceId: DEVICE_ID,
+      label: getClientLabel(),
+      version: APP_VERSION,
+      browser, os,
+      online: true,
+      lastSeen: Date.now()
+    }).catch(() => {});
+  };
+
+  // Heartbeat via update: ververst alleen status-velden en raakt 'cmd' NIET aan,
+  // zodat een net-gezet logout-commando van de beheerder niet wordt weggevaagd
+  // voordat onze listener het heeft kunnen verwerken.
+  const writeHeartbeat = () => {
+    window.fbUpdate(myRef, {
+      label: getClientLabel(),
+      version: APP_VERSION,
+      browser, os,
+      online: true,
+      lastSeen: Date.now()
+    }).catch(() => {});
+  };
+
+  // onDisconnect: zodra de verbinding wegvalt zet Firebase server-side online=false
+  // + een lastSeen. Eventuele cmd wordt gewist zodat een oud logout-commando niet
+  // blijft hangen.
+  if (window.fbOnDisconnect) {
+    try {
+      window.fbOnDisconnect(myRef).update({ online: false, lastSeen: Date.now(), cmd: null }).catch(() => {});
+    } catch (e) { /* silent */ }
+  }
+
+  initialWrite();
+  TIMERS.set('clientHeartbeat', writeHeartbeat, CLIENT_HEARTBEAT_MS);
+
+  // Verversen bij terugkeer naar de voorgrond, zodat status snel weer "online" is.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') writeHeartbeat();
+  });
+  window.addEventListener('online', () => writeHeartbeat());
+}
+
+function fbListenClients() {
+  if (!window.fbDb) return;
+  window.fbOnValue(window.fbRef(window.fbDb, CLIENTS_PATH), snap => {
+    const data = snap.val() || {};
+    const clean = {};
+    Object.entries(data).forEach(([key, c]) => {
+      if (!c || typeof c !== 'object') return;
+      clean[key] = {
+        deviceId: decodeEntities(sanitizeFromFirebase(c.deviceId || key)),
+        label:    decodeEntities(sanitizeFromFirebase(c.label || '')),
+        version:  decodeEntities(sanitizeFromFirebase(c.version || '')),
+        browser:  decodeEntities(sanitizeFromFirebase(c.browser || '')),
+        os:       decodeEntities(sanitizeFromFirebase(c.os || '')),
+        online:   c.online === true,
+        lastSeen: typeof c.lastSeen === 'number' ? c.lastSeen : 0,
+        cmd:      typeof c.cmd === 'string' ? c.cmd : null
+      };
+    });
+    CLIENTS = clean;
+
+    // Reageer op een logout-commando voor ONS eigen toestel.
+    const mine = clean[DEVICE_ID];
+    if (mine && mine.cmd === 'logout') {
+      // Eerst commando wissen zodat het niet in een lus blijft, dan uitloggen.
+      window.fbUpdate(window.fbRef(window.fbDb, CLIENTS_PATH + '/' + DEVICE_ID), { cmd: null }).catch(() => {});
+      logEvent('system', 'Op afstand uitgelogd door beheerder');
+      if (window.fbSignOut) {
+        window.fbSignOut().catch(() => {}).finally(() => setTimeout(() => location.reload(), 200));
+      } else {
+        setTimeout(() => location.reload(), 200);
+      }
+      return;
+    }
+
+    // Tab-teller (aantal online) bijwerken
+    updClientsTabCount();
+    // Lijst verversen als de tab open staat
+    const pane = document.getElementById('pane-clients');
+    if (pane && pane.classList.contains('on')) renderClients();
+  }, e => { logEvent('error', 'Clients listener MISLUKT', { error: String(e) }); });
+}
+
+function clientIsOnline(c) {
+  return c.online === true && (Date.now() - (c.lastSeen || 0)) < CLIENT_ONLINE_MS;
+}
+
+function updClientsTabCount() {
+  const online = Object.values(CLIENTS).filter(clientIsOnline).length;
+  const badge = document.getElementById('clients-tab-count');
+  if (badge) {
+    if (online > 0) { badge.textContent = online; badge.style.display = ''; }
+    else badge.style.display = 'none';
+  }
+}
+
+function _fmtLastSeen(ms) {
+  if (!ms) return 'onbekend';
+  const diff = Date.now() - ms;
+  if (diff < 60000) return 'zojuist';
+  if (diff < 3600000) { const m = Math.floor(diff / 60000); return m + ' min geleden'; }
+  if (diff < 86400000) { const h = Math.floor(diff / 3600000); return h + ' uur geleden'; }
+  const d = Math.floor(diff / 86400000);
+  return d + (d === 1 ? ' dag geleden' : ' dagen geleden');
+}
+
+function renderClients() {
+  updClientsTabCount();
+  const stats = document.getElementById('clients-stats');
+  const list  = document.getElementById('clients-list');
+  if (!list) return;
+
+  const all = Object.values(CLIENTS);
+  const online  = all.filter(clientIsOnline).sort((a, b) => (b.lastSeen || 0) - (a.lastSeen || 0));
+  const offline = all.filter(c => !clientIsOnline(c)).sort((a, b) => (b.lastSeen || 0) - (a.lastSeen || 0));
+
+  // Versie-mismatch detecteren t.o.v. onze eigen versie
+  const versiesAnders = all.filter(c => c.version && c.version !== APP_VERSION).length;
+
+  if (stats) {
+    const pill = (bg, col, txt) => `<span style="background:${bg};color:${col};border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600">${txt}</span>`;
+    stats.innerHTML =
+      pill('#dcfce7', '#15803d', '● ' + online.length + ' online') +
+      pill('#f1f5f9', '#64748b', '○ ' + offline.length + ' offline') +
+      (versiesAnders ? pill('#fef3c7', '#92400e', '⚠ ' + versiesAnders + ' andere versie') : '');
+  }
+
+  if (!all.length) {
+    list.innerHTML = '<div class="empty">Nog geen clients geregistreerd.</div>';
+    return;
+  }
+
+  const renderCard = (c) => {
+    const isOnline = clientIsOnline(c);
+    const isMe = c.deviceId === DEVICE_ID;
+    const verMismatch = c.version && c.version !== APP_VERSION;
+    const dotColor = isOnline ? '#22c55e' : '#cbd5e1';
+    const dotAnim = isOnline ? 'animation:pulse 1.4s infinite' : '';
+    const naam = c.label || (c.browser + ' op ' + c.os);
+    const sub  = c.label ? (c.browser + ' · ' + c.os) : '';
+    return `<div style="border:1px solid ${isOnline ? '#bbf7d0' : '#e2e8f0'};background:${isOnline ? '#f0fdf4' : '#fff'};border-radius:10px;padding:13px 15px;margin-bottom:8px">
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <span style="width:9px;height:9px;border-radius:50%;background:${dotColor};${dotAnim};flex-shrink:0;margin-top:5px"></span>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+            <span style="font-size:14px;font-weight:700;color:#1e293b">${escHtml(naam)}</span>
+            ${isMe ? '<span style="background:#dbeafe;color:#1d4ed8;border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700">dit apparaat</span>' : ''}
+            ${verMismatch ? `<span style="background:#fef3c7;color:#92400e;border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700" title="Afwijkende versie">v${escHtml(c.version)}</span>` : `<span style="color:#94a3b8;font-size:11px;font-family:monospace">v${escHtml(c.version || '?')}</span>`}
+          </div>
+          ${sub ? `<div style="font-size:12px;color:#5b6b7f;margin-top:2px">${escHtml(sub)}</div>` : ''}
+          <div style="font-size:11px;color:#94a3b8;margin-top:4px;display:flex;gap:10px;flex-wrap:wrap">
+            <span>${isOnline ? 'Online' : 'Laatst actief: ' + _fmtLastSeen(c.lastSeen)}</span>
+            <span style="font-family:monospace" title="Device-ID">${escHtml((c.deviceId || '').slice(0, 18))}</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0;align-items:flex-end">
+          <button type="button" class="sm" onclick="editClientLabel('${escHtml(c.deviceId)}')" style="padding:5px 10px;font-size:11px">Label</button>
+          ${isOnline && !isMe ? `<button type="button" class="sm del" onclick="remoteLogoutClient('${escHtml(c.deviceId)}')" style="padding:5px 10px;font-size:11px">Uitloggen</button>` : ''}
+          ${!isOnline ? `<button type="button" class="sm del" onclick="removeClientEntry('${escHtml(c.deviceId)}')" style="padding:5px 10px;font-size:11px" title="Verwijder uit lijst">Verwijderen</button>` : ''}
+        </div>
+      </div>
+    </div>`;
+  };
+
+  let html = '';
+  if (online.length) {
+    html += '<div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#15803d;margin:4px 0 8px">Online (' + online.length + ')</div>';
+    html += online.map(renderCard).join('');
+  }
+  if (offline.length) {
+    html += '<div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8;margin:16px 0 8px">Offline (' + offline.length + ')</div>';
+    html += offline.map(renderCard).join('');
+  }
+  list.innerHTML = html;
+}
+
+// Label bewerken — alleen voor het EIGEN toestel lokaal opslaan; voor andere
+// toestellen schrijven we direct het label in hun client-node (zij pikken het
+// bij hun volgende heartbeat niet terug, dus we zetten het hier direct).
+async function editClientLabel(deviceId) {
+  const c = CLIENTS[deviceId];
+  if (!c) return;
+  const huidige = c.label || '';
+  const nieuw = await customPrompt('Naam voor dit apparaat (bijv. "Tablet hal A"):', huidige);
+  if (nieuw === null) return; // geannuleerd
+  const schoon = sanitizeForStorage(nieuw).slice(0, 40);
+  if (deviceId === DEVICE_ID) {
+    LS.set('rn_client_label', schoon);
+  }
+  // Schrijf direct naar de client-node zodat het overzicht meteen klopt
+  window.fbUpdate(window.fbRef(window.fbDb, CLIENTS_PATH + '/' + deviceId), { label: schoon }).catch(() => {});
+  logEvent('settings', 'Client-label gewijzigd', { deviceId: deviceId.slice(0, 18), label: schoon });
+  showToast('Label opgeslagen');
+}
+
+// Remote logout: zet cmd=logout op de doelclient. Die ziet het via zijn eigen
+// listener en logt zichzelf uit + reload. Werkt alleen als de client online is.
+async function remoteLogoutClient(deviceId) {
+  const c = CLIENTS[deviceId];
+  if (!c) return;
+  const naam = c.label || (c.browser + ' op ' + c.os);
+  if (!await customConfirm('"' + naam + '" op afstand uitloggen?\n\nDeze sessie logt zichzelf uit en keert terug naar het inlogscherm. Werkt alleen zolang het apparaat online is.')) return;
+  window.fbUpdate(window.fbRef(window.fbDb, CLIENTS_PATH + '/' + deviceId), { cmd: 'logout' })
+    .then(() => {
+      logEvent('system', 'Remote logout verstuurd', { deviceId: deviceId.slice(0, 18), naam });
+      showToast('Uitlog-opdracht verstuurd naar ' + naam);
+    })
+    .catch(e => { logEvent('error', 'Remote logout MISLUKT', { error: String(e) }); showToast('Uitloggen mislukt'); });
+}
+
+// Offline entry handmatig uit de lijst verwijderen
+async function removeClientEntry(deviceId) {
+  const c = CLIENTS[deviceId];
+  if (!c) return;
+  if (clientIsOnline(c)) { showToast('Deze client is nog online'); return; }
+  const naam = c.label || (c.browser + ' op ' + c.os);
+  if (!await customConfirm('"' + naam + '" uit de lijst verwijderen?')) return;
+  window.fbRemove(window.fbRef(window.fbDb, CLIENTS_PATH + '/' + deviceId))
+    .then(() => { logEvent('system', 'Client uit lijst verwijderd', { deviceId: deviceId.slice(0, 18) }); showToast('Verwijderd'); })
+    .catch(() => showToast('Verwijderen mislukt'));
+}
+
+// Alle offline + verouderde clients opruimen
+async function wisOfflineClients() {
+  const offline = Object.values(CLIENTS).filter(c => !clientIsOnline(c));
+  if (!offline.length) { showToast('Geen offline clients'); return; }
+  if (!await customConfirm(offline.length + ' offline client' + (offline.length !== 1 ? 's' : '') + ' verwijderen uit de lijst?')) return;
+  let removed = 0;
+  await Promise.all(offline.map(c =>
+    window.fbRemove(window.fbRef(window.fbDb, CLIENTS_PATH + '/' + c.deviceId))
+      .then(() => { removed++; }).catch(() => {})
+  ));
+  logEvent('system', 'Offline clients opgeruimd (' + removed + ')');
+  showToast(removed + ' opgeruimd');
+}
+
+
 // Start Firebase when ready — Firebase is the ONLY source for active/log
 function initFirebase() {
   fbListen(); // this will populate S.active and S.log and trigger re-render
   fbListenMeldingen(); // listen for shared notifications
   fbListenConnected(); // listen for Firebase connectivity
   fbListenEventLog();  // listen for audit log
+  fbListenClients();   // listen for connected clients (alleen test)
+  startClientPresence(); // registreer dit toestel + heartbeat (alleen test)
   logEvent('system', 'App geladen', { version: APP_VERSION, ua: navigator.userAgent.slice(0, 120) });
   const fbSt = document.getElementById('fb-status');
   if (fbSt) fbSt.textContent = '● gesynchroniseerd';
@@ -5730,6 +6090,12 @@ async function doLogin() {
 async function doLogout() {
   if (!window.fbSignOut) return;
   if (!await logoutConfirm()) return;
+  // Markeer dit toestel als offline in het clients-overzicht (best-effort).
+  try {
+    if (window.fbDb && window.fbUpdate && window.fbRef) {
+      await window.fbUpdate(window.fbRef(window.fbDb, 'dashboard/clients/' + DEVICE_ID), { online: false, lastSeen: Date.now(), cmd: null });
+    }
+  } catch (e) { /* silent */ }
   try { await window.fbSignOut(); } catch (e) {}
   // onAuthChanged shows the login overlay again. Reload to fully reset app state
   // (listeners, intervals) so a fresh login starts cleanly.
