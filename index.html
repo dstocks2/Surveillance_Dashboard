@@ -934,7 +934,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.18</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.19</span>
     </div>
   </nav>
 
@@ -1250,7 +1250,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.3.18';
+const APP_VERSION = '2.3.19';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1757,10 +1757,30 @@ function fbListen() {
         }
         fbDienst = [...merged];
       }
+      // Een actieve ronde impliceert "op dienst": iemand kan niet retour-plichtig
+      // onderweg zijn zonder op dienst te staan. Forceer alle namen met een lopende
+      // ronde in de selectie. Dit herstelt ook sessies waar de dienst-lijst is
+      // gewisseld terwijl iemand al onderweg was (bv. ronde gestart op tablet A,
+      // dienst geleegd op tablet B → de loper hoort zichtbaar te blijven).
+      const dienstSet = new Set(fbDienst);
+      let forcedFromActive = false;
+      Object.keys(S.active || {}).forEach(n => {
+        if (!dienstSet.has(n)) { dienstSet.add(n); forcedFromActive = true; }
+      });
+      fbDienst = [...dienstSet];
       const localDienst  = [...S.dienst].sort().join('|');
       const remoteDienst = [...fbDienst].sort().join('|');
       if (remoteDienst !== localDienst)
         S.dienst = new Set(fbDienst);
+      // Als we namen op grond van hun actieve ronde hebben toegevoegd die nog niet
+      // in Firebase-dienst stonden, dat terugschrijven zodat alle sessies het zien.
+      // Alleen schrijven bij een echte uitbreiding t.o.v. de binnengekomen lijst.
+      if (forcedFromActive && !window._appOutdated) {
+        const incoming = sanitizeNames(Array.isArray(d.dienst) ? d.dienst : []);
+        const incomingSet = new Set(incoming);
+        const needsWrite = [...S.dienst].some(n => !incomingSet.has(n));
+        if (needsWrite) save();
+      }
     }
     // medewerkers is de enige bron — names is een computed getter, nooit apart geladen
     if (d.medewerkers !== undefined && Array.isArray(d.medewerkers) && d.medewerkers.length) {
