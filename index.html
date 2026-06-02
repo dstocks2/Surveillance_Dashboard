@@ -937,7 +937,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.26</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.27</span>
     </div>
   </nav>
 
@@ -1253,7 +1253,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.3.26';
+const APP_VERSION = '2.3.27';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1669,6 +1669,9 @@ function sanitizeLog(arr) {
     start: typeof r.start === 'number' ? r.start : 0,
     end:   typeof r.end   === 'number' ? r.end   : 0,
     dur:   typeof r.dur   === 'number' ? r.dur   : 0,
+    // _fbKey behouden indien aanwezig — anders kan de snapshot-prune entries niet
+    // aan hun Firebase-key koppelen en beschouwt hij ALLES als verweesd.
+    ...(r._fbKey ? { _fbKey: r._fbKey } : {}),
   })).filter(r => r.name && r.route && r.start)
      .sort((a, b) => (b.end || 0) - (a.end || 0))
      .slice(0, 200);
@@ -1750,27 +1753,41 @@ function fbListen() {
       const locLogKey = S.log.map(r => r.id).join(',');
       if (fbLogKey !== locLogKey) S.log = mergedLog;
 
-      // Snapshot-prune: ruim Firebase-log-keys op die buiten de retentie vallen of
-      // verweesd zijn (duplicaten die uit de merge zijn gevallen, of entries voorbij
-      // de 300-limiet). pruneLog() werkt alleen op S.log en zou deze nooit raken,
-      // waardoor Firebase bleef vollopen ondanks een korte bewaar-duur. Alleen bij
-      // een object-snapshot (niet de oude array-vorm) en met geldige state.
+      // Snapshot-prune: ruim Firebase-log-keys op die buiten de retentie vallen
+      // (te oud) of een echt duplicaat zijn (zelfde name|route|start als een entry
+      // die we al behouden). pruneLog() werkt alleen op S.log en zou deze nooit
+      // raken. Conservatief: keys die enkel buiten de 200/300-cap vallen worden
+      // NIET als verweesd gewist — alleen op leeftijd. Alleen bij object-snapshot.
       if (!window._appOutdated && !Array.isArray(d.log) && window.fbDb && window.fbRemove) {
         const retMs = Math.max((S.logRetention ?? 2) * 24 * 60 * 60 * 1000, 25 * 60 * 60 * 1000);
         const cut = Date.now() - retMs;
-        const keepKeys = new Set(mergedLog.map(r => r._fbKey).filter(Boolean));
-        const staleKeys = [];
+        // Behouden-identiteiten op natuurlijke sleutel, om echte duplicaten te vinden.
+        const keptNatKeys = new Set(mergedLog.map(r => (r.name || '') + '|' + (r.route || '') + '|' + (r.start || '')));
+        const keptFbKeys  = new Set(mergedLog.map(r => r._fbKey).filter(Boolean));
+        const tooOld = [];
+        const dupes  = [];
         Object.entries(d.log).forEach(([k, v]) => {
-          const end = (v && typeof v.end === 'number') ? v.end : 0;
-          // Te oud, óf niet in de (gededupliceerde, gecapte) merge → verweesd.
-          if (end < cut || !keepKeys.has(k)) staleKeys.push(k);
+          if (!v || typeof v !== 'object') return;
+          const end = typeof v.end === 'number' ? v.end : 0;
+          if (end > 0 && end < cut) { tooOld.push(k); return; }
+          // Duplicaat: deze key hoort bij een natuurlijke identiteit die we al
+          // onder een ANDERE key behouden. Nooit een behouden key zelf wissen.
+          const nat = (v.name || '') + '|' + (v.route || '') + '|' + (v.start || '');
+          if (!keptFbKeys.has(k) && keptNatKeys.has(nat)) dupes.push(k);
         });
-        if (staleKeys.length) {
+        const staleKeys = [...tooOld, ...dupes];
+        // Veiligheidsgrendel: wis nooit (vrijwel) de hele node in één keer. Als de
+        // prune meer dan de helft van alle keys zou raken, is er iets mis met de
+        // state-afleiding — dan loggen we een waarschuwing en doen we niets.
+        const totalKeys = Object.keys(d.log).length;
+        if (staleKeys.length > 0 && staleKeys.length >= Math.max(20, Math.ceil(totalKeys * 0.5))) {
+          logEvent('error', 'Log-prune AFGEBROKEN: zou ' + staleKeys.length + ' van ' + totalKeys + ' entries wissen (verdacht)', { retention: S.logRetention });
+        } else if (staleKeys.length) {
           Promise.allSettled(staleKeys.map(k => fbRemoveLogEntry(k)))
             .then(results => {
               const failed = results.filter(r => r.status === 'rejected').length;
               const ok = results.length - failed;
-              if (ok)     logEvent('auto', 'Log opgeschoond (Firebase): ' + ok + ' verouderde/verweesde entries verwijderd', { retention: S.logRetention });
+              if (ok)     logEvent('auto', 'Log opgeschoond (Firebase): ' + ok + ' entries verwijderd', { tooOld: tooOld.length, dupes: dupes.length, retention: S.logRetention });
               if (failed) logEvent('error', 'Log opschonen (Firebase): ' + failed + ' entries niet verwijderd', { failed });
             });
         }
