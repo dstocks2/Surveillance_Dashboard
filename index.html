@@ -934,7 +934,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.20</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.22</span>
     </div>
   </nav>
 
@@ -1250,7 +1250,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.3.20';
+const APP_VERSION = '2.3.22';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1289,6 +1289,9 @@ function _generateDeviceId() {
 const DEVICE_ID = _generateDeviceId();
 const EVENT_LOG_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 let EVENT_LOG = []; // local cache for rendering, populated from Firebase
+// Audit-keys waarvoor we al een TTL-verwijdering hebben afgevuurd — voorkomt dat
+// elke volgende snapshot opnieuw fbRemove doet voor dezelfde entry.
+const _deletingAuditKeys = new Set();
 
 function logEvent(type, msg, detail) {
   // type: 'start'|'retour'|'dienst'|'settings'|'sync'|'auto'|'system'|'melding'|'pin'|'error'
@@ -1322,15 +1325,23 @@ function fbListenEventLog() {
   if (!window.fbDb) return;
   window.fbOnValue(window.fbRef(window.fbDb, 'dashboard/auditLog'), snap => {
     const data = snap.val();
-    if (!data) { EVENT_LOG = []; return; }
+    if (!data) { EVENT_LOG = []; _deletingAuditKeys.clear(); return; }
     const cutoff = Date.now() - EVENT_LOG_TTL_MS;
     const items = [];
+    const liveKeys = new Set();
     Object.entries(data).forEach(([key, e]) => {
-      // Auto-prune entries older than 7 days
+      liveKeys.add(key);
+      // Auto-prune entries older than 7 days.
+      // Guard: vuur de delete maar ÉÉN keer per key af (meerdere snapshots kunnen
+      // binnenkomen voordat de verwijdering propageert). En log de prune NIET als
+      // auditLog-event — dat zou zelf weer een entry aanmaken en de log laten
+      // groeien terwijl hij hoort te krimpen (oorzaak van log-explosie).
       if (e && e.ts && e.ts < cutoff) {
-        window.fbRemove(window.fbRef(window.fbDb, 'dashboard/auditLog/' + key))
-          .then(() => logEvent('auto', 'EventLog entry automatisch verwijderd (>7 dagen)', { key, ts: e.ts, type: e.type || '', msg: (e.msg || '').slice(0, 80) }))
-          .catch(err => logEvent('error', 'EventLog auto-verwijdering MISLUKT', { key, error: String(err) }));
+        if (!_deletingAuditKeys.has(key)) {
+          _deletingAuditKeys.add(key);
+          window.fbRemove(window.fbRef(window.fbDb, 'dashboard/auditLog/' + key))
+            .catch(() => { _deletingAuditKeys.delete(key); });
+        }
         return;
       }
       if (!e || !e.ts) return;
@@ -1344,6 +1355,8 @@ function fbListenEventLog() {
         appVersion: decodeEntities(sanitizeFromFirebase(e.appVersion || ''))
       });
     });
+    // Opruimen van keys die echt weg zijn, zodat de guard-set niet onbeperkt groeit
+    for (const k of [..._deletingAuditKeys]) if (!liveKeys.has(k)) _deletingAuditKeys.delete(k);
     items.sort((a, b) => b.ts - a.ts);
     EVENT_LOG = items.slice(0, 1000); // cap render to 1000 newest
     if (typeof renderEventLog === 'function') {
@@ -1480,8 +1493,14 @@ function showUpdateBanner() {
 }
 
 function checkAppVersion(remoteVersion) {
-  // Trigger bij elke versieverschil — ook rollback (remote lager dan local)
-  if (remoteVersion && remoteVersion !== APP_VERSION) showUpdateBanner();
+  // Blokkeer + reload ALLEEN als de remote versie NIEUWER is dan de onze. Een
+  // oudere remote versie betekent dat een achtergebleven tablet z'n versie heeft
+  // teruggeschreven — wíj zijn dan al up-to-date en moeten NIET blokkeren. Het
+  // oude gedrag (blokkeren bij élk verschil, ook lager) veroorzaakte een reload-
+  // oorlog tussen sessies op verschillende versies: ze bleven elkaar over en weer
+  // "verouderd" verklaren en herladen, waardoor fbListen op beide kanten stopte
+  // met verwerken en starts niet meer doorkwamen.
+  if (isNewerVersion(remoteVersion, APP_VERSION)) showUpdateBanner();
 }
 
 // Re-check version when tab comes back to foreground (catches background-stale tabs)
@@ -1996,7 +2015,10 @@ function fmtDT(ms) {
        + ' ' + fmtT(ms);
 }
 function elaps(s) {
-  const t = Math.floor((Date.now() - s) / 1000);
+  // Clamp op 0: bij klokverschil tussen apparaten kan (now - start) negatief zijn
+  // (ronde gestart op een tablet met voorlopende klok). Toon dan 00:00 i.p.v. een
+  // negatieve/vreemde tijd.
+  const t = Math.max(0, Math.floor((Date.now() - s) / 1000));
   return String(Math.floor(t/60)).padStart(2,'0') + ':' + String(t%60).padStart(2,'0');
 }
 
@@ -2056,7 +2078,25 @@ function activeNames() {
 function renderNameBtns() {
   const el = document.getElementById('name-btns');
   el.innerHTML = '';
-  activeNames().forEach(n => {
+  const namen = activeNames();
+  // Opschonen: verwijder geselecteerde namen (stap 1) die niet langer zichtbaar
+  // zijn — bv. iemand is op een andere sessie van dienst gehaald of verwijderd
+  // terwijl die hier nog aangevinkt stond. Anders blijft S.sns een "spook"-naam
+  // vasthouden waarmee per ongeluk een ronde gestart kan worden voor iemand die
+  // niet meer in de lijst staat.
+  if (S.sns.size) {
+    const zichtbaar = new Set(namen);
+    let veranderd = false;
+    [...S.sns].forEach(n => { if (!zichtbaar.has(n)) { S.sns.delete(n); veranderd = true; } });
+    if (veranderd) {
+      const elVal = document.getElementById('sn-val');
+      if (elVal) {
+        if (S.sns.size === 0) { elVal.className = 'ph'; elVal.textContent = 'selecteer een naam…'; }
+        else { elVal.className = 'v'; elVal.textContent = [...S.sns].join(', '); }
+      }
+    }
+  }
+  namen.forEach(n => {
     const btn = document.createElement('button');
     btn.className = 'nbtn' + (S.sns.has(n) ? ' sel' : '');
     btn.textContent = n;
@@ -2068,6 +2108,14 @@ function renderNameBtns() {
 function renderRouteBtns() {
   const el = document.getElementById('route-btns');
   el.innerHTML = '';
+  // Opschonen: als de geselecteerde ronde (S.sr) op een andere sessie verwijderd
+  // is, de selectie loslaten zodat er geen ronde gestart wordt met een naam die
+  // niet meer bestaat.
+  if (S.sr && !S.routes.some(r => r.naam === S.sr)) {
+    S.sr = null;
+    const elVal = document.getElementById('sr-val');
+    if (elVal) { elVal.className = 'ph'; elVal.textContent = 'selecteer een ronde…'; }
+  }
   S.routes.forEach(r => {
     const btn = document.createElement('button');
     btn.className = 'nbtn' + (S.sr === r.naam ? ' sel' : '');
@@ -2231,7 +2279,7 @@ async function doRetour(name) {
   if (!S.active[n]) { showToast(n.split(' ')[0] + ' is niet onderweg'); return; }
   const a = S.active[n];
   const end = Date.now();
-  const dur = Math.round((end - a.start) / 60000);
+  const dur = Math.max(0, Math.round((end - a.start) / 60000));
 
   // Sanity check: ronde > 6u is bijna altijd een vergeten retour van een vorige dienst.
   // Vraag bevestiging zodat per ongeluk gedrukte retour-knoppen geen krankzinnige
@@ -2271,35 +2319,37 @@ async function doRetour(name) {
   markActivePending(n, 'remove', { route: a.route, start: a.start });
   markLogPending(logEntry.id);
 
-  // Write to Firebase — active via update, log-entry via push (eigen node)
+  // Write to Firebase — active via update, log-entry via push (eigen node).
+  // We AWAITEN de write (return de Promise) zodat doRetourAllen() de retours
+  // echt sequentieel afhandelt: anders vuren twee "Alle X retour"-writes vrijwel
+  // gelijktijdig, overschrijven elk de hele active-tak, en kan een oudere write
+  // een al-verwijderde persoon laten "spoken" tot de reconcile het opruimt.
   if (window.fbDb) {
-    Promise.all([
-      window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/active': cleanActiveForFirebase() }),
-      fbPushLogEntry(logEntry)
-    ])
-      .then(() => {
-        setFbStatus('ok');
-        clearActivePending(n);
-        _pendingLog.delete(logEntry.id);
-        opruimStaleLangeRondeMeldingen();
-        logEvent('retour', n.split(' ')[0] + ' retour van ' + a.route + ' (' + dur + ' min)', { name: n, route: a.route, start: a.start, end, dur, logId: logEntry.id });
-        showToast(n.split(' ')[0] + ' terug! \u2014 ' + dur + ' min');
-        schrijfGedeeldeMelding('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.');
-      })
-      .catch(e => {
-        
-        clearActivePending(n);
-        _pendingLog.delete(logEntry.id);
-        S.active[n] = a;
-        S.log.shift();
-        setFbStatus('error');
-        renderAllActive();
-        updBtn();
-        renderLive();
-        logEvent('error', 'Retour MISLUKT \u2014 ' + n.split(' ')[0] + ' van ' + a.route, { error: String(e), name: n, route: a.route });
-        voegMeldingToe('rood', 'Retour mislukt \u2014 ' + n.split(' ')[0], a.route + ' kon niet worden opgeslagen. Controleer de verbinding.', 'Opnieuw proberen', () => doRetour(n));
-        showToast('\u26a0 Retour mislukt \u2014 controleer verbinding en probeer opnieuw', 5000);
-      });
+    try {
+      await Promise.all([
+        window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/active': cleanActiveForFirebase() }),
+        fbPushLogEntry(logEntry)
+      ]);
+      setFbStatus('ok');
+      clearActivePending(n);
+      _pendingLog.delete(logEntry.id);
+      opruimStaleLangeRondeMeldingen();
+      logEvent('retour', n.split(' ')[0] + ' retour van ' + a.route + ' (' + dur + ' min)', { name: n, route: a.route, start: a.start, end, dur, logId: logEntry.id });
+      showToast(n.split(' ')[0] + ' terug! \u2014 ' + dur + ' min');
+      schrijfGedeeldeMelding('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.');
+    } catch (e) {
+      clearActivePending(n);
+      _pendingLog.delete(logEntry.id);
+      S.active[n] = a;
+      S.log.shift();
+      setFbStatus('error');
+      renderAllActive();
+      updBtn();
+      renderLive();
+      logEvent('error', 'Retour MISLUKT \u2014 ' + n.split(' ')[0] + ' van ' + a.route, { error: String(e), name: n, route: a.route });
+      voegMeldingToe('rood', 'Retour mislukt \u2014 ' + n.split(' ')[0], a.route + ' kon niet worden opgeslagen. Controleer de verbinding.', 'Opnieuw proberen', () => doRetour(n));
+      showToast('\u26a0 Retour mislukt \u2014 controleer verbinding en probeer opnieuw', 5000);
+    }
   } else {
     showToast(n.split(' ')[0] + ' terug! \u2014 ' + dur + ' min');
     schrijfGedeeldeMelding('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.');
@@ -2885,7 +2935,6 @@ function roundRect(ctx, x, y, w, h, r) {
 
 function pruneLog() {
   const before = S.log.length;
-  const beforeIds = new Set(S.log.map(r => r.id));
   // Always keep at least 25h regardless of logRetention — timeline needs full 24h buffer
   const retentionMs = Math.max((S.logRetention ?? 2) * 24 * 60 * 60 * 1000, 25 * 60 * 60 * 1000);
   const cutoff = Date.now() - retentionMs;
@@ -2895,15 +2944,21 @@ function pruneLog() {
   if (S.log.length !== before) {
     const afterIds = new Set(S.log.map(r => r.id));
     const removedEntries = sorted.filter(r => !afterIds.has(r.id));
-    // Verwijder elk verouderd entry individueel uit Firebase (niet de hele array overschrijven)
+    // Verwijder elk verouderd entry individueel uit Firebase (niet de hele array
+    // overschrijven). Entries zonder _fbKey bestaan nog niet in Firebase (push nog
+    // niet bevestigd) — die hoeven niet verwijderd te worden.
+    let removedFromFirebase = 0;
     if (window.fbDb && window.fbRemove) {
       removedEntries.forEach(r => {
-        if (r._fbKey) fbRemoveLogEntry(r._fbKey);
+        if (r._fbKey) { fbRemoveLogEntry(r._fbKey); removedFromFirebase++; }
       });
     }
-    logEvent('auto', 'Log opgeschoond: ' + removedEntries.length + ' entries verwijderd',
-      { removed: removedEntries.map(r => ({ name: r.name, route: r.route, end: r.end, dur: r.dur })) });
-    fbSaveActive(); // active bijwerken
+    // Log de opschoning alleen als er daadwerkelijk iets uit Firebase is verwijderd,
+    // anders genereren herhaalde prunes (elke 30 min) onnodige audit-entries.
+    if (removedFromFirebase > 0) {
+      logEvent('auto', 'Log opgeschoond: ' + removedEntries.length + ' entries verwijderd',
+        { removed: removedEntries.slice(0, 20).map(r => ({ name: r.name, route: r.route, end: r.end, dur: r.dur })) });
+    }
   }
 }
 
@@ -5150,6 +5205,15 @@ function voegMeldingToe(type, naam, sub, actieLabel, actieFn, naamRef) {
   const nu = new Date();
   const tijdStr = String(nu.getHours()).padStart(2,'0') + ':' + String(nu.getMinutes()).padStart(2,'0');
   MELDINGEN.unshift({ id, type, naam, sub, tijdStr, actieLabel: actieLabel || null, actieFn: actieFn || null, _naamRef: naamRef || null });
+  // Begrens de lijst zodat hij niet onbeperkt groeit op een tablet dat dagenlang
+  // aanstaat. We knippen aan de onderkant (oudste eerst), maar laten gedeelde
+  // Firebase-meldingen met _fbKey met rust — die worden door hun eigen TTL beheerd.
+  const MAX_MELD = 200;
+  if (MELDINGEN.length > MAX_MELD) {
+    for (let i = MELDINGEN.length - 1; i >= 0 && MELDINGEN.length > MAX_MELD; i--) {
+      if (!MELDINGEN[i]._fbKey) MELDINGEN.splice(i, 1);
+    }
+  }
   renderMeldingen();
 }
 
@@ -5399,14 +5463,35 @@ function initFirebase() {
   // Stale-active cleanup 5s na init zodat fbListen tijd heeft S.active te vullen
   setTimeout(pruneStaleActive, 5000);
 
-  // Schrijf altijd eigen versie naar Firebase — ook bij rollback.
-  // Andere sessies detecteren elke versieverschil en reloaden.
-  window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/appVersion': APP_VERSION })
-    .catch(e => logEvent('error', 'Versie write MISLUKT', { error: String(e) }));
+  // Schrijf de eigen versie naar Firebase, maar NOOIT naar beneden bijstellen.
+  // Als er al een hogere versie staat (een ander, nieuwer toestel), laten we die
+  // met rust — anders downgraden we het ankerpunt en starten we een reload-oorlog
+  // waarbij sessies elkaar afwisselend "verouderd" verklaren. We lezen eerst de
+  // huidige waarde en schrijven alleen als de onze hoger of gelijk is.
+  window.fbGet(window.fbRef(window.fbDb, 'dashboard/appVersion'))
+    .then(snap => {
+      const remote = snap.exists() ? snap.val() : null;
+      if (!remote || !isNewerVersion(remote, APP_VERSION)) {
+        // remote ontbreekt, is gelijk, of is ouder → veilig om onze versie te zetten
+        if (remote !== APP_VERSION) {
+          window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/appVersion': APP_VERSION })
+            .catch(e => logEvent('error', 'Versie write MISLUKT', { error: String(e) }));
+        }
+      } else {
+        // Er staat een nieuwere versie → wíj zijn verouderd, reload i.p.v. schrijven
+        showUpdateBanner();
+      }
+    })
+    .catch(e => logEvent('error', 'Versie lezen MISLUKT', { error: String(e) }));
 }
 
 // Track already-shown shared notification IDs to avoid duplicates
 const _sharedMeldIds = new Set();
+// Keys waarvoor we al een TTL-verwijdering hebben afgevuurd. Voorkomt dat elke
+// volgende snapshot (vóór de delete propageert) opnieuw fbRemove + logEvent doet
+// voor dezelfde melding — dat veroorzaakte honderden identieke "TTL verwijderd"
+// audit-entries. We verwijderen de key weer zodra hij echt uit Firebase weg is.
+const _deletingMeldKeys = new Set();
 
 function fbListenMeldingen() {
   if (!window.fbDb) return;
@@ -5428,6 +5513,7 @@ function fbListenMeldingen() {
     for (const key of [..._sharedMeldIds]) {
       if (!currentKeys.has(key)) {
         _sharedMeldIds.delete(key);
+        _deletingMeldKeys.delete(key); // key is echt weg uit Firebase
         // Remove the matching local melding so it disappears on all sessions
         const localIdx = MELDINGEN.findIndex(x => x._fbKey === key);
         if (localIdx >= 0) { MELDINGEN.splice(localIdx, 1); changed = true; }
@@ -5438,15 +5524,20 @@ function fbListenMeldingen() {
     const cutoff = Date.now() - TTL;
     // data is an object keyed by push-id: { type, naam, sub, tijdStr, ts }
     Object.entries(data).forEach(([key, m]) => {
-      // Delete entries older than TTL from Firebase and remove local copy
+      // Delete entries older than TTL from Firebase and remove local copy.
+      // Guard: vuur de delete + log maar ÉÉN keer per key af, ook als er meerdere
+      // snapshots binnenkomen voordat de verwijdering propageert.
       if (m.ts && m.ts < cutoff) {
-        const ageH = Math.round((Date.now() - m.ts) / 3600000);
-        window.fbRemove(window.fbRef(window.fbDb, 'dashboard/meldingen/' + key))
-          .then(() => logEvent('auto', 'Melding automatisch verwijderd (TTL ' + S.meldingTTL + 'u, leeftijd ' + ageH + 'u)', { key, naam: sanitizeFromFirebase(m.naam || ''), sub: sanitizeFromFirebase(m.sub || '').slice(0, 60) }))
-          .catch(err => logEvent('error', 'Melding auto-verwijdering MISLUKT', { key, error: String(err) }));
         const localIdx = MELDINGEN.findIndex(x => x._fbKey === key);
         if (localIdx >= 0) { MELDINGEN.splice(localIdx, 1); renderMeldingen(); }
         _sharedMeldIds.delete(key);
+        if (!_deletingMeldKeys.has(key)) {
+          _deletingMeldKeys.add(key);
+          const ageH = Math.round((Date.now() - m.ts) / 3600000);
+          window.fbRemove(window.fbRef(window.fbDb, 'dashboard/meldingen/' + key))
+            .then(() => logEvent('auto', 'Melding automatisch verwijderd (TTL ' + S.meldingTTL + 'u, leeftijd ' + ageH + 'u)', { key, naam: sanitizeFromFirebase(m.naam || ''), sub: sanitizeFromFirebase(m.sub || '').slice(0, 60) }))
+            .catch(err => { _deletingMeldKeys.delete(key); logEvent('error', 'Melding auto-verwijdering MISLUKT', { key, error: String(err) }); });
+        }
         return;
       }
       if (_sharedMeldIds.has(key)) return; // already shown
