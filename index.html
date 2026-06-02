@@ -937,7 +937,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.25</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.26</span>
     </div>
   </nav>
 
@@ -1253,7 +1253,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.3.25';
+const APP_VERSION = '2.3.26';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -4791,6 +4791,26 @@ async function saveGedrag() {
         `Melding duur verlagen naar ${mt}u kan ${aantal === 1 ? '1 actieve melding' : `${aantal} actieve meldingen`} laten verdwijnen. Doorgaan?`
       );
       if (!bevestigd) return;
+    }
+  }
+
+  // Waarschuw als log-bewaar-duur omlaag gaat en daardoor entries opgeruimd worden.
+  // Floor van 25u blijft altijd behouden voor de 24u-tijdlijn — daar wordt nooit
+  // onder geknipt, ongeacht de instelling.
+  if (!isNaN(lr) && lr >= 1 && lr <= 30 && lr < S.logRetention) {
+    const newRetMs = Math.max(lr * 24 * 60 * 60 * 1000, 25 * 60 * 60 * 1000);
+    const cutoff = Date.now() - newRetMs;
+    const getroffen = S.log.filter(r => r.end && r.end < cutoff).length;
+    if (getroffen > 0) {
+      const bevestigd = await customConfirm(
+        `Bewaar-duur verlagen naar ${lr === 1 ? '1 dag' : lr + ' dagen'} verwijdert bij de volgende opruiming ${getroffen === 1 ? '1 gelopen ronde' : getroffen + ' gelopen rondes'} uit het log. Dit kan niet ongedaan worden gemaakt. Doorgaan?`
+      );
+      if (!bevestigd) {
+        // Zet het invoerveld terug op de huidige waarde
+        const inpLR = document.getElementById('inp-log-retention');
+        if (inpLR) inpLR.value = S.logRetention;
+        return;
+      }
     }
   }
 
