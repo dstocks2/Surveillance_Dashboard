@@ -46,7 +46,7 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .content{padding:20px 24px;max-width:960px;margin:0 auto}
 /* ── Mobile bottom tabbar ──────────────────────────────────────────────── */
 .mobile-tabbar{display:none;position:fixed;bottom:0;left:0;right:0;height:66px;background:#fff;border-top:0.5px solid #e2e8f0;z-index:8000;padding-bottom:env(safe-area-inset-bottom)}
-.mob-tab{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;font-family:inherit;color:#68686d;font-size:9.5px;font-weight:500;padding:8px 1px 4px;-webkit-tap-highlight-color:transparent;transition:color .12s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.mob-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;font-family:inherit;color:#68686d;font-size:10px;font-weight:500;padding:8px 2px 4px;-webkit-tap-highlight-color:transparent;transition:color .12s}
 .mob-tab.on{color:#1d4ed8}
 .mob-tab svg{flex-shrink:0}
 /* ── Desktop sidebar cfg layout ───────────────────────────────────────── */
@@ -588,7 +588,6 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   <button type="button" class="tab" role="tab" aria-selected="false" aria-controls="pane-live" onclick="goTab('live')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Overzicht</button>
   <button type="button" class="tab" role="tab" aria-selected="false" aria-controls="pane-plan" onclick="goTab('plan')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>Voorgestelde ronde</button>
   <button type="button" class="tab" role="tab" aria-selected="false" aria-controls="pane-dienst" onclick="goTab('dienst')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Op dienst</button>
-  <button type="button" class="tab" role="tab" aria-selected="false" aria-controls="pane-clients" onclick="goTab('clients')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>Clients <span id="clients-tab-count" style="background:#dbeafe;color:#1d4ed8;border-radius:10px;padding:0 6px;font-size:10px;font-weight:700;margin-left:2px;display:none"></span></button>
   <div style="flex:1"></div>
   <button type="button" class="bel-wrap" id="bel-btn" onclick="toggleMeldingen()" title="Meldingen" aria-label="Meldingen">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
@@ -617,10 +616,6 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   <button type="button" class="mob-tab" id="mob-tab-dienst" onclick="goTab('dienst')">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
     Op dienst
-  </button>
-  <button type="button" class="mob-tab" id="mob-tab-clients" onclick="goTab('clients')">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-    Clients
   </button>
   <button type="button" class="mob-tab" id="mob-tab-cfg" onclick="goTab('cfg')">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -729,19 +724,6 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
       <div id="dienst-leeg">Nog niemand geselecteerd — tik hieronder op een naam.</div>
     </div>
     <div id="dienst-grid"></div>
-  </div>
-
-  <!-- CLIENTS (alleen test) -->
-  <div id="pane-clients" class="pane" role="tabpanel" aria-label="Verbonden clients">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px">
-      <div>
-        <p class="lbl" style="margin-bottom:2px">Verbonden clients</p>
-        <p style="font-size:12px;color:#5b6b7f;margin:0">Alle apparaten die met dit dashboard verbonden zijn (of recent waren). Online sessies kun je op afstand uitloggen.</p>
-      </div>
-      <button type="button" class="sm" onclick="wisOfflineClients()" style="flex-shrink:0">Offline opruimen</button>
-    </div>
-    <div id="clients-stats" style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 14px"></div>
-    <div id="clients-list"></div>
   </div>
 
   <!-- BEHEER -->
@@ -885,6 +867,12 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
       <span class="cfg-mob-badge" id="cfg-mob-badge-auditlog"></span>
       <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
+    <button type="button" class="cfg-mob-row" onclick="cfgMobGoSection('clients')">
+      <div class="cfg-mob-row-icon cfg-mob-row-icon-slate"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+      <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Clients</div><div class="cfg-mob-row-sub">Verbonden apparaten</div></div>
+      <span class="cfg-mob-badge" id="cfg-mob-badge-clients"></span>
+      <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
     <button type="button" class="cfg-mob-row" onclick="changePinDialog()">
       <div class="cfg-mob-row-icon cfg-mob-row-icon-slate"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
       <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Pincode wijzigen</div><div class="cfg-mob-row-sub">4-cijferige toegangscode</div></div>
@@ -947,6 +935,11 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
       Audit log
     </button>
+    <button type="button" class="cfg-nav-item" id="cfg-nav-clients" onclick="cfgGoSection('clients')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      Clients
+      <span id="cfg-nav-clients-badge" style="margin-left:auto;background:#dcfce7;color:#15803d;border-radius:10px;padding:0 7px;font-size:10px;font-weight:700;display:none"></span>
+    </button>
 
     <div class="cfg-rail-footer">
       <div class="cfg-rail-lock-row">
@@ -958,7 +951,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.4.0</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.4.1</span>
     </div>
   </nav>
 
@@ -1102,6 +1095,16 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <input type="text" id="event-log-search" placeholder="Zoeken..." oninput="renderEventLog()" style="flex:1;min-width:120px;padding:5px 8px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;font-family:inherit">
       </div>
       <div id="event-log-list" style="max-height:500px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;background:#fafafa;font-family:ui-monospace,Menlo,monospace;font-size:11px"></div>
+    </div>
+
+    <!-- Clients (alleen test) -->
+    <div class="cfg-section" id="cfg-sec-clients">
+      <div class="cfg-sec-header">
+        <div><div class="cfg-sec-title">Clients</div><div class="cfg-sec-sub">Verbonden apparaten — online sessies op afstand uitloggen</div></div>
+        <button type="button" class="cfg-action-btn cfg-action-btn-sec" onclick="wisOfflineClients()">Offline opruimen</button>
+      </div>
+      <div id="clients-stats" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px"></div>
+      <div id="clients-list"></div>
     </div>
 
   </div><!-- /cfg-detail -->
@@ -1286,7 +1289,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.4.0';
+const APP_VERSION = '2.4.1';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -2073,7 +2076,7 @@ function goTab(id) {
     clearInterval(S.tickL);  S.tickL  = null;
     clearInterval(S.tickTL); S.tickTL = null;
   }
-  if (id !== 'clients') { clearInterval(S.tickClients); S.tickClients = null; }
+  if (id !== 'cfg') { clearInterval(S.tickClients); S.tickClients = null; }
   // Toggle active state on header tabs by matching aria-controls (robust to
   // tab order — never rely on positional index).
   document.querySelectorAll('.tab[role="tab"]').forEach(b => {
@@ -2091,11 +2094,6 @@ function goTab(id) {
     Object.entries(S.active), Date.now()-86400000, Date.now()), 50); }
   if (id === 'plan')  renderPlan();
   if (id === 'dienst') renderDienst();
-  if (id === 'clients') {
-    renderClients();
-    clearInterval(S.tickClients);
-    S.tickClients = setInterval(renderClients, 10000); // herbereken online/offline + "laatst actief"
-  }
   if (id === 'cfg') {
     if (isMobile()) { cfgShowMobile(); checkCfgLock(); } else { cfgGoSection(_cfgActiveSection || 'medewerkers'); checkCfgLock(); }
   }
@@ -2105,7 +2103,7 @@ function goTab(id) {
     btn.setAttribute('aria-selected', controls === 'pane-' + id ? 'true' : 'false');
   });
   // Sync mobile bottom tabbar
-  ['reg','live','plan','dienst','clients','cfg'].forEach(function(t) {
+  ['reg','live','plan','dienst','cfg'].forEach(function(t) {
     var btn = document.getElementById('mob-tab-' + t);
     if (btn) btn.classList.toggle('on', t === id);
   });
@@ -4465,6 +4463,7 @@ var CFG_MOB_SECTIONS = {
   schema:      { title: 'Dagplanning', action: '+ Item',       fn: function() { openSchemaModal(null); } },
   gedrag:      { title: 'Gedrag',      action: null,           fn: null },
   auditlog:    { title: 'Audit log',   action: null,           fn: null },
+  clients:     { title: 'Clients',     action: null,           fn: null },
 };
 
 function isMobile() { return window.innerWidth <= 700; }
@@ -4476,7 +4475,7 @@ function cfgMobGoSection(id) {
   document.getElementById('cfg-mob-detail-title').textContent = cfg.title;
   var btn = document.getElementById('cfg-mob-detail-action');
   if (cfg.action) { btn.textContent = cfg.action; btn.style.display = 'block'; btn._cfgFn = cfg.fn; }
-  else { btn.style.display = 'none'; }
+  else { btn.style.display = 'none'; btn._cfgFn = null; }
   renderCfg();
   if (id === 'auditlog') renderEventLog();
   var srcSec = document.getElementById('cfg-sec-' + id);
@@ -4487,6 +4486,23 @@ function cfgMobGoSection(id) {
     if (hdr) hdr.remove();
     if (id === 'gedrag') _rewireGedragInputs(body);
     if (id === 'auditlog') _rewireAuditlog(body);
+    if (id === 'clients') {
+      // De "Offline opruimen"-knop zat in de verwijderde header → naar de
+      // detail-action-knop rechtsboven verplaatsen.
+      btn.textContent = 'Offline opruimen';
+      btn.style.display = 'block';
+      btn._cfgFn = wisOfflineClients;
+      renderClients(body); // render in de zichtbare kopie, niet de verborgen desktop-sectie
+    }
+  }
+  // Live verversen zolang de clients-detail open staat
+  clearInterval(S.tickClients); S.tickClients = null;
+  if (id === 'clients') {
+    S.tickClients = setInterval(function() {
+      var b = document.getElementById('cfg-mob-detail-body');
+      var d = document.getElementById('cfg-mobile-detail');
+      if (b && d && d.classList.contains('open')) renderClients(b);
+    }, 10000);
   }
   document.getElementById('cfg-mobile-master').classList.add('hidden');
   document.getElementById('cfg-mobile-detail').classList.add('open');
@@ -4498,6 +4514,7 @@ function cfgMobDetailAction() {
 }
 
 function cfgMobBack() {
+  clearInterval(S.tickClients); S.tickClients = null;
   document.getElementById('cfg-mobile-detail').classList.remove('open');
   document.getElementById('cfg-mobile-master').classList.remove('hidden');
 }
@@ -4548,13 +4565,15 @@ function cfgShowMobile() {
     var todayLog = EVENT_LOG.filter(function(e){ var d=new Date(e.ts); return d.getDate()===_now.getDate()&&d.getMonth()===_now.getMonth()&&d.getFullYear()===_now.getFullYear(); }).length;
     setBadge('auditlog', todayLog || '');
   } catch(e) {}
+  var onlineClients = Object.values(CLIENTS).filter(clientIsOnline).length;
+  setBadge('clients', onlineClients > 0 ? onlineClients : '');
   var vb = document.getElementById('cfg-mob-version');
   if (vb) vb.textContent = 'v' + APP_VERSION;
 }
 
 function cfgGoSection(id) {
   _cfgActiveSection = id;
-  ['medewerkers','rondes','dagdelen','schema','gedrag','auditlog'].forEach(function(s) {
+  ['medewerkers','rondes','dagdelen','schema','gedrag','auditlog','clients'].forEach(function(s) {
     var el = document.getElementById('cfg-sec-' + s);
     if (el) el.classList.remove('active');
     var nav = document.getElementById('cfg-nav-' + s);
@@ -4566,6 +4585,12 @@ function cfgGoSection(id) {
   if (navTarget) navTarget.classList.add('active');
   renderCfg();
   if (id === 'auditlog') renderEventLog();
+  // Clients-sectie: live verversen zolang die zichtbaar is; timer stoppen anders.
+  clearInterval(S.tickClients); S.tickClients = null;
+  if (id === 'clients') {
+    renderClients();
+    S.tickClients = setInterval(renderClients, 10000);
+  }
 }
 
 function _updateRailLockLabel(unlocked) {
@@ -5650,11 +5675,19 @@ function fbListenClients() {
       return;
     }
 
-    // Tab-teller (aantal online) bijwerken
-    updClientsTabCount();
-    // Lijst verversen als de tab open staat
-    const pane = document.getElementById('pane-clients');
-    if (pane && pane.classList.contains('on')) renderClients();
+    // Badges (sidebar + mobiele master) bijwerken
+    updClientsBadges();
+    // Lijst verversen als de Clients-sectie in de instellingen open staat
+    const cfgPane = document.getElementById('pane-cfg');
+    if (cfgPane && cfgPane.classList.contains('on') && _cfgActiveSection === 'clients') {
+      if (isMobile()) {
+        const body = document.getElementById('cfg-mob-detail-body');
+        const detailOpen = document.getElementById('cfg-mobile-detail');
+        if (body && detailOpen && detailOpen.classList.contains('open')) renderClients(body);
+      } else {
+        renderClients();
+      }
+    }
   }, e => { logEvent('error', 'Clients listener MISLUKT', { error: String(e) }); });
 }
 
@@ -5662,13 +5695,16 @@ function clientIsOnline(c) {
   return c.online === true && (Date.now() - (c.lastSeen || 0)) < CLIENT_ONLINE_MS;
 }
 
-function updClientsTabCount() {
+// Werk de online-teller bij op het sidebar-item (desktop) én de mobiele master-rij.
+function updClientsBadges() {
   const online = Object.values(CLIENTS).filter(clientIsOnline).length;
-  const badge = document.getElementById('clients-tab-count');
-  if (badge) {
-    if (online > 0) { badge.textContent = online; badge.style.display = ''; }
-    else badge.style.display = 'none';
+  const sb = document.getElementById('cfg-nav-clients-badge');
+  if (sb) {
+    if (online > 0) { sb.textContent = online; sb.style.display = ''; }
+    else sb.style.display = 'none';
   }
+  const mb = document.getElementById('cfg-mob-badge-clients');
+  if (mb) mb.textContent = online > 0 ? String(online) : '';
 }
 
 function _fmtLastSeen(ms) {
@@ -5681,10 +5717,11 @@ function _fmtLastSeen(ms) {
   return d + (d === 1 ? ' dag geleden' : ' dagen geleden');
 }
 
-function renderClients() {
-  updClientsTabCount();
-  const stats = document.getElementById('clients-stats');
-  const list  = document.getElementById('clients-list');
+function renderClients(root) {
+  root = root || document;
+  updClientsBadges();
+  const stats = root.querySelector('#clients-stats');
+  const list  = root.querySelector('#clients-list');
   if (!list) return;
 
   const all = Object.values(CLIENTS);
