@@ -937,7 +937,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.24</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.25</span>
     </div>
   </nav>
 
@@ -1253,7 +1253,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.3.24';
+const APP_VERSION = '2.3.25';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1442,10 +1442,14 @@ function fbPushLogEntry(entry) {
     .catch(e => { logEvent('error', 'Log push MISLUKT', { error: String(e) }); });
 }
 
-// Verwijder één log-entry uit Firebase op basis van _fbKey
+// Verwijder één log-entry uit Firebase op basis van _fbKey.
+// Geeft een Promise terug zodat de aanroeper succes/fout kan tellen. Een stille
+// catch verborg voorheen mislukte deletes (bv. tijdens _appOutdated of een
+// permission-fout), waardoor verouderde log-entries in Firebase bleven staan
+// terwijl ze lokaal al uit S.log waren geknipt.
 function fbRemoveLogEntry(fbKey) {
-  if (!window.fbDb || !fbKey) return;
-  window.fbRemove(window.fbRef(window.fbDb, 'dashboard/log/' + fbKey)).catch(() => {});
+  if (!window.fbDb || !fbKey || !window.fbRemove) return Promise.reject(new Error('no-db'));
+  return window.fbRemove(window.fbRef(window.fbDb, 'dashboard/log/' + fbKey));
 }
 
 // ── App version check ──────────────────────────────────────────────────────
@@ -1745,6 +1749,32 @@ function fbListen() {
       const fbLogKey  = mergedLog.map(r => r.id).join(',');
       const locLogKey = S.log.map(r => r.id).join(',');
       if (fbLogKey !== locLogKey) S.log = mergedLog;
+
+      // Snapshot-prune: ruim Firebase-log-keys op die buiten de retentie vallen of
+      // verweesd zijn (duplicaten die uit de merge zijn gevallen, of entries voorbij
+      // de 300-limiet). pruneLog() werkt alleen op S.log en zou deze nooit raken,
+      // waardoor Firebase bleef vollopen ondanks een korte bewaar-duur. Alleen bij
+      // een object-snapshot (niet de oude array-vorm) en met geldige state.
+      if (!window._appOutdated && !Array.isArray(d.log) && window.fbDb && window.fbRemove) {
+        const retMs = Math.max((S.logRetention ?? 2) * 24 * 60 * 60 * 1000, 25 * 60 * 60 * 1000);
+        const cut = Date.now() - retMs;
+        const keepKeys = new Set(mergedLog.map(r => r._fbKey).filter(Boolean));
+        const staleKeys = [];
+        Object.entries(d.log).forEach(([k, v]) => {
+          const end = (v && typeof v.end === 'number') ? v.end : 0;
+          // Te oud, óf niet in de (gededupliceerde, gecapte) merge → verweesd.
+          if (end < cut || !keepKeys.has(k)) staleKeys.push(k);
+        });
+        if (staleKeys.length) {
+          Promise.allSettled(staleKeys.map(k => fbRemoveLogEntry(k)))
+            .then(results => {
+              const failed = results.filter(r => r.status === 'rejected').length;
+              const ok = results.length - failed;
+              if (ok)     logEvent('auto', 'Log opgeschoond (Firebase): ' + ok + ' verouderde/verweesde entries verwijderd', { retention: S.logRetention });
+              if (failed) logEvent('error', 'Log opschonen (Firebase): ' + failed + ' entries niet verwijderd', { failed });
+            });
+        }
+      }
     }
 
     // State-reconciliatie (spook-active opruimen + active ⊆ dienst) gebeurt
@@ -2938,32 +2968,56 @@ function roundRect(ctx, x, y, w, h, r) {
 }
 
 function pruneLog() {
+  // Niet opschonen met verouderde state: anders knippen we S.log lokaal weg
+  // terwijl de Firebase-writes geblokkeerd zijn, en blijft Firebase vollopen.
+  if (window._appOutdated) return;
   const before = S.log.length;
   // Always keep at least 25h regardless of logRetention — timeline needs full 24h buffer
   const retentionMs = Math.max((S.logRetention ?? 2) * 24 * 60 * 60 * 1000, 25 * 60 * 60 * 1000);
   const cutoff = Date.now() - retentionMs;
   const sorted = S.log.filter(r => r.end && r.start)
                       .sort((a, b) => (b.end || 0) - (a.end || 0));
-  S.log = sorted.filter((r, i) => i < 300 && r.end >= cutoff);
-  if (S.log.length !== before) {
-    const afterIds = new Set(S.log.map(r => r.id));
-    const removedEntries = sorted.filter(r => !afterIds.has(r.id));
-    // Verwijder elk verouderd entry individueel uit Firebase (niet de hele array
-    // overschrijven). Entries zonder _fbKey bestaan nog niet in Firebase (push nog
-    // niet bevestigd) — die hoeven niet verwijderd te worden.
-    let removedFromFirebase = 0;
-    if (window.fbDb && window.fbRemove) {
-      removedEntries.forEach(r => {
-        if (r._fbKey) { fbRemoveLogEntry(r._fbKey); removedFromFirebase++; }
-      });
-    }
-    // Log de opschoning alleen als er daadwerkelijk iets uit Firebase is verwijderd,
-    // anders genereren herhaalde prunes (elke 30 min) onnodige audit-entries.
-    if (removedFromFirebase > 0) {
-      logEvent('auto', 'Log opgeschoond: ' + removedEntries.length + ' entries verwijderd',
-        { removed: removedEntries.slice(0, 20).map(r => ({ name: r.name, route: r.route, end: r.end, dur: r.dur })) });
-    }
+  const kept = sorted.filter((r, i) => i < 300 && r.end >= cutoff);
+  const keptIds = new Set(kept.map(r => r.id));
+  const removedEntries = sorted.filter(r => !keptIds.has(r.id));
+  if (removedEntries.length === 0) return;
+
+  // Verwijder elk verouderd entry individueel uit Firebase (niet de hele array
+  // overschrijven). Entries zonder _fbKey bestaan nog niet in Firebase (push nog
+  // niet bevestigd) — die zijn alleen lokaal en worden direct gedropt.
+  // Lokaal pas verwijderen NA bevestigde Firebase-delete, zodat een mislukte
+  // delete niet leidt tot een entry die lokaal weg is maar in Firebase blijft.
+  const localOnly = removedEntries.filter(r => !r._fbKey);
+  const inFirebase = removedEntries.filter(r => r._fbKey);
+
+  // Drop lokaal-only entries meteen (die kunnen niet in Firebase verweesd raken).
+  if (localOnly.length) {
+    const dropIds = new Set(localOnly.map(r => r.id));
+    S.log = S.log.filter(r => !dropIds.has(r.id));
   }
+
+  if (inFirebase.length === 0 || !window.fbDb || !window.fbRemove) return;
+
+  Promise.allSettled(inFirebase.map(r => fbRemoveLogEntry(r._fbKey).then(() => r.id)))
+    .then(results => {
+      const okIds = new Set();
+      let failed = 0;
+      results.forEach((res, idx) => {
+        if (res.status === 'fulfilled') okIds.add(inFirebase[idx].id);
+        else failed++;
+      });
+      if (okIds.size) {
+        // Verwijder lokaal alleen de entries die ook echt uit Firebase weg zijn.
+        S.log = S.log.filter(r => !okIds.has(r.id));
+        logEvent('auto', 'Log opgeschoond: ' + okIds.size + ' entries verwijderd',
+          { removed: inFirebase.filter(r => okIds.has(r.id)).slice(0, 20)
+              .map(r => ({ name: r.name, route: r.route, end: r.end, dur: r.dur })) });
+      }
+      if (failed) {
+        logEvent('error', 'Log opschonen: ' + failed + ' entries niet uit Firebase verwijderd',
+          { failed, retention: S.logRetention });
+      }
+    });
 }
 
 // Auto-prune every 30 minutes
