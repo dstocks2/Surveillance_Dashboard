@@ -937,7 +937,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.23</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.24</span>
     </div>
   </nav>
 
@@ -1253,7 +1253,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.3.23';
+const APP_VERSION = '2.3.24';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -5496,6 +5496,23 @@ const _sharedMeldIds = new Set();
 // voor dezelfde melding — dat veroorzaakte honderden identieke "TTL verwijderd"
 // audit-entries. We verwijderen de key weer zodra hij echt uit Firebase weg is.
 const _deletingMeldKeys = new Set();
+// Laatst ontvangen meldingen-snapshot — gebruikt om vlak vóór een geplande
+// TTL-delete te verifiëren of een andere sessie de key al heeft verwijderd.
+let _lastMeldData = null;
+// Telt hoeveel meldingen DEZE sessie daadwerkelijk via TTL heeft verwijderd, zodat
+// we één gebundelde audit-regel per opschoonronde kunnen loggen i.p.v. één per
+// melding (voorheen: tientallen identieke "TTL verwijderd"-regels per device).
+let _ttlPrunedCount = 0;
+let _ttlPruneLogTimer = null;
+function scheduleTtlPruneLog() {
+  if (_ttlPruneLogTimer) return;
+  _ttlPruneLogTimer = setTimeout(() => {
+    _ttlPruneLogTimer = null;
+    const n = _ttlPrunedCount;
+    _ttlPrunedCount = 0;
+    if (n > 0) logEvent('auto', n + (n === 1 ? ' verlopen melding' : ' verlopen meldingen') + ' automatisch opgeruimd (TTL ' + S.meldingTTL + 'u)');
+  }, 4000);
+}
 
 function fbListenMeldingen() {
   if (!window.fbDb) return;
@@ -5524,23 +5541,31 @@ function fbListenMeldingen() {
       }
     }
     if (changed) renderMeldingen();
+    _lastMeldData = data; // bewaar voor her-verificatie in geplande deletes
     const TTL = S.meldingTTL * 60 * 60 * 1000; // configureerbaar via instellingen
     const cutoff = Date.now() - TTL;
     // data is an object keyed by push-id: { type, naam, sub, tijdStr, ts }
     Object.entries(data).forEach(([key, m]) => {
-      // Delete entries older than TTL from Firebase and remove local copy.
-      // Guard: vuur de delete + log maar ÉÉN keer per key af, ook als er meerdere
-      // snapshots binnenkomen voordat de verwijdering propageert.
+      // Verlopen melding: lokaal direct opschonen en de Firebase-delete plannen.
+      // Met meerdere sessies tegelijk verwijderde voorheen ELKE sessie dezelfde key
+      // én logde elke verwijdering apart → tientallen dubbele audit-regels.
+      // Nu: korte random jitter per sessie; wie het eerst verwijdert wint. De delete
+      // propageert via de deletions-sync hierboven naar de andere sessies, zodat die
+      // hun geplande delete bij her-verificatie overslaan. Loggen gebeurt gebundeld.
       if (m.ts && m.ts < cutoff) {
         const localIdx = MELDINGEN.findIndex(x => x._fbKey === key);
         if (localIdx >= 0) { MELDINGEN.splice(localIdx, 1); renderMeldingen(); }
         _sharedMeldIds.delete(key);
         if (!_deletingMeldKeys.has(key)) {
           _deletingMeldKeys.add(key);
-          const ageH = Math.round((Date.now() - m.ts) / 3600000);
-          window.fbRemove(window.fbRef(window.fbDb, 'dashboard/meldingen/' + key))
-            .then(() => logEvent('auto', 'Melding automatisch verwijderd (TTL ' + S.meldingTTL + 'u, leeftijd ' + ageH + 'u)', { key, naam: sanitizeFromFirebase(m.naam || ''), sub: sanitizeFromFirebase(m.sub || '').slice(0, 60) }))
-            .catch(err => { _deletingMeldKeys.delete(key); logEvent('error', 'Melding auto-verwijdering MISLUKT', { key, error: String(err) }); });
+          const jitter = 150 + Math.floor(Math.random() * 1500);
+          setTimeout(() => {
+            // Her-verificatie: heeft een andere sessie de key al weggehaald?
+            if (!_lastMeldData || !_lastMeldData[key]) { _deletingMeldKeys.delete(key); return; }
+            window.fbRemove(window.fbRef(window.fbDb, 'dashboard/meldingen/' + key))
+              .then(() => { _ttlPrunedCount++; scheduleTtlPruneLog(); })
+              .catch(err => { _deletingMeldKeys.delete(key); logEvent('error', 'Melding auto-verwijdering MISLUKT', { key, error: String(err) }); });
+          }, jitter);
         }
         return;
       }
