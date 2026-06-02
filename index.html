@@ -934,7 +934,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.19</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.20</span>
     </div>
   </nav>
 
@@ -1250,7 +1250,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.3.19';
+const APP_VERSION = '2.3.20';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1382,6 +1382,19 @@ function fbSavePin(pin) {
     .catch(e => { logEvent('error', 'PIN opslaan MISLUKT', { error: String(e) }); });
 }
 
+// Gerichte write van ALLEEN de dienst-tak. Gebruikt door reconcileState() en de
+// fbListen self-heal, zodat we niet de volledige settings-tak (medewerkers, routes,
+// schema, …) hoeven te herschrijven enkel om de dienst-lijst recht te trekken.
+// Voorkomt schrijf-amplificatie en onnodige echo-cascades over sessies.
+function fbSaveDienst() {
+  if (!window.fbDb) return;
+  if (window._appOutdated) return;
+  LS.set('rn_dienst', [...S.dienst]);
+  window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/dienst': [...S.dienst] })
+    .then(() => setFbStatus('ok'))
+    .catch(e => { logEvent('error', 'Dienst opslaan MISLUKT', { error: String(e) }); setFbStatus('error'); });
+}
+
 // Writes active + log atomically to Firebase — this is the ONLY place these are saved
 function cleanActiveForFirebase() {
   // Strip local-only flags (_warned etc.) before writing to Firebase
@@ -1477,8 +1490,11 @@ document.addEventListener('visibilitychange', () => {
   window.fbGet(window.fbRef(window.fbDb, 'dashboard/appVersion'))
     .then(snap => { if (snap.exists()) checkAppVersion(snap.val()); })
     .catch(() => {});
-  // Tablet/telefoon na lange tijd weer geopend — direct stale cleanup
-  setTimeout(() => { if (typeof pruneStaleActive === 'function') pruneStaleActive(); }, 3000);
+  // Tablet/telefoon na lange tijd weer geopend — direct stale cleanup + reconcile
+  setTimeout(() => {
+    if (typeof pruneStaleActive === 'function') pruneStaleActive();
+    if (typeof reconcileState === 'function') reconcileState();
+  }, 3000);
 });
 
 function setFbStatus(state) {
@@ -1709,30 +1725,10 @@ function fbListen() {
       if (fbLogKey !== locLogKey) S.log = mergedLog;
     }
 
-    // Reconcile: verwijder "spook"-entries uit active waarvan exact dezelfde ronde
-    // (naam+route+start) al als afgerond in het log staat. Dit kan ontstaan bij een
-    // sync-conflict waarbij de retour-write naar active niet bleef plakken terwijl
-    // het log-record wél werd geschreven. Lost zichzelf op zodra een willekeurig
-    // apparaat de inconsistentie ziet, i.p.v. pas na pruneStaleActive (12u).
-    // 'add'-pending entries worden overgeslagen (verse start mag niet sneuvelen).
-    if (S.active && S.log && S.log.length) {
-      const loggedKeys = new Set(S.log.map(r => (r.name||'') + '|' + (r.route||'') + '|' + (r.start||'')));
-      const ghosts = [];
-      Object.entries(S.active).forEach(([n, a]) => {
-        const pending = _pendingActive.get(n);
-        if (pending && pending.op === 'add') return; // verse start niet aanraken
-        const key = n + '|' + (a.route||'') + '|' + (a.start||'');
-        if (loggedKeys.has(key)) ghosts.push({ n, route: a.route, start: a.start });
-      });
-      if (ghosts.length && !window._appOutdated) {
-        ghosts.forEach(g => delete S.active[g.n]);
-        // Schrijf de opgeschoonde active eerst terug (save vóór logEvent, conform
-        // de vaste ordering-regel om fbListen-races te vermijden), daarna pas loggen.
-        fbSaveActive();
-        renderAllActive(); renderLive();
-        ghosts.forEach(g => logEvent('auto', 'Spook-ronde opgeruimd: ' + g.n.split(' ')[0] + ' — ' + g.route + ' (stond in active én log)', { name: g.n, route: g.route, start: g.start }));
-      }
-    }
+    // State-reconciliatie (spook-active opruimen + active ⊆ dienst) gebeurt
+    // centraal onderaan deze snapshot via reconcileState(), zodat exact dezelfde
+    // invarianten ook op interval en na init worden afgedwongen.
+
     // Only overwrite settings if the incoming value actually differs from local state.
     // This prevents any Firebase trigger (own echo, meldingen write, etc.) from
     // overwriting a just-toggled local value with stale data.
@@ -1757,30 +1753,13 @@ function fbListen() {
         }
         fbDienst = [...merged];
       }
-      // Een actieve ronde impliceert "op dienst": iemand kan niet retour-plichtig
-      // onderweg zijn zonder op dienst te staan. Forceer alle namen met een lopende
-      // ronde in de selectie. Dit herstelt ook sessies waar de dienst-lijst is
-      // gewisseld terwijl iemand al onderweg was (bv. ronde gestart op tablet A,
-      // dienst geleegd op tablet B → de loper hoort zichtbaar te blijven).
-      const dienstSet = new Set(fbDienst);
-      let forcedFromActive = false;
-      Object.keys(S.active || {}).forEach(n => {
-        if (!dienstSet.has(n)) { dienstSet.add(n); forcedFromActive = true; }
-      });
-      fbDienst = [...dienstSet];
       const localDienst  = [...S.dienst].sort().join('|');
       const remoteDienst = [...fbDienst].sort().join('|');
       if (remoteDienst !== localDienst)
         S.dienst = new Set(fbDienst);
-      // Als we namen op grond van hun actieve ronde hebben toegevoegd die nog niet
-      // in Firebase-dienst stonden, dat terugschrijven zodat alle sessies het zien.
-      // Alleen schrijven bij een echte uitbreiding t.o.v. de binnengekomen lijst.
-      if (forcedFromActive && !window._appOutdated) {
-        const incoming = sanitizeNames(Array.isArray(d.dienst) ? d.dienst : []);
-        const incomingSet = new Set(incoming);
-        const needsWrite = [...S.dienst].some(n => !incomingSet.has(n));
-        if (needsWrite) save();
-      }
+      // De invariant "active ⊆ dienst" (ronde-loper staat op dienst) wordt
+      // centraal in reconcileState() afgedwongen, aangeroepen aan het eind van
+      // deze snapshot. Hier alleen de Firebase→lokaal dienst-merge.
     }
     // medewerkers is de enige bron — names is een computed getter, nooit apart geladen
     if (d.medewerkers !== undefined && Array.isArray(d.medewerkers) && d.medewerkers.length) {
@@ -1860,6 +1839,10 @@ function fbListen() {
     LS.set('rn_medewerkers', S.medewerkers || []);
 
     setFbStatus('ok');
+    // Centrale self-healing: dwing de state-invarianten af (spook-active opruimen,
+    // active ⊆ dienst). Schrijft alleen terug bij een echte correctie. Vóór de
+    // renders zodat de UI direct de gecorrigeerde state toont.
+    reconcileState();
     // Clean up stale long-round notifications whose person already returned
     opruimStaleLangeRondeMeldingen();
     // Re-render everything
@@ -2943,7 +2926,12 @@ function pruneStaleActive() {
     }
   });
   if (!stale.length) return;
-  stale.forEach(s => { delete S.active[s.name]; });
+  stale.forEach(s => {
+    // Pending 'remove' markeren zodat een snapshot van vóór de prune de entry
+    // niet heropwekt voordat onze write is bevestigd.
+    markActivePending(s.name, 'remove', { route: s.route, start: s.start });
+    delete S.active[s.name];
+  });
   // Schrijf naar Firebase + log per entry
   fbSaveActive();
   stale.forEach(s => {
@@ -2955,6 +2943,69 @@ function pruneStaleActive() {
 }
 // Check elke 30 minuten + bij elke app-load (zie init onderaan)
 TIMERS.set('staleCheck', pruneStaleActive, 30 * 60 * 1000);
+
+// ── Centrale state-reconciliatie (self-healing) ────────────────────────────
+// Eén bron van waarheid voor "kan de lokale state intern inconsistent zijn?".
+// Draait (a) aan het eind van elke fbListen-snapshot, (b) periodiek op interval
+// als vangnet voor stille periodes, en (c) kort na app-init. Idempotent: schrijft
+// alléén naar Firebase wanneer er werkelijk iets is rechtgetrokken.
+//
+// Twee invarianten worden afgedwongen:
+//   I1. Geen spook-active: een active-entry waarvan exact dezelfde ronde
+//       (naam+route+start) al als afgerond in het log staat, hoort weg.
+//   I2. active ⊆ dienst: wie een lopende ronde heeft, staat op dienst.
+//
+// Verse lokale acties worden ontzien via de pending-trackers (een net gestarte
+// ronde met pending 'add' wordt nooit als spook gezien of weggegooid).
+function reconcileState() {
+  if (window._appOutdated || !window.fbDb) return;
+  let activeChanged = false;
+  let dienstChanged = false;
+
+  // ── I1: spook-active opruimen ────────────────────────────────────────────
+  if (S.active && S.log && S.log.length) {
+    const loggedKeys = new Set(S.log.map(r => (r.name||'') + '|' + (r.route||'') + '|' + (r.start||'')));
+    const ghosts = [];
+    Object.entries(S.active).forEach(([n, a]) => {
+      const pending = _pendingActive.get(n);
+      if (pending && pending.op === 'add') return; // verse start niet aanraken
+      const key = n + '|' + (a.route||'') + '|' + (a.start||'');
+      if (loggedKeys.has(key)) ghosts.push({ n, route: a.route, start: a.start });
+    });
+    if (ghosts.length) {
+      ghosts.forEach(g => {
+        // Pending 'remove' markeren zodat een oudere snapshot de entry niet heropwekt.
+        markActivePending(g.n, 'remove', { route: g.route, start: g.start });
+        delete S.active[g.n];
+      });
+      activeChanged = true;
+      // save vóór logEvent (vaste ordering-regel tegen fbListen-races)
+      fbSaveActive();
+      renderAllActive(); renderLive();
+      ghosts.forEach(g => logEvent('auto', 'Spook-ronde opgeruimd: ' + g.n.split(' ')[0] + ' — ' + g.route + ' (stond in active én log)', { name: g.n, route: g.route, start: g.start }));
+    }
+  }
+
+  // ── I2: active ⊆ dienst afdwingen ────────────────────────────────────────
+  // Iemand met een lopende ronde hoort op dienst te staan. Voeg ontbrekende
+  // lopers toe aan S.dienst en schrijf alleen de dienst-tak terug.
+  if (S.active) {
+    const toevoegen = [];
+    Object.keys(S.active).forEach(n => {
+      if (!S.dienst.has(n)) toevoegen.push(n);
+    });
+    if (toevoegen.length) {
+      toevoegen.forEach(n => { markDienstPending(n, 'add'); S.dienst.add(n); });
+      dienstChanged = true;
+      fbSaveDienst();
+      renderDienst(); renderNameBtns();
+    }
+  }
+
+  return activeChanged || dienstChanged;
+}
+// Periodiek vangnet voor stille periodes (geen snapshots). Idempotent.
+TIMERS.set('reconcileCheck', reconcileState, 60 * 1000);
 
 function checkActiveTimeout() {
   // Warn if someone has been active for more than 4 hours
@@ -4226,15 +4277,32 @@ function saveMedewerkerEdit() {
   if (isEdit) {
     const oudeNaam = S.medewerkers[_medewerkerEditIdx].naam;
     S.medewerkers[_medewerkerEditIdx] = { naam, rol };
-    // Update dienst set als naam veranderd
-    if (naam !== oudeNaam && S.dienst.has(oudeNaam)) {
-      S.dienst.delete(oudeNaam);
-      S.dienst.add(naam);
-      markDienstPending(naam, 'add');
-      LS.set('rn_dienst', [...S.dienst]);
+    let activeGemigreerd = false;
+    if (naam !== oudeNaam) {
+      // Update dienst set als naam veranderd
+      if (S.dienst.has(oudeNaam)) {
+        S.dienst.delete(oudeNaam);
+        S.dienst.add(naam);
+        markDienstPending(oudeNaam, 'remove');
+        markDienstPending(naam, 'add');
+        LS.set('rn_dienst', [...S.dienst]);
+      }
+      // Migreer een eventuele LOPENDE ronde mee naar de nieuwe naam, anders
+      // blijft de actieve ronde onder de oude naam hangen (en "verdwijnt" de
+      // persoon uit dienst terwijl hij nog onderweg is → inconsistente state).
+      if (S.active[oudeNaam]) {
+        const entry = S.active[oudeNaam];
+        markActivePending(oudeNaam, 'remove', { route: entry.route, start: entry.start });
+        markActivePending(naam, 'add', { route: entry.route, start: entry.start });
+        S.active[naam] = { route: entry.route, start: entry.start };
+        delete S.active[oudeNaam];
+        activeGemigreerd = true;
+      }
     }
     S.medewerkers.sort((a, b) => a.naam.toLowerCase().localeCompare(b.naam.toLowerCase(), 'nl'));
     save();
+    // active-tak apart terugschrijven als er een lopende ronde is gemigreerd
+    if (activeGemigreerd) { fbSaveActive(); renderAllActive(); renderLive(); }
     logEvent('settings', 'Medewerker gewijzigd: ' + oudeNaam + ' → ' + naam + (rol ? ' (' + rol + ')' : ''));
     showToast(naam + ' bijgewerkt');
   } else {
@@ -4999,6 +5067,7 @@ function renderDienst() {
 
 function dienstLeeg() {
   const geblokkeerd = [];
+  let changed = false;
   for (const n of S.dienst) {
     if (S.active[n]) {
       geblokkeerd.push(n.split(' ')[0]);
@@ -5006,9 +5075,10 @@ function dienstLeeg() {
       // Mark intent BEFORE state change so any in-flight fbListen respects it
       markDienstPending(n, 'remove');
       S.dienst.delete(n);
+      changed = true;
     }
   }
-  save(); renderDienst(); renderNameBtns();
+  if (changed) { save(); renderDienst(); renderNameBtns(); }
   if (geblokkeerd.length) {
     const hebben = geblokkeerd.length === 1 ? 'heeft' : 'hebben';
     showToast('⚠ ' + geblokkeerd.join(', ') + ' ' + hebben + ' nog een actieve ronde. Meld eerst retour.', 4000);
