@@ -145,6 +145,7 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .abtn-w:not(:disabled):hover{background:#e2e8f0}
 .hr{border:none;border-top:1px solid #e2e8f0;margin:16px 0}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+#all-active-cards,#live-cards-active{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;align-items:start}
 .cards-done{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
 .card{border-radius:10px;padding:14px 16px;border:1px solid #e2e8f0;background:#fff}
 .card.ca{border-color:#ef4444;border-width:1.5px;background:#fef2f2}
@@ -166,6 +167,31 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .card.cd .ct{color:#86a88e}
 .rbtn{width:100%;margin-top:10px;padding:7px;border-radius:6px;border:1.5px solid #15803d;background:transparent;color:#15803d;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .13s}
 .rbtn:hover{background:#15803d;color:#fff}
+/* ── Actieve 'onderweg'-kaart: nieuwe look ─────────────────────────────────── */
+.card.ca{border-color:#e2e8f0;border-width:1px;background:#fff;border-left:2px solid #ef4444;display:flex;flex-direction:column}
+.lc-rij{display:flex;align-items:center;gap:8px}
+.lc-ronde{font-size:15px;font-weight:700;color:#1e293b;line-height:1.2}
+.lc-mw{margin-top:5px;font-size:14px;font-weight:500;color:#334155}
+.lc-meta{margin-top:4px;font-size:11px;color:#94a3b8;font-variant-numeric:tabular-nums}
+.lc-over{color:#ef4444;font-weight:600}
+/* Notitie-blok */
+.lc-note{margin-top:11px;padding-top:11px;border-top:1px solid #e2e8f0}
+.lc-note-add{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#64748b;background:none;border:none;padding:0;cursor:pointer;font-family:inherit;white-space:nowrap}
+.lc-note-add:hover{color:#1d4ed8}
+.lc-note-add svg{width:13px;height:13px;flex-shrink:0}
+.lc-note-show{display:flex;align-items:flex-start;gap:6px;font-size:12.5px;font-style:italic;color:#334155;line-height:1.35}
+.lc-note-show svg{width:13px;height:13px;flex-shrink:0;margin-top:2px;color:#94a3b8;font-style:normal}
+.lc-note-edit{margin-left:auto;font-size:11.5px;color:#1d4ed8;background:none;border:none;cursor:pointer;font-family:inherit;font-style:normal;white-space:nowrap;flex-shrink:0}
+.lc-note-edit:hover{text-decoration:underline}
+.lc-note-area{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:8px;padding:9px 11px;font-size:12.5px;font-family:inherit;resize:vertical;min-height:48px;color:#1e293b}
+.lc-note-area:focus{outline:none;border-color:#1d4ed8}
+.lc-note-row{display:flex;align-items:center;justify-content:space-between;margin-top:6px;gap:8px}
+.lc-note-hint{font-size:10.5px;color:#94a3b8}
+.lc-note-save{font-size:12px;font-weight:600;color:#fff;background:#1d4ed8;border:none;border-radius:6px;padding:6px 12px;cursor:pointer;font-family:inherit;white-space:nowrap}
+.lc-note-save:hover{background:#1e40af}
+/* Retour-rij onderaan */
+.lc-retour{margin-top:12px;padding-top:12px;border-top:1px solid #e2e8f0;display:flex;gap:7px;flex-wrap:wrap}
+.card.ca .rbtn{margin-top:0}
 .empty{text-align:center;padding:3rem;color:#5b6b7f;font-size:13px}
 table{width:100%;border-collapse:collapse;font-size:12px}
 th{text-align:left;padding:9px 12px;font-size:11px;font-weight:600;color:#64748b;background:#f8fafc;border-bottom:1px solid #e2e8f0;white-space:nowrap}
@@ -241,14 +267,13 @@ input[type=text]:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px #d
   .cards-done .cr{font-size:13px}
   .cards-done .ct{font-size:11px}
   .cards-done .cst{font-size:10px}
-  /* Compact active cards on mobile — 2 columns */
-  #all-active-cards,#live-cards-active{grid-template-columns:1fr 1fr !important;gap:8px}
-  #all-active-cards .card,#live-cards-active .card{padding:10px 12px}
-  #all-active-cards .cst,#live-cards-active .cst{font-size:9px;margin-bottom:4px}
-  #all-active-cards .cr,#live-cards-active .cr{font-size:13px;margin-bottom:4px}
-  #all-active-cards .cn,#live-cards-active .cn{font-size:14px}
-  #all-active-cards .ct,#live-cards-active .ct{font-size:10px;margin-top:2px}
-  #all-active-cards .rbtn,#live-cards-active .rbtn{margin-top:7px;padding:6px;font-size:11px}
+  /* Actieve kaarten op mobiel: gestapeld, volle breedte (spec) */
+  #all-active-cards,#live-cards-active{grid-template-columns:1fr !important;gap:10px}
+  #all-active-cards .card.ca,#live-cards-active .card.ca{padding:12px 14px}
+  #all-active-cards .lc-ronde,#live-cards-active .lc-ronde{font-size:15px}
+  #all-active-cards .lc-mw,#live-cards-active .lc-mw{font-size:14px}
+  #all-active-cards .lc-meta,#live-cards-active .lc-meta{font-size:11px}
+  #all-active-cards .rbtn,#live-cards-active .rbtn{padding:9px;font-size:12.5px}
   table{font-size:11px}
   th,td{padding:8px 8px}
   .tl-toggle-btn{display:flex !important}
@@ -937,7 +962,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.3.27</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.4.0</span>
     </div>
   </nav>
 
@@ -1253,7 +1278,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.3.27';
+const APP_VERSION = '2.4.0';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1669,8 +1694,8 @@ function sanitizeLog(arr) {
     start: typeof r.start === 'number' ? r.start : 0,
     end:   typeof r.end   === 'number' ? r.end   : 0,
     dur:   typeof r.dur   === 'number' ? r.dur   : 0,
-    // _fbKey behouden indien aanwezig — anders kan de snapshot-prune entries niet
-    // aan hun Firebase-key koppelen en beschouwt hij ALLES als verweesd.
+    // _fbKey behouden indien aanwezig — nodig om lokale S.log-entries te kunnen
+    // koppelen aan hun Firebase-key (o.a. voor lokale spiegeling na pruneLog).
     ...(r._fbKey ? { _fbKey: r._fbKey } : {}),
   })).filter(r => r.name && r.route && r.start)
      .sort((a, b) => (b.end || 0) - (a.end || 0))
@@ -1752,45 +1777,20 @@ function fbListen() {
       const fbLogKey  = mergedLog.map(r => r.id).join(',');
       const locLogKey = S.log.map(r => r.id).join(',');
       if (fbLogKey !== locLogKey) S.log = mergedLog;
+      // GEEN opruiming hier. Het opschonen van verouderde Firebase-log-entries
+      // gebeurt uitsluitend in pruneLog() (interval + na init), nooit vanuit de
+      // listener. Reden: fbListen vuurt op ELKE write en op ELKE sessie, en de
+      // opschoon-audit is zelf een write → dat veroorzaakte een cascade die de
+      // hele log leegtrok (v2.3.25/26). De listener leest alleen, schrijft niet.
+    }
 
-      // Snapshot-prune: ruim Firebase-log-keys op die buiten de retentie vallen
-      // (te oud) of een echt duplicaat zijn (zelfde name|route|start als een entry
-      // die we al behouden). pruneLog() werkt alleen op S.log en zou deze nooit
-      // raken. Conservatief: keys die enkel buiten de 200/300-cap vallen worden
-      // NIET als verweesd gewist — alleen op leeftijd. Alleen bij object-snapshot.
-      if (!window._appOutdated && !Array.isArray(d.log) && window.fbDb && window.fbRemove) {
-        const retMs = Math.max((S.logRetention ?? 2) * 24 * 60 * 60 * 1000, 25 * 60 * 60 * 1000);
-        const cut = Date.now() - retMs;
-        // Behouden-identiteiten op natuurlijke sleutel, om echte duplicaten te vinden.
-        const keptNatKeys = new Set(mergedLog.map(r => (r.name || '') + '|' + (r.route || '') + '|' + (r.start || '')));
-        const keptFbKeys  = new Set(mergedLog.map(r => r._fbKey).filter(Boolean));
-        const tooOld = [];
-        const dupes  = [];
-        Object.entries(d.log).forEach(([k, v]) => {
-          if (!v || typeof v !== 'object') return;
-          const end = typeof v.end === 'number' ? v.end : 0;
-          if (end > 0 && end < cut) { tooOld.push(k); return; }
-          // Duplicaat: deze key hoort bij een natuurlijke identiteit die we al
-          // onder een ANDERE key behouden. Nooit een behouden key zelf wissen.
-          const nat = (v.name || '') + '|' + (v.route || '') + '|' + (v.start || '');
-          if (!keptFbKeys.has(k) && keptNatKeys.has(nat)) dupes.push(k);
-        });
-        const staleKeys = [...tooOld, ...dupes];
-        // Veiligheidsgrendel: wis nooit (vrijwel) de hele node in één keer. Als de
-        // prune meer dan de helft van alle keys zou raken, is er iets mis met de
-        // state-afleiding — dan loggen we een waarschuwing en doen we niets.
-        const totalKeys = Object.keys(d.log).length;
-        if (staleKeys.length > 0 && staleKeys.length >= Math.max(20, Math.ceil(totalKeys * 0.5))) {
-          logEvent('error', 'Log-prune AFGEBROKEN: zou ' + staleKeys.length + ' van ' + totalKeys + ' entries wissen (verdacht)', { retention: S.logRetention });
-        } else if (staleKeys.length) {
-          Promise.allSettled(staleKeys.map(k => fbRemoveLogEntry(k)))
-            .then(results => {
-              const failed = results.filter(r => r.status === 'rejected').length;
-              const ok = results.length - failed;
-              if (ok)     logEvent('auto', 'Log opgeschoond (Firebase): ' + ok + ' entries verwijderd', { tooOld: tooOld.length, dupes: dupes.length, retention: S.logRetention });
-              if (failed) logEvent('error', 'Log opschonen (Firebase): ' + failed + ' entries niet verwijderd', { failed });
-            });
-        }
+    // Sync notities — gedeelde aantekeningen per ronde. Read-only, idempotent:
+    // alleen toepassen als de inhoud daadwerkelijk verschilt, anders re-render-lus.
+    {
+      const fbNotities = sanitizeNotities(d.notities);
+      if (JSON.stringify(fbNotities) !== JSON.stringify(S.notities)) {
+        S.notities = fbNotities;
+        if (typeof renderLive === 'function') renderLive();
       }
     }
 
@@ -1970,6 +1970,7 @@ let S = {
   dagdelen: LS.get('rn_dagdelen') || null, // null = use DAGDELEN_DEFAULT
   active: {},   // always loaded from Firebase — never from localStorage
   log:    [],   // always loaded from Firebase — never from localStorage
+  notities: {}, // {ronde-key → tekst} — gedeelde notities per ronde, uit Firebase
   sns: new Set(), sr: null, dienst: new Set(LS.get('rn_dienst') || []),
   tick: null, tickL: null, tickTL: null,
   _dienstPendingTimers: {}, // clearTimeout refs per naam
@@ -2070,6 +2071,51 @@ function elaps(s) {
   // negatieve/vreemde tijd.
   const t = Math.max(0, Math.floor((Date.now() - s) / 1000));
   return String(Math.floor(t/60)).padStart(2,'0') + ':' + String(t%60).padStart(2,'0');
+}
+
+// ── Notities per ronde ──────────────────────────────────────────────────────
+// Een notitie hoort bij een ronde-INSTANTIE (route + starttijd), niet bij een
+// persoon. Zo blijft hij zichtbaar als meerdere mensen samen lopen, en automatisch
+// ook bij de afgeronde kaart (die op dezelfde route+start groepeert) na retour.
+// De sleutel is Firebase-veilig: starttijd + djb2-hash van de route (alleen cijfers).
+function notitieKey(route, start) {
+  let h = 0;
+  const r = String(route || '');
+  for (let i = 0; i < r.length; i++) h = (h * 31 + r.charCodeAt(i)) >>> 0;
+  return start + '_' + h;
+}
+function getNotitie(route, start) {
+  return S.notities[notitieKey(route, start)] || '';
+}
+// Schrijf/wis een gedeelde notitie. Lege tekst = verwijderen.
+function saveNotitie(route, start, tekst) {
+  const key = notitieKey(route, start);
+  const schoon = sanitizeInput(decodeEntities(String(tekst || '')).trim()).slice(0, 280);
+  // Lokaal eerst (optimistisch), daarna Firebase.
+  if (schoon) S.notities[key] = schoon;
+  else delete S.notities[key];
+  renderLive();
+  if (!window.fbDb || window._appOutdated) return;
+  if (schoon) {
+    window.fbSet(window.fbRef(window.fbDb, 'dashboard/notities/' + key), { tekst: schoon, route: String(route || ''), start, ts: Date.now() })
+      .then(() => { setFbStatus('ok'); logEvent('settings', 'Notitie opgeslagen', { route, start }); })
+      .catch(e => { setFbStatus('error'); logEvent('error', 'Notitie opslaan MISLUKT', { error: String(e) }); });
+  } else {
+    window.fbRemove(window.fbRef(window.fbDb, 'dashboard/notities/' + key))
+      .then(() => setFbStatus('ok'))
+      .catch(e => { setFbStatus('error'); logEvent('error', 'Notitie verwijderen MISLUKT', { error: String(e) }); });
+  }
+}
+// Saneer de notities-tak uit Firebase naar een platte {key → tekst}-map.
+function sanitizeNotities(obj) {
+  const out = {};
+  if (!obj || typeof obj !== 'object') return out;
+  Object.entries(obj).forEach(([k, v]) => {
+    if (!v || typeof v !== 'object') return;
+    const tekst = decodeEntities(sanitizeFromFirebase(String(v.tekst || ''))).slice(0, 280);
+    if (tekst) out[k] = tekst;
+  });
+  return out;
 }
 
 function showToast(msg, duration) {
@@ -2420,22 +2466,29 @@ function renderAllActive() {
     el.innerHTML = '<div class="empty">Geen actieve rondes</div>';
     return;
   }
-  const r = () => {
-    // Group by route+startTime (people who started together on same ronde)
-    const groups = {};
-    Object.entries(S.active).forEach(([n, a]) => {
-      const key = a.route + '|' + a.start;
-      if (!groups[key]) groups[key] = { route: a.route, start: a.start, members: [] };
-      groups[key].members.push([n, a]);
-    });
-    el.innerHTML = Object.values(groups)
-      .sort((a, b) => a.start - b.start)
-      .map(g => groupCardHTML(g.route, g.start, g.members, true))
-      .join('');
+  // Group by route+startTime (people who started together on same ronde)
+  const groups = {};
+  Object.entries(S.active).forEach(([n, a]) => {
+    const key = a.route + '|' + a.start;
+    if (!groups[key]) groups[key] = { route: a.route, start: a.start, members: [] };
+    groups[key].members.push([n, a]);
+  });
+  el.innerHTML = Object.values(groups)
+    .sort((a, b) => a.start - b.start)
+    .map(g => groupCardHTML(g.route, g.start, g.members, true))
+    .join('');
+  // Delegatie: retour + notitie-acties (zelfde als live-pane).
+  el.onclick = e => {
+    const rbtn = e.target.closest('.rbtn');
+    if (rbtn && rbtn.hasAttribute('data-name')) { doRetour(rbtn.getAttribute('data-name')); return; }
+    const noteBtn = e.target.closest('[data-noteedit]');
+    if (noteBtn) { openNotitieEditor(noteBtn.getAttribute('data-noteedit'), el); return; }
+    const saveBtn = e.target.closest('[data-notesave]');
+    if (saveBtn) { commitNotitieEditor(saveBtn.getAttribute('data-notesave'), el); return; }
   };
-  r();
-  // Only (re)start timer if not already running — prevents hik when switching tabs
-  if (!S.tick) S.tick = setInterval(r, 1000);
+  // Lichte tick: alleen looptijd bijwerken, niet de hele kaart herbouwen
+  // (anders verdwijnt een open notitie-textarea elke seconde).
+  if (!S.tick) S.tick = setInterval(() => tickLiveDurations(el), 1000);
 }
 
 // Report retour for multiple people sequentially (used by "Beide retour" button)
@@ -2447,21 +2500,50 @@ function groupCardHTML(route, start, members, btn) {
   // members = [[name, activeObj], ...]
   const names = members.map(([n]) => n);
   const namesEncoded = names.map(n => n.replace(/"/g,'&quot;'));
-  const bothBtn = btn && names.length > 1
-    ? `<button type="button" class="rbtn" onclick="doRetourAllen([${namesEncoded.map(n=>`'${n.replace(/'/g,"\\'")}'`).join(',')}])"
-        style="margin-top:8px;width:100%;font-weight:600">
-        &#10003; Alle ${names.length} retour
-       </button>`
-    : '';
-  return `<div class="card ca">
-    <div class="cst"><span class="dot dot-r"></span><span style="color:#991b1b">Onderweg</span></div>
-    <div class="cr">${escHtml(route)}</div>
-    <div class="cn" style="margin-bottom:6px">${names.map(escHtml).join(' &amp; ')}</div>
-    <div class="ct" style="margin-bottom:2px">Gestart om ${fmtT(start)}</div>
-    <div class="ct">Duur &nbsp;<span class="cel">${elaps(start)}</span></div>
-    ${btn ? bothBtn + `<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">` + names.map(n =>
+  const rkey = notitieKey(route, start);
+  const notitie = getNotitie(route, start);
+
+  // "Over de tijd" alleen tonen als de ronde de ingestelde limiet overschrijdt.
+  const overMin = (Date.now() - start) / 60000;
+  const limietMin = (S.timeoutWarn || 4) * 60;
+  const over = overMin > limietMin
+    ? ' <span class="lc-over">&middot; over de tijd</span>' : '';
+
+  // Notitie-blok: of een "toevoegen"-knop, of de bestaande notitie + bewerk-link.
+  const penIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+  const noteIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12l-4 4H4Z"/><path d="M16 20v-4h4"/></svg>';
+  let noteBlock = '';
+  if (btn) {
+    noteBlock = notitie
+      ? `<div class="lc-note" data-rkey="${rkey}">
+           <div class="lc-note-show">${noteIcon}<span>${escHtml(notitie)}</span>
+             <button type="button" class="lc-note-edit" data-noteedit="${rkey}">bewerk</button>
+           </div>
+         </div>`
+      : `<div class="lc-note" data-rkey="${rkey}">
+           <button type="button" class="lc-note-add" data-noteedit="${rkey}">${penIcon}Notitie toevoegen</button>
+         </div>`;
+  }
+
+  // Retour-knoppen onderaan, gescheiden door fijne lijn.
+  let retourBlock = '';
+  if (btn) {
+    const bothBtn = names.length > 1
+      ? `<button type="button" class="rbtn" onclick="doRetourAllen([${namesEncoded.map(n=>`'${n.replace(/'/g,"\\'")}'`).join(',')}])"
+          style="width:100%;font-weight:600">&#10003; Alle ${names.length} retour</button>`
+      : '';
+    const perPerson = names.map(n =>
       `<button type="button" class="rbtn" data-name="${n.replace(/"/g,'&quot;')}" onclick="doRetourBtn(this)" style="flex:1;min-width:0">&#10003; ${escHtml(n.split(' ')[0])} retour</button>`
-    ).join('') + `</div>` : ''}
+    ).join('');
+    retourBlock = `<div class="lc-retour">${bothBtn}${perPerson}</div>`;
+  }
+
+  return `<div class="card ca" data-rkey="${rkey}" data-start="${start}">
+    <div class="lc-rij"><span class="dot dot-r"></span><span class="lc-ronde">${escHtml(route)}</span></div>
+    <div class="lc-mw">${names.map(escHtml).join(' &amp; ')}</div>
+    <div class="lc-meta">gestart ${fmtT(start)} &middot; loopt <span class="cel">${elaps(start)}</span>${over}</div>
+    ${noteBlock}
+    ${retourBlock}
   </div>`;
 }
 
@@ -2532,27 +2614,39 @@ function renderLive() {
     const doneHr  = document.getElementById('done-hr');
     if (doneLbl) doneLbl.style.display = grouped.length ? '' : 'none';
     if (doneHr)  doneHr.style.display  = grouped.length ? '' : 'none';
-    elDone.innerHTML = grouped.map(g => `
+    elDone.innerHTML = grouped.map(g => {
+      const notitie = getNotitie(g.route, g.start);
+      const noteHtml = notitie
+        ? `<div class="ct" style="margin-top:7px;font-style:italic;color:#5b6b7f">&#9998; ${escHtml(notitie)}</div>`
+        : '';
+      return `
         <div class="card cd">
           <div class="cst"><span class="dot dot-g"></span><span style="color:#166534">Klaar</span></div>
           <div class="cr">${escHtml(g.route)}</div>
           <div class="cn">${g.names.map(escHtml).join(', ')}</div>
           <div class="ct" style="margin-top:6px">Duur &nbsp;<span style="font-weight:500;color:#166534">${g.dur} min</span></div>
           <div class="ct">${fmtT(g.start)} &ndash; ${fmtT(g.end)}</div>
-        </div>`).join('');
+          ${noteHtml}
+        </div>`;
+    }).join('');
   };
 
   renderActiveCards();
   renderDoneCards();
   if (_liveVisible) drawTimeline(recent, Object.entries(S.active), cutoff, now);
-  // Event delegation: retour knoppen werken ook tijdens tick-updates
+  // Event delegation op de live-container: retour-knoppen én notitie-acties.
   elActive.onclick = e => {
-    const btn = e.target.closest('.rbtn');
-    if (btn) doRetour(btn.getAttribute('data-name'));
+    const rbtn = e.target.closest('.rbtn');
+    if (rbtn && rbtn.hasAttribute('data-name')) { doRetour(rbtn.getAttribute('data-name')); return; }
+    const noteBtn = e.target.closest('[data-noteedit]');
+    if (noteBtn) { openNotitieEditor(noteBtn.getAttribute('data-noteedit'), elActive); return; }
+    const saveBtn = e.target.closest('[data-notesave]');
+    if (saveBtn) { commitNotitieEditor(saveBtn.getAttribute('data-notesave'), elActive); return; }
   };
-  // Tick duration every second for live active cards
+  // Tick: alleen de duur-tekst + "over de tijd" bijwerken (lichte update), NIET de
+  // hele kaart herbouwen — anders verdwijnt een open notitie-textarea elke seconde.
   clearInterval(S.tickL); S.tickL = null;
-  if (act.length) S.tickL = setInterval(renderActiveCards, 1000);
+  if (act.length) S.tickL = setInterval(() => tickLiveDurations(elActive), 1000);
   // Auto-refresh timeline every 60s even when no active rondes
   clearInterval(S.tickTL);
   S.tickTL = setInterval(() => {
@@ -2562,6 +2656,67 @@ function renderLive() {
       drawTimeline(logInWindow(cut), Object.entries(S.active), cut, nowT);
     }
   }, 60000);
+}
+
+// Lichte per-seconde update van actieve kaarten: ververst alleen de looptijd en
+// voegt "over de tijd" toe zodra de limiet is gepasseerd. Raakt de notitie-UI niet.
+function tickLiveDurations(container) {
+  if (!container) return;
+  container.querySelectorAll('.card.ca').forEach(card => {
+    const cel = card.querySelector('.cel');
+    if (!cel) return;
+    const meta = card.querySelector('.lc-meta');
+    const start = parseInt(card.getAttribute('data-start'), 10);
+    if (!isNaN(start)) {
+      cel.textContent = elaps(start);
+      const over = (Date.now() - start) / 60000 > (S.timeoutWarn || 4) * 60;
+      let overEl = meta && meta.querySelector('.lc-over');
+      if (over && !overEl && meta) {
+        overEl = document.createElement('span');
+        overEl.className = 'lc-over';
+        overEl.innerHTML = ' &middot; over de tijd';
+        meta.appendChild(overEl);
+      }
+    }
+  });
+}
+
+// Zoek route+start die bij een notitie-sleutel horen (uit de actieve rondes).
+function rondeVoorNotitieKey(rkey) {
+  for (const [, a] of Object.entries(S.active)) {
+    if (notitieKey(a.route, a.start) === rkey) return { route: a.route, start: a.start };
+  }
+  return null;
+}
+
+// Open een tekstveld in het notitie-blok (DOM-manipulatie, geen herrender — zo
+// overleeft het veld de tick). Pauzeert tijdens bewerken impliciet doordat de tick
+// alleen .cel aanraakt en het .lc-note-blok ongemoeid laat.
+function openNotitieEditor(rkey, container) {
+  const card = container.querySelector(`.card.ca[data-rkey="${rkey}"]`);
+  if (!card) return;
+  const noteBox = card.querySelector('.lc-note');
+  if (!noteBox || noteBox.querySelector('.lc-note-area')) return; // al open
+  const huidige = (() => { const r = rondeVoorNotitieKey(rkey); return r ? getNotitie(r.route, r.start) : ''; })();
+  noteBox.innerHTML =
+    `<textarea class="lc-note-area" maxlength="280" placeholder="Aantekening bij deze ronde…">${escHtml(huidige)}</textarea>
+     <div class="lc-note-row">
+       <span class="lc-note-hint">Vrije aantekening &middot; zichtbaar bij recent afgerond</span>
+       <button type="button" class="lc-note-save" data-notesave="${rkey}">Bewaar</button>
+     </div>`;
+  const area = noteBox.querySelector('.lc-note-area');
+  if (area) { area.focus(); area.setSelectionRange(area.value.length, area.value.length); }
+}
+
+// Sla de notitie op vanuit het open tekstveld.
+function commitNotitieEditor(rkey, container) {
+  const card = container.querySelector(`.card.ca[data-rkey="${rkey}"]`);
+  if (!card) return;
+  const area = card.querySelector('.lc-note-area');
+  if (!area) return;
+  const r = rondeVoorNotitieKey(rkey);
+  if (!r) return;
+  saveNotitie(r.route, r.start, area.value); // triggert renderLive → toont notitie
 }
 
 function drawTimeline(recent, active, cutoff, now) {
@@ -2984,61 +3139,114 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
+// Voorkomt dat twee prune-ronden in dezelfde sessie overlappen.
+let _pruneBusy = false;
 function pruneLog() {
-  // Niet opschonen met verouderde state: anders knippen we S.log lokaal weg
-  // terwijl de Firebase-writes geblokkeerd zijn, en blijft Firebase vollopen.
-  if (window._appOutdated) return;
-  const before = S.log.length;
-  // Always keep at least 25h regardless of logRetention — timeline needs full 24h buffer
+  // Niet opschonen met verouderde state (writes geblokkeerd) of zonder Firebase.
+  if (window._appOutdated || _pruneBusy) return;
+  if (!window.fbDb || !window.fbGet || !window.fbRemove) return;
+
   const retentionMs = Math.max((S.logRetention ?? 2) * 24 * 60 * 60 * 1000, 25 * 60 * 60 * 1000);
   const cutoff = Date.now() - retentionMs;
-  const sorted = S.log.filter(r => r.end && r.start)
-                      .sort((a, b) => (b.end || 0) - (a.end || 0));
-  const kept = sorted.filter((r, i) => i < 300 && r.end >= cutoff);
-  const keptIds = new Set(kept.map(r => r.id));
-  const removedEntries = sorted.filter(r => !keptIds.has(r.id));
-  if (removedEntries.length === 0) return;
 
-  // Verwijder elk verouderd entry individueel uit Firebase (niet de hele array
-  // overschrijven). Entries zonder _fbKey bestaan nog niet in Firebase (push nog
-  // niet bevestigd) — die zijn alleen lokaal en worden direct gedropt.
-  // Lokaal pas verwijderen NA bevestigde Firebase-delete, zodat een mislukte
-  // delete niet leidt tot een entry die lokaal weg is maar in Firebase blijft.
-  const localOnly = removedEntries.filter(r => !r._fbKey);
-  const inFirebase = removedEntries.filter(r => r._fbKey);
+  _pruneBusy = true;
+  // Lees de ECHTE Firebase-inhoud, niet de afgeleide S.log. S.log is gefilterd,
+  // gededupliceerd en gecapt — daarop opruimen riskeert het wissen van entries
+  // die alleen uit de afgeleide weergave gevallen zijn. De waarheid staat in
+  // Firebase; we verwijderen daar uitsluitend wat ECHT te oud is (op end-tijd).
+  window.fbGet(window.fbRef(window.fbDb, 'dashboard/log'))
+    .then(snap => {
+      const data = snap && snap.exists() ? snap.val() : null;
+      if (!data || typeof data !== 'object' || Array.isArray(data)) { _pruneBusy = false; return; }
 
-  // Drop lokaal-only entries meteen (die kunnen niet in Firebase verweesd raken).
-  if (localOnly.length) {
-    const dropIds = new Set(localOnly.map(r => r.id));
-    S.log = S.log.filter(r => !dropIds.has(r.id));
-  }
-
-  if (inFirebase.length === 0 || !window.fbDb || !window.fbRemove) return;
-
-  Promise.allSettled(inFirebase.map(r => fbRemoveLogEntry(r._fbKey).then(() => r.id)))
-    .then(results => {
-      const okIds = new Set();
-      let failed = 0;
-      results.forEach((res, idx) => {
-        if (res.status === 'fulfilled') okIds.add(inFirebase[idx].id);
-        else failed++;
+      const totalKeys = Object.keys(data).length;
+      // Harde ondergrens: entries waarvan de ronde binnen de laatste 25 uur
+      // eindigde, worden NOOIT gewist — die zijn nodig voor de 24u-tijdlijn,
+      // ongeacht de ingestelde bewaar-duur. Dit is tevens het veiligheidsanker:
+      // een bug die de cutoff corrumpeert kan zo nooit verse data wissen.
+      const floor = Date.now() - 25 * 60 * 60 * 1000;
+      // Verzamel UITSLUITEND entries ouder dan de retentie-cutoff. Geen "verweesd"-
+      // of cap-logica — die veroorzaakte de cascade die de hele log wiste
+      // (v2.3.25/26). Entries zonder geldige end-tijd worden NOOIT gewist.
+      const staleKeys = [];
+      let recentCount = 0; // entries binnen de 25u-vloer (moeten behouden blijven)
+      Object.entries(data).forEach(([k, v]) => {
+        if (!v || typeof v !== 'object') return;
+        const end = typeof v.end === 'number' ? v.end : 0;
+        if (end >= floor) { recentCount++; return; } // binnen de vloer: altijd behouden
+        if (end > 0 && end < cutoff) staleKeys.push(k);
       });
-      if (okIds.size) {
-        // Verwijder lokaal alleen de entries die ook echt uit Firebase weg zijn.
-        S.log = S.log.filter(r => !okIds.has(r.id));
-        logEvent('auto', 'Log opgeschoond: ' + okIds.size + ' entries verwijderd',
-          { removed: inFirebase.filter(r => okIds.has(r.id)).slice(0, 20)
-              .map(r => ({ name: r.name, route: r.route, end: r.end, dur: r.dur })) });
+      if (staleKeys.length === 0) { _pruneBusy = false; return; }
+
+      // Veiligheidsgrendel: een legitieme opschoning laat ALTIJD de entries binnen
+      // de 25u-vloer staan. Als die er zijn (recentCount > 0), is een grote prune
+      // van oudere entries normaal en toegestaan. Alleen als de prune de hele node
+      // (incl. álles) zou wissen ZONDER dat er recente entries overblijven, breken
+      // we af — dat duidt op een corrupte cutoff/data, niet op normaal gebruik.
+      if (recentCount === 0 && staleKeys.length === totalKeys && totalKeys >= 20) {
+        logEvent('error', 'Log-prune AFGEBROKEN: zou alle ' + totalKeys + ' entries wissen zonder recente overblijvers (verdacht)', { retention: S.logRetention, cutoff });
+        _pruneBusy = false;
+        return;
       }
-      if (failed) {
-        logEvent('error', 'Log opschonen: ' + failed + ' entries niet uit Firebase verwijderd',
-          { failed, retention: S.logRetention });
-      }
-    });
+
+      // Jitter: bij meerdere sessies voorkomt een kleine random vertraging dat ze
+      // allemaal tegelijk dezelfde keys verwijderen en elk een audit-regel loggen.
+      const jitter = Math.floor(Math.random() * 2000);
+      setTimeout(() => {
+        Promise.allSettled(staleKeys.map(k => fbRemoveLogEntry(k).then(() => k)))
+          .then(results => {
+            const okKeys = new Set();
+            let failed = 0;
+            results.forEach((res, idx) => {
+              if (res.status === 'fulfilled') okKeys.add(staleKeys[idx]);
+              else failed++;
+            });
+            // Lokaal spiegelen: verwijder de opgeschoonde entries ook uit S.log.
+            if (okKeys.size) {
+              S.log = S.log.filter(r => !r._fbKey || !okKeys.has(r._fbKey));
+              if (typeof renderLive === 'function') renderLive();
+              logEvent('auto', 'Log opgeschoond: ' + okKeys.size + ' verouderde entries verwijderd', { retention: S.logRetention });
+            }
+            if (failed) logEvent('error', 'Log opschonen: ' + failed + ' entries niet verwijderd', { failed });
+            _pruneBusy = false;
+          });
+      }, jitter);
+    })
+    .catch(e => { logEvent('error', 'Log-prune lezen MISLUKT', { error: String(e) }); _pruneBusy = false; });
+}
+
+// Ruim gedeelde notities ouder dan de 25u-vloer op. Notities horen bij een ronde
+// en zijn na ~een dienst niet meer relevant. Leest direct uit Firebase, wist alleen
+// op leeftijd (ts), met dezelfde veiligheidsgedachte als pruneLog (nooit alles in
+// één keer). Read-only listener; opruiming uitsluitend hier.
+let _pruneNotBusy = false;
+function pruneNotities() {
+  if (window._appOutdated || _pruneNotBusy) return;
+  if (!window.fbDb || !window.fbGet || !window.fbRemove) return;
+  const cutoff = Date.now() - 25 * 60 * 60 * 1000;
+  _pruneNotBusy = true;
+  window.fbGet(window.fbRef(window.fbDb, 'dashboard/notities'))
+    .then(snap => {
+      const data = snap && snap.exists() ? snap.val() : null;
+      if (!data || typeof data !== 'object' || Array.isArray(data)) { _pruneNotBusy = false; return; }
+      const stale = [];
+      Object.entries(data).forEach(([k, v]) => {
+        if (!v || typeof v !== 'object') return;
+        const ts = typeof v.ts === 'number' ? v.ts : 0;
+        if (ts > 0 && ts < cutoff) stale.push(k);
+      });
+      if (!stale.length) { _pruneNotBusy = false; return; }
+      const jitter = Math.floor(Math.random() * 2000);
+      setTimeout(() => {
+        Promise.allSettled(stale.map(k => window.fbRemove(window.fbRef(window.fbDb, 'dashboard/notities/' + k))))
+          .then(() => { _pruneNotBusy = false; });
+      }, jitter);
+    })
+    .catch(() => { _pruneNotBusy = false; });
 }
 
 // Auto-prune every 30 minutes
-TIMERS.set('prune', pruneLog, 30 * 60 * 1000);
+TIMERS.set('prune', () => { pruneLog(); pruneNotities(); }, 30 * 60 * 1000);
 
 // Cleanup van stale active entries — ronden die langer dan 12u actief zijn
 // zijn bijna altijd vergeten retours uit een vorige dienst. Die laten staan
@@ -4794,7 +5002,6 @@ async function saveGedrag() {
   const tw  = parseInt(document.getElementById('inp-timeout-warn')?.value, 10);
   const mt  = parseInt(document.getElementById('inp-melding-ttl')?.value, 10);
   const pc  = parseInt(document.getElementById('inp-pin-cache')?.value, 10);
-  const lr  = parseInt(document.getElementById('inp-log-retention')?.value, 10);
 
   // Waarschuw als meldingTTL omlaag gaat en actieve gedeelde meldingen afkapt
   if (!isNaN(mt) && mt < S.meldingTTL) {
@@ -4811,32 +5018,59 @@ async function saveGedrag() {
     }
   }
 
-  // Waarschuw als log-bewaar-duur omlaag gaat en daardoor entries opgeruimd worden.
-  // Floor van 25u blijft altijd behouden voor de 24u-tijdlijn — daar wordt nooit
-  // onder geknipt, ongeacht de instelling.
-  if (!isNaN(lr) && lr >= 1 && lr <= 30 && lr < S.logRetention) {
+  if (!isNaN(tw) && tw >= 1  && tw <= 24)  { S.timeoutWarn  = tw;  LS.set('rn_timeout_warn',  tw); }
+  if (!isNaN(mt) && mt >= 1  && mt <= 72)  { S.meldingTTL   = mt;  LS.set('rn_melding_ttl',   mt); }
+  if (!isNaN(pc) && pc >= 5  && pc <= 480) { S.pinCacheDur  = pc;  LS.set('rn_pin_cache_dur', pc); }
+
+  // De log-bewaar-duur wordt NIET hier direct opgeslagen. Met de pijltjes loopt de
+  // waarde 4→3→2→1; elke tik vuurt oninput. Een directe waarschuwing zou dan
+  // meerdere popups geven. We debouncen daarom: pas ~800ms na de laatste wijziging
+  // verwerken we het log-retentie-veld, zodat de hele aanpassing als één actie telt
+  // en je hoogstens één bevestigingspopup krijgt. Zie scheduleLogRetentionCommit().
+  scheduleLogRetentionCommit();
+
+  save();
+  logEvent('settings', 'Gedrag-instellingen gewijzigd', { timeoutWarn: S.timeoutWarn, meldingTTL: S.meldingTTL, pinCacheDur: S.pinCacheDur, logRetention: S.logRetention });
+}
+
+// Debounced verwerking van de log-bewaar-duur. Toont hooguit één bevestigingspopup,
+// ongeacht hoe vaak het pijltje is ingedrukt, en pas als de gebruiker klaar is.
+let _logRetentionCommitTimer = null;
+let _logRetentionConfirming = false;
+function scheduleLogRetentionCommit() {
+  if (_logRetentionCommitTimer) clearTimeout(_logRetentionCommitTimer);
+  _logRetentionCommitTimer = setTimeout(commitLogRetention, 800);
+}
+async function commitLogRetention() {
+  _logRetentionCommitTimer = null;
+  if (_logRetentionConfirming) return; // popup staat al open
+  const inpLR = document.getElementById('inp-log-retention');
+  const lr = parseInt(inpLR?.value, 10);
+  if (isNaN(lr) || lr < 1 || lr > 30) return;       // ongeldige (tussen)waarde negeren
+  if (lr === S.logRetention) return;                // niets veranderd
+
+  // Verlaging die daadwerkelijk gelopen rondes zou opruimen → één bevestiging.
+  if (lr < S.logRetention) {
     const newRetMs = Math.max(lr * 24 * 60 * 60 * 1000, 25 * 60 * 60 * 1000);
     const cutoff = Date.now() - newRetMs;
     const getroffen = S.log.filter(r => r.end && r.end < cutoff).length;
     if (getroffen > 0) {
+      _logRetentionConfirming = true;
       const bevestigd = await customConfirm(
         `Bewaar-duur verlagen naar ${lr === 1 ? '1 dag' : lr + ' dagen'} verwijdert bij de volgende opruiming ${getroffen === 1 ? '1 gelopen ronde' : getroffen + ' gelopen rondes'} uit het log. Dit kan niet ongedaan worden gemaakt. Doorgaan?`
       );
+      _logRetentionConfirming = false;
       if (!bevestigd) {
-        // Zet het invoerveld terug op de huidige waarde
-        const inpLR = document.getElementById('inp-log-retention');
-        if (inpLR) inpLR.value = S.logRetention;
+        if (inpLR) inpLR.value = S.logRetention; // veld terugzetten
         return;
       }
     }
   }
 
-  if (!isNaN(tw) && tw >= 1  && tw <= 24)  { S.timeoutWarn  = tw;  LS.set('rn_timeout_warn',  tw); }
-  if (!isNaN(mt) && mt >= 1  && mt <= 72)  { S.meldingTTL   = mt;  LS.set('rn_melding_ttl',   mt); }
-  if (!isNaN(pc) && pc >= 5  && pc <= 480) { S.pinCacheDur  = pc;  LS.set('rn_pin_cache_dur', pc); }
-  if (!isNaN(lr) && lr >= 1  && lr <= 30)  { S.logRetention = lr;  LS.set('rn_log_retention', lr); }
+  S.logRetention = lr;
+  LS.set('rn_log_retention', lr);
   save();
-  logEvent('settings', 'Gedrag-instellingen gewijzigd', { timeoutWarn: S.timeoutWarn, meldingTTL: S.meldingTTL, pinCacheDur: S.pinCacheDur, logRetention: S.logRetention });
+  logEvent('settings', 'Bewaar-duur log gewijzigd', { logRetention: lr });
 }
 
 function checkCfgLock() {
@@ -5557,6 +5791,8 @@ function initFirebase() {
 
   // Stale-active cleanup 5s na init zodat fbListen tijd heeft S.active te vullen
   setTimeout(pruneStaleActive, 5000);
+  // Eerste log-opschoning 12s na init (ná verbinding); daarna elke 30 min via TIMERS.
+  setTimeout(pruneLog, 12000);
 
   // Schrijf de eigen versie naar Firebase, maar NOOIT naar beneden bijstellen.
   // Als er al een hogere versie staat (een ander, nieuwer toestel), laten we die
