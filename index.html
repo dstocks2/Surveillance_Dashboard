@@ -153,7 +153,7 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 #all-active-cards,#live-cards-active{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;align-items:start}
 .cards-done{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
 .live-col-onderweg .cards{grid-template-columns:repeat(2,1fr)}
-.live-split{display:grid;grid-template-columns:2fr minmax(300px,1fr);gap:18px;align-items:start}
+.live-split{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(360px,1fr);gap:18px;align-items:start}
 .live-split:has(.live-col-done[style*="display:none"]),
 .live-split:has(.live-col-done[style*="display: none"]){grid-template-columns:1fr}
 .live-split:has(.live-col-done[style*="display:none"]) .live-col-onderweg .cards,
@@ -168,7 +168,7 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 }
 .done-list{display:flex;flex-direction:column;border-top:1px solid #e2e8f0}
 .dl-item{padding:9px 2px;border-bottom:1px solid #e2e8f0}
-.dl-row{display:grid;grid-template-columns:auto 1fr auto auto;align-items:baseline;column-gap:14px}
+.dl-row{display:grid;grid-template-columns:auto 1fr auto auto;align-items:baseline;column-gap:10px}
 .dl-dot{width:6px;height:6px;border-radius:50%;background:#cbd5e1;transform:translateY(-1px)}
 .dl-main{min-width:0;display:flex;align-items:baseline;gap:8px;overflow:hidden}
 .dl-route{font-size:13px;font-weight:500;color:#334155;white-space:nowrap;flex-shrink:0}
@@ -1007,7 +1007,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.4.13</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.4.14</span>
     </div>
   </nav>
 
@@ -1323,7 +1323,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.4.13';
+const APP_VERSION = '2.4.14';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
