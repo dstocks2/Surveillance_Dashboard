@@ -53,7 +53,10 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .cfg-shell{padding:0 !important;max-width:none !important}
 .content:has(#pane-cfg.on){max-width:100% !important;padding:0 !important}
 /* Overzicht-tab op volle breedte zodat actieve kaarten meegroeien (bv. 4 naast elkaar) */
-.content:has(#pane-live.on){max-width:1400px !important}
+.content:has(#pane-live.on),
+.content:has(#pane-reg.on),
+.content:has(#pane-plan.on),
+.content:has(#pane-dienst.on){max-width:1400px !important}
 .cfg-layout{display:flex;min-height:calc(100vh - var(--topbar-h, 110px))}
 .cfg-rail{width:220px;flex-shrink:0;background:#fff;border-right:1px solid #e2e8f0;display:flex;flex-direction:column;padding:20px 0 0;gap:2px;position:sticky;top:var(--topbar-h, 110px);align-self:flex-start;height:calc(100vh - var(--topbar-h, 110px));overflow-y:auto}
 .cfg-rail-title{font-size:10px;font-weight:700;letter-spacing:.1em;color:#5b6b7f;padding:0 18px 10px;text-transform:uppercase}
@@ -966,7 +969,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.4.3</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.4.4</span>
     </div>
   </nav>
 
@@ -1282,7 +1285,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.4.3';
+const APP_VERSION = '2.4.4';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
