@@ -155,17 +155,16 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .done-list{display:flex;flex-direction:column}
 .dl-item{padding:9px 4px;border-bottom:1px solid #eef1f5}
 .dl-item:last-child{border-bottom:none}
-.dl-row{display:flex;align-items:center;gap:10px}
+.dl-row{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;column-gap:14px}
 .dl-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0}
-.dl-main{flex:0 1 auto;display:flex;align-items:baseline;gap:8px;white-space:nowrap;overflow:hidden;min-width:0}
+.dl-main{min-width:0;display:flex;align-items:baseline;gap:8px;overflow:hidden}
 .dl-route{font-size:13.5px;font-weight:700;color:#1e293b;white-space:nowrap;flex-shrink:0}
 .dl-name{font-size:13px;color:#8a94a3;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dl-spacer{flex:1 1 auto;min-width:12px}
-.dl-time{font-size:12.5px;color:#5b6b7f;font-variant-numeric:tabular-nums;flex-shrink:0;white-space:nowrap}
-.dl-dur{font-size:12.5px;font-weight:600;color:#166534;flex-shrink:0;min-width:54px;text-align:right;white-space:nowrap}
-.dl-note{font-size:12px;font-style:italic;color:#5b6b7f;margin-top:4px;margin-left:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dl-time{font-size:12.5px;color:#5b6b7f;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+.dl-dur{font-size:12.5px;font-weight:600;color:#166534;min-width:54px;text-align:right;white-space:nowrap}
+.dl-note{font-size:12px;font-style:italic;color:#5b6b7f;margin-top:4px;margin-left:21px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media(max-width:600px){
-  .dl-row{gap:7px}
+  .dl-row{column-gap:8px}
   .dl-time{font-size:11.5px}
   .dl-dur{font-size:11.5px;min-width:46px}
 }
@@ -989,7 +988,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.4.6</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.4.7</span>
     </div>
   </nav>
 
@@ -1305,7 +1304,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.4.6';
+const APP_VERSION = '2.4.7';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -2655,7 +2654,6 @@ function renderLive() {
           <div class="dl-row">
             <span class="dl-dot"></span>
             <span class="dl-main"><span class="dl-route">${escHtml(g.route)}</span><span class="dl-name">${g.names.map(escHtml).join(', ')}</span></span>
-            <span class="dl-spacer"></span>
             <span class="dl-time">${fmtT(g.start)}&ndash;${fmtT(g.end)}</span>
             <span class="dl-dur">${g.dur} min</span>
           </div>
