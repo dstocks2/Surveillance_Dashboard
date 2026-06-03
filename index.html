@@ -355,6 +355,8 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .meld-body{overflow-y:auto;flex:1}
 .meld-item{display:flex;gap:10px;padding:10px 14px;border-bottom:1px solid #f8fafc;align-items:flex-start}
 .meld-item:last-child{border-bottom:none}
+.meld-x{flex-shrink:0;background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:16px;line-height:1;padding:2px 2px;margin:-2px -4px 0 0;font-family:inherit}
+.meld-x:hover{color:#64748b}
 .meld-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
 .meld-dot.rood{background:#ef4444}
 .meld-dot.oranje{background:#f97316}
@@ -964,7 +966,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.4.1</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.4.2</span>
     </div>
   </nav>
 
@@ -1280,7 +1282,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.4.1';
+const APP_VERSION = '2.4.2';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -5516,6 +5518,10 @@ window.addEventListener('load', updateTopbarHeight);
 // ── Meldingen systeem ────────────────────────────────────────────────────────
 const MELDINGEN = [];
 let _meldId = 0;
+// Tijdstip waarop het meldingen-paneel voor het laatst is geopend. De badge telt
+// alleen urgente meldingen die hierna zijn binnengekomen, zodat het rode bolletje
+// verdwijnt zodra je hebt gekeken — ook als je de melding zelf laat staan.
+let _meldGelezenTs = 0;
 
 
 function opruimStaleLangeRondeMeldingen() {
@@ -5535,7 +5541,7 @@ function voegMeldingToe(type, naam, sub, actieLabel, actieFn, naamRef) {
   const id = ++_meldId;
   const nu = new Date();
   const tijdStr = String(nu.getHours()).padStart(2,'0') + ':' + String(nu.getMinutes()).padStart(2,'0');
-  MELDINGEN.unshift({ id, type, naam, sub, tijdStr, actieLabel: actieLabel || null, actieFn: actieFn || null, _naamRef: naamRef || null });
+  MELDINGEN.unshift({ id, type, naam, sub, tijdStr, actieLabel: actieLabel || null, actieFn: actieFn || null, _naamRef: naamRef || null, _ts: Date.now() });
   // Begrens de lijst zodat hij niet onbeperkt groeit op een tablet dat dagenlang
   // aanstaat. We knippen aan de onderkant (oudste eerst), maar laten gedeelde
   // Firebase-meldingen met _fbKey met rust — die worden door hun eigen TTL beheerd.
@@ -5672,7 +5678,12 @@ function renderMeldingen() {
   const body = document.getElementById('meld-body');
   const badge = document.getElementById('bel-badge');
   if (!body || !badge) return;
-  const urgent = MELDINGEN.filter(m => m.type === 'rood' || m.type === 'oranje').length;
+  // Badge telt urgente meldingen die NIEUWER zijn dan het moment waarop het paneel
+  // voor het laatst is geopend. Zo verdwijnt het rode bolletje zodra je hebt
+  // gekeken, ook als je een melding (bv. "dubbele ronde") wilt laten staan.
+  const urgent = MELDINGEN.filter(m =>
+    (m.type === 'rood' || m.type === 'oranje') && (m._ts || 0) > _meldGelezenTs
+  ).length;
   if (urgent > 0) {
     badge.textContent = urgent > 9 ? '9+' : urgent;
     badge.style.display = 'flex';
@@ -5692,6 +5703,7 @@ function renderMeldingen() {
         ${m.actieLabel ? `<button type="button" class="meld-actie ${m.type}" onclick="meldActie(${m.id})">${escHtml(m.actieLabel)} →</button>` : ''}
         <div class="meld-tijd">${escHtml(m.tijdStr)}</div>
       </div>
+      <button type="button" class="meld-x" onclick="verwijderMelding(${m.id})" aria-label="Melding verwijderen" title="Verwijderen">&times;</button>
     </div>`).join('');
 }
 
@@ -5710,7 +5722,13 @@ function meldActie(id) {
 }
 
 function toggleMeldingen() {
-  document.getElementById('meld-overlay').classList.toggle('open');
+  const ov = document.getElementById('meld-overlay');
+  ov.classList.toggle('open');
+  // Bij openen: markeer huidige urgente meldingen als gezien → badge verdwijnt.
+  if (ov.classList.contains('open')) {
+    _meldGelezenTs = Date.now();
+    renderMeldingen();
+  }
 }
 
 function sluitMeldingen() {
@@ -5906,7 +5924,7 @@ function fbListenMeldingen() {
       const type    = sanitizeFromFirebase(m.type || 'grijs');
       // Only show grijs types (shared events); other types are local-only
       if (type === 'grijs') {
-        MELDINGEN.unshift({ id: ++_meldId, type, naam, sub, tijdStr, actieLabel: null, actieFn: null, _fbKey: key });
+        MELDINGEN.unshift({ id: ++_meldId, type, naam, sub, tijdStr, actieLabel: null, actieFn: null, _fbKey: key, _ts: (typeof m.ts === 'number' ? m.ts : Date.now()) });
         renderMeldingen();
       }
     });
@@ -5928,7 +5946,7 @@ function fbListenConnected() {
       if (!MELDINGEN.find(m => m._fbDisconnect)) {
         const nu = new Date();
         const tijdStr = String(nu.getHours()).padStart(2,'0') + ':' + String(nu.getMinutes()).padStart(2,'0');
-        const m = { id: ++_meldId, type: 'rood', naam: 'Firebase verbinding verbroken', sub: 'Synchronisatie gestopt — controleer netwerk.', tijdStr, actieLabel: null, actieFn: null, _fbDisconnect: true };
+        const m = { id: ++_meldId, type: 'rood', naam: 'Firebase verbinding verbroken', sub: 'Synchronisatie gestopt — controleer netwerk.', tijdStr, actieLabel: null, actieFn: null, _fbDisconnect: true, _ts: Date.now() };
         MELDINGEN.unshift(m);
         renderMeldingen();
         logEvent('sync', 'Firebase verbinding verbroken');
