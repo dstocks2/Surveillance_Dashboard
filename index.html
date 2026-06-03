@@ -152,21 +152,22 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
 #all-active-cards,#live-cards-active{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;align-items:start}
 .cards-done{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
-.done-list{display:flex;flex-direction:column}
-.dl-item{padding:9px 4px;border-bottom:1px solid #eef1f5}
-.dl-item:last-child{border-bottom:none}
-.dl-row{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;column-gap:14px}
-.dl-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0}
+.done-list{display:flex;flex-direction:column;border-top:1px solid #e2e8f0}
+.dl-item{padding:9px 2px;border-bottom:1px solid #e2e8f0}
+.dl-row{display:grid;grid-template-columns:auto 1fr auto auto;align-items:baseline;column-gap:14px}
+.dl-dot{width:6px;height:6px;border-radius:50%;background:#cbd5e1;transform:translateY(-1px)}
 .dl-main{min-width:0;display:flex;align-items:baseline;gap:8px;overflow:hidden}
-.dl-route{font-size:13.5px;font-weight:700;color:#1e293b;white-space:nowrap;flex-shrink:0}
-.dl-name{font-size:13px;color:#8a94a3;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dl-time{font-size:12.5px;color:#5b6b7f;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
-.dl-dur{font-size:12.5px;font-weight:600;color:#166534;min-width:54px;text-align:right;white-space:nowrap}
-.dl-note{font-size:12px;font-style:italic;color:#5b6b7f;margin-top:4px;margin-left:21px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dl-route{font-size:13px;font-weight:500;color:#334155;white-space:nowrap;flex-shrink:0}
+.dl-name{font-size:12px;color:#64748b;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dl-time{font-size:12px;color:#64748b;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+.dl-dur{font-size:12px;font-weight:600;color:#334155;font-variant-numeric:tabular-nums;width:54px;text-align:right}
+.dl-note{font-size:11.5px;font-style:italic;color:#64748b;line-height:1.45;margin:5px 0 1px 16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dl-note-ic{color:#94a3b8;font-style:normal}
+.dl-more{margin-top:10px;padding:0;border:none;background:none;color:#1d4ed8;font-size:12px;font-family:inherit;cursor:pointer}
 @media(max-width:600px){
   .dl-row{column-gap:8px}
-  .dl-time{font-size:11.5px}
-  .dl-dur{font-size:11.5px;min-width:46px}
+  .dl-time,.dl-dur{font-size:11.5px}
+  .dl-dur{width:46px}
 }
 .card{border-radius:10px;padding:14px 16px;border:1px solid #e2e8f0;background:#fff}
 .card.ca{border-color:#ef4444;border-width:1.5px;background:#fef2f2}
@@ -988,7 +989,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.4.7</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.4.8</span>
     </div>
   </nav>
 
@@ -1304,7 +1305,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.4.7';
+const APP_VERSION = '2.4.8';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -2277,6 +2278,12 @@ function selR(r) {
   renderRouteBtns(); updBtn();
 }
 
+let _doneExpanded = false;
+function toggleDoneExpand() {
+  _doneExpanded = !_doneExpanded;
+  renderLive();
+}
+
 function toggleTimeline() {
   const outer  = document.getElementById('timeline-outer');
   const legend = document.getElementById('timeline-legend');
@@ -2621,12 +2628,9 @@ function renderLive() {
 
   // Render done cards (only on data change — not in tick)
   const renderDoneCards = () => {
-    const isMobile = window.innerWidth <= 600;
-    const doneCards = recent.slice(0, isMobile ? 6 : 8);
-
-    // Group done cards by route+end (same logic as active grouping)
+    // Group ALL recent rondes by route+end first, then limit the view.
     const doneGroups = {};
-    doneCards.forEach(row => {
+    recent.forEach(row => {
       // Round end to nearest 2 seconds to catch near-simultaneous retours
       const key = row.route + '|' + Math.round(row.end / 2000);
       if (!doneGroups[key]) doneGroups[key] = { route: row.route, start: row.start, end: row.end, dur: row.dur, names: [] };
@@ -2634,7 +2638,7 @@ function renderLive() {
       // Use the latest end time and longest dur for the group
       if (row.end > doneGroups[key].end) { doneGroups[key].end = row.end; doneGroups[key].dur = row.dur; }
     });
-    const grouped = Object.values(doneGroups);
+    const grouped = Object.values(doneGroups).sort((a,b) => b.end - a.end);
 
     const doneLbl = document.getElementById('done-lbl');
     const doneHr  = document.getElementById('done-hr');
@@ -2644,10 +2648,13 @@ function renderLive() {
     if (doneHead) doneHead.style.display = grouped.length ? '' : 'none';
     const cnt = document.getElementById('done-count');
     if (cnt) cnt.textContent = grouped.length ? grouped.length + ' vandaag' : '';
-    elDone.innerHTML = '<div class="done-list">' + grouped.map(g => {
+
+    const COLLAPSED = 5;
+    const visible = _doneExpanded ? grouped : grouped.slice(0, COLLAPSED);
+    const rowsHtml = visible.map(g => {
       const notitie = getNotitie(g.route, g.start);
       const noteHtml = notitie
-        ? `<div class="dl-note">&#9998; ${escHtml(notitie)}</div>`
+        ? `<div class="dl-note"><span class="dl-note-ic">&#9998;</span> ${escHtml(notitie)}</div>`
         : '';
       return `
         <div class="dl-item">
@@ -2659,7 +2666,11 @@ function renderLive() {
           </div>
           ${noteHtml}
         </div>`;
-    }).join('') + '</div>';
+    }).join('');
+    const moreHtml = grouped.length > COLLAPSED
+      ? `<button type="button" class="dl-more" onclick="toggleDoneExpand()">${_doneExpanded ? 'Toon minder' : 'Toon alle ' + grouped.length + ' &rarr;'}</button>`
+      : '';
+    elDone.innerHTML = '<div class="done-list">' + rowsHtml + '</div>' + moreHtml;
   };
 
   renderActiveCards();
