@@ -747,10 +747,13 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     </div>
     <div class="hr" style="margin-top:20px"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;margin-bottom:0">
-      <p class="lbl" style="margin-bottom:0">Tijdslijn afgelopen 24 uur</p>
-      <button type="button" class="tl-toggle-btn" onclick="toggleTimeline()" style="display:none;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;color:#64748b;font-size:12px;cursor:pointer;font-family:inherit" id="tl-toggle-btn">
-        <span id="tl-toggle-icon">▼</span> <span id="tl-toggle-label">Toon tijdlijn</span>
-      </button>
+      <p class="lbl" style="margin-bottom:0" id="tl-header-label">Tijdslijn afgelopen 24 uur</p>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button type="button" onclick="wisselTlVenster()" style="align-items:center;gap:4px;padding:6px 10px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;color:#64748b;font-size:12px;cursor:pointer;font-family:inherit;min-width:42px" id="tl-window-btn" title="Wissel tijdlijn-venster">24u</button>
+        <button type="button" class="tl-toggle-btn" onclick="toggleTimeline()" style="display:none;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;color:#64748b;font-size:12px;cursor:pointer;font-family:inherit" id="tl-toggle-btn">
+          <span id="tl-toggle-icon">▼</span> <span id="tl-toggle-label">Toon tijdlijn</span>
+        </button>
+      </div>
     </div>
     <div id="timeline-outer" style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;background:#f8fafc">
       <div id="timeline-axis-wrap" style="overflow-x:hidden;">
@@ -1007,7 +1010,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.4.20</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.4.21</span>
     </div>
   </nav>
 
@@ -1327,7 +1330,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.4.20';
+const APP_VERSION = '2.4.21';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -2025,6 +2028,7 @@ let S = {
   tick: null, tickL: null, tickTL: null,
   _dienstPendingTimers: {}, // clearTimeout refs per naam
   _tlTimer: null,           // debounce ref for drawTimeline
+  _tl12: LS.get('rn_tl_12') === true,  // tijdlijn-venster: true=12u, false=24u (default)
   _headerTimer: null,       // setTimeout ref for scheduleHeader
   _headerInterval: null,    // setInterval ref for updateHeader
   // Gedrag-instellingen (beheersbaar via instellingen-tab)
@@ -2188,9 +2192,10 @@ function goTab(id) {
   document.querySelectorAll('.pane').forEach(p => p.classList.remove('on'));
   document.getElementById('pane-' + id).classList.add('on');
   if (id === 'reg')   renderAllActive();
-  if (id === 'live')  { renderLive(); clearTimeout(S._tlTimer); S._tlTimer = setTimeout(() => drawTimeline(
-    logInWindow(Date.now()-86400000),
-    Object.entries(S.active), Date.now()-86400000, Date.now()), 50); }
+  if (id === 'live')  { renderLive(); clearTimeout(S._tlTimer); S._tlTimer = setTimeout(() => {
+    const _c = Date.now() - tlWindowMs();
+    drawTimeline(logInWindow(_c), Object.entries(S.active), _c, Date.now());
+  }, 50); }
   if (id === 'plan')  renderPlan();
   if (id === 'dienst') renderDienst();
   if (id === 'cfg') {
@@ -2311,7 +2316,28 @@ function toggleTimeline() {
   icon.textContent = isOpen ? '▲' : '▼';
   const lbl = document.getElementById('tl-toggle-label');
   if (lbl) lbl.textContent = isOpen ? 'Verberg tijdlijn' : 'Toon tijdlijn';
-  if (isOpen) { clearTimeout(S._tlTimer); S._tlTimer = setTimeout(() => drawTimeline(logInWindow(Date.now()-86400000), Object.entries(S.active), Date.now()-86400000, Date.now()), 50); }
+  if (isOpen) { clearTimeout(S._tlTimer); S._tlTimer = setTimeout(() => { const _c = Date.now() - tlWindowMs(); drawTimeline(logInWindow(_c), Object.entries(S.active), _c, Date.now()); }, 50); }
+}
+
+// Wissel het tijdlijn-venster tussen 24u en 12u. Voorkeur wordt lokaal bewaard
+// (per toestel), zodat de keuze een refresh overleeft. Alleen de tijdlijn verandert;
+// de kaarten en de "Recent afgerond"-lijst blijven altijd op 24u.
+function wisselTlVenster() {
+  S._tl12 = !S._tl12;
+  LS.set('rn_tl_12', S._tl12);
+  updateTlVensterUI();
+  const _c = Date.now() - tlWindowMs();
+  clearTimeout(S._tlTimer);
+  S._tlTimer = setTimeout(() => drawTimeline(logInWindow(_c), Object.entries(S.active), _c, Date.now()), 30);
+}
+
+// Houd knop-label en kop-tekst in sync met de huidige venster-keuze.
+function updateTlVensterUI() {
+  const btn = document.getElementById('tl-window-btn');
+  const hdr = document.getElementById('tl-header-label');
+  const u = tlUren();
+  if (btn) btn.textContent = u + 'u';
+  if (hdr) hdr.textContent = 'Tijdslijn afgelopen ' + u + ' uur';
 }
 
 function updBtn() {
@@ -2629,7 +2655,7 @@ function renderLive() {
   if (!act.length && !recent.length) {
     elActive.innerHTML = '<div class="empty">Niemand is momenteel onderweg</div>';
     elDone.innerHTML = '';
-    if (_liveVisible) drawTimeline([], [], cutoff, now);
+    if (_liveVisible) { const _tc = now - tlWindowMs(); drawTimeline([], [], _tc, now); }
     return;
   }
 
@@ -2688,7 +2714,11 @@ function renderLive() {
 
   renderActiveCards();
   renderDoneCards();
-  if (_liveVisible) drawTimeline(recent, Object.entries(S.active), cutoff, now);
+  if (_liveVisible) {
+    const _tlCut = now - tlWindowMs();
+    const _tlRecent = _tlCut > cutoff ? logInWindow(_tlCut) : recent;
+    drawTimeline(_tlRecent, Object.entries(S.active), _tlCut, now);
+  }
   // Event delegation op de live-container: retour-knoppen én notitie-acties.
   elActive.onclick = e => {
     const rbtn = e.target.closest('.rbtn');
@@ -2707,7 +2737,7 @@ function renderLive() {
   S.tickTL = setInterval(() => {
     if (document.getElementById('pane-live').classList.contains('on')) {
       const nowT = Date.now();
-      const cut  = nowT - 86400000;
+      const cut  = nowT - tlWindowMs();
       drawTimeline(logInWindow(cut), Object.entries(S.active), cut, nowT);
     }
   }, 60000);
@@ -2795,6 +2825,11 @@ function commitNotitieEditor(rkey, container) {
   if (!r) return;
   saveNotitie(r.route, r.start, area.value); // triggert renderLive → toont notitie
 }
+
+// Tijdlijn-venster: 24 uur (standaard) of 12 uur, omschakelbaar via de 24u/12u-knop.
+// Eén bron van waarheid voor alle aanroepen en voor de as-tekening.
+function tlUren()    { return S._tl12 ? 12 : 24; }
+function tlWindowMs() { return tlUren() * 3600000; }
 
 function drawTimeline(recent, active, cutoff, now) {
   const canvas = document.getElementById('timeline-canvas');
@@ -2896,8 +2931,9 @@ function drawTimeline(recent, active, cutoff, now) {
 
   // Hour ticks + labels
   // Draw tick labels at the EXACT pixel of each whole clock-hour boundary.
-  for (let h = 0; h <= 24; h++) {
-    const t    = now - (24 - h) * 3600000;
+  const TL_U = tlUren();
+  for (let h = 0; h <= TL_U; h++) {
+    const t    = now - (TL_U - h) * 3600000;
     const d    = new Date(t);
     const hr   = d.getHours();
     // Snap to exact hour boundary: subtract minutes/seconds/ms
@@ -2912,8 +2948,8 @@ function drawTimeline(recent, active, cutoff, now) {
     ac.moveTo(xSnap, AXIS_H - 8);
     ac.lineTo(xSnap, AXIS_H);
     ac.stroke();
-    // Label only odd hours (1, 3, 5, 7, 9 … 23)
-    if (hr % 2 !== 0) {
+    // 24u-venster: label oneven uren (1,3,5…23). 12u-venster: elk heel uur.
+    if (TL_U <= 12 || hr % 2 !== 0) {
       ac.fillStyle  = bandColor;
       ac.font       = 'bold 10px system-ui, sans-serif';
       ac.textAlign  = 'center';
@@ -2994,8 +3030,10 @@ function drawTimeline(recent, active, cutoff, now) {
     // Vertical gridlines snapped to exact hour boundaries
     ctx.strokeStyle = '#cbd5e180';
     ctx.lineWidth = 1;
-    for (let h = 0; h <= 24; h += 2) {
-      const t  = now - (24 - h) * 3600000;
+    const TL_Ur = tlUren();
+    const TL_step = TL_Ur <= 12 ? 1 : 2;
+    for (let h = 0; h <= TL_Ur; h += TL_step) {
+      const t  = now - (TL_Ur - h) * 3600000;
       const d2 = new Date(t);
       const tSnap = t - d2.getMinutes()*60000 - d2.getSeconds()*1000 - d2.getMilliseconds();
       const x = toX(tSnap);
@@ -5915,6 +5953,7 @@ document.addEventListener('keydown', e => {
 
 // Start Firebase when ready — Firebase is the ONLY source for active/log
 function initFirebase() {
+  updateTlVensterUI(); // herstel 24u/12u-knoplabel + kop uit bewaarde voorkeur
   fbListen(); // this will populate S.active and S.log and trigger re-render
   fbListenMeldingen(); // listen for shared notifications
   fbListenConnected(); // listen for Firebase connectivity
@@ -6090,7 +6129,7 @@ window.addEventListener('resize', () => {
   _resizeTm = setTimeout(() => {
     if (document.getElementById('pane-live').classList.contains('on')) {
       const nowT = Date.now();
-      const cut  = nowT - 86400000;
+      const cut  = nowT - tlWindowMs();
       drawTimeline(logInWindow(cut), Object.entries(S.active), cut, nowT);
     }
   }, 250);
