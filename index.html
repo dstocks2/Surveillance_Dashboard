@@ -778,9 +778,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
   <!-- VOORGESTELDE RONDE -->
   <div id="pane-plan" class="pane" role="tabpanel" aria-label="Voorgestelde ronde">
-    <div id="nu-blok" style="margin-bottom:20px"></div>
-
-    <p class="lbl">Planning komende uren</p>
+    <p class="lbl">Voorgestelde ronde · komende uren</p>
     <div id="plan-lijst"></div>
     <div style="margin-top:20px;padding:12px 14px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;font-size:11px;color:#5b6b7f;line-height:1.65">
       Voorgestelde rondes zijn op basis van het surveillanceplan.<br>
@@ -1019,7 +1017,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.0</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.1</span>
     </div>
   </nav>
 
@@ -1339,7 +1337,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.0';
+const APP_VERSION = '2.6.1';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -4001,8 +3999,28 @@ function renderPlan() {
   // Replace todaySchema references below with sortedSchema
   const planSchema = sortedSchema;
 
+  // ── TIJDLIJN-LAYOUT (gedeeld door NU-node en geplande uren) ────────────
+  const TL_TIME_W = 46;   // breedte tijdkolom (px)
+  const TL_DOT_W  = 22;   // breedte stip-kolom (px) — lijn loopt door het midden
+  const TL_LINE_X = TL_TIME_W + TL_DOT_W / 2; // x-positie doorlopende lijn
+
+  // Bouwt de NU-rij: "NU"-pill boven de tijd, gevulde accent-stip + glow,
+  // kaart met de meegegeven inhoud (suggesties of leeg-melding).
+  function nuTimelineRow(timeStr, innerHtml) {
+    return `<div class="now" style="display:flex;align-items:flex-start;gap:0;position:relative;padding-bottom:14px">
+      <div style="width:${TL_TIME_W}px;flex-shrink:0;text-align:right;padding-right:8px;padding-top:6px">
+        <div style="display:inline-block;background:#2563eb;color:#fff;font-size:9px;font-weight:700;letter-spacing:.06em;padding:1px 6px;border-radius:20px;margin-bottom:3px">NU</div>
+        <div style="font-size:13px;font-weight:700;color:#1d4ed8;font-variant-numeric:tabular-nums">${timeStr}</div>
+      </div>
+      <div style="width:${TL_DOT_W}px;flex-shrink:0;display:flex;justify-content:center;padding-top:14px;z-index:1">
+        <span style="width:13px;height:13px;border-radius:50%;background:#2563eb;box-shadow:0 0 0 4px rgba(37,99,235,.18)"></span>
+      </div>
+      <div style="flex:1;min-width:0;background:#eff6ff;border:1.5px solid #2563eb;border-radius:10px;padding:14px 16px">${innerHtml}</div>
+    </div>`;
+  }
+
   // ── NOW BLOCK ─────────────────────────────────────────────────────────
-  const nuBlok = document.getElementById('nu-blok');
+  let nuRowHtml = '';
 
   // Skip current slot if all its rondes have already been completed (end exists)
   if (curIdx >= 0) {
@@ -4066,6 +4084,7 @@ function renderPlan() {
     });
 
     const alreadySuggested = new Set(); // track who is suggested to spread across people
+    let suggestieCount = 0;
     const taakHtml = sameTime.map(s => {
       const runners = s.ronde && routeRunners[s.ronde] ? routeRunners[s.ronde] : [];
       const isActive = runners.length > 0;
@@ -4079,55 +4098,70 @@ function renderPlan() {
       if (suggested) alreadySuggested.add(suggested);
 
       const rondeTag = s.ronde
-        ? `<span style="background:${isActive?'#dcfce7':isCompleted?'#f0fdf4':'#dbeafe'};color:${isActive?'#15803d':isCompleted?'#15803d':'#1d4ed8'};font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;margin-right:6px;white-space:nowrap">${escHtml(s.ronde)}</span>`
-        : '';
-      const looptTag = isActive
-        ? `<span style="font-size:11px;color:#15803d;font-weight:500;margin-left:4px">● wordt gedaan door: ${escHtml(runners.map(n=>n.split(' ')[0]).join(' & '))}</span>`
+        ? `<span style="display:inline-block;background:${isActive?'#dcfce7':isCompleted?'#f0fdf4':'#dbeafe'};color:${isActive?'#15803d':isCompleted?'#15803d':'#1d4ed8'};font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap">${escHtml(s.ronde)}</span>`
         : '';
 
-      // Completed tag — show who ran it and how long
-      const afgerondTag = isCompleted ? (() => {
-        const dur = Math.round((completedEntry.end - completedEntry.start) / 60000);
-        const door = completedEntry.name ? completedEntry.name.split(' ')[0] : '';
-        return `<span style="font-size:11px;color:#15803d;font-weight:500;margin-left:4px">✓ afgerond${door ? ' door ' + escHtml(door) : ''} — ${dur} min</span>`;
-      })() : '';
+      // Actief of afgerond: compacte statusregel (geen knop)
+      if (isActive || isCompleted) {
+        const statusTag = isActive
+          ? `<span style="font-size:11px;color:#15803d;font-weight:500">● wordt gedaan door ${escHtml(runners.map(n=>n.split(' ')[0]).join(' & '))}</span>`
+          : (() => {
+              const dur = Math.round((completedEntry.end - completedEntry.start) / 60000);
+              const door = completedEntry.name ? completedEntry.name.split(' ')[0] : '';
+              return `<span style="font-size:11px;color:#15803d;font-weight:500">✓ afgerond${door ? ' door ' + escHtml(door) : ''} — ${dur} min</span>`;
+            })();
+        return `<div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:8px 0">
+          ${rondeTag}<span style="font-size:13px;color:#334155">${escHtml(s.taak)}</span>${statusTag}
+        </div>`;
+      }
 
-      // Suggestion + quick-start block
-      const suggestHtml = (s.ronde && suggested && !isActive) ? `
-        <div style="margin-top:8px;padding:8px 10px;background:#fff;border-radius:8px;border:0.5px solid #bfdbfe;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-          <div>
-            <span style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#64748b">Voorgesteld aan</span>
-            <div style="font-size:14px;font-weight:600;color:#1e293b;margin-top:2px">${escHtml(suggested)}</div>
+      // Open ronde met suggestie: label · avatar · naam + taak · knop
+      if (s.ronde && suggested) {
+        suggestieCount++;
+        const ini = dienstInitialen(suggested);
+        const voornaam = suggested;
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;flex-wrap:wrap">
+          ${rondeTag}
+          <div style="width:32px;height:32px;border-radius:50%;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#475569;flex-shrink:0">${escHtml(ini)}</div>
+          <div style="flex:1;min-width:120px">
+            <div style="font-size:14px;font-weight:600;color:#1e293b">${escHtml(voornaam)}</div>
+            <div style="font-size:12px;color:#64748b;margin-top:1px">${escHtml(s.taak)}</div>
           </div>
           <button type="button" onclick='startRondeVoorgesteld(${escHtml(JSON.stringify(s.ronde))}, ${escHtml(JSON.stringify(suggested))})'
-            style="padding:9px 16px;border-radius:8px;border:none;background:#1d4ed8;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;min-height:44px;transition:opacity .13s"
+            style="padding:9px 16px;border-radius:8px;border:none;background:#1e3a8a;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;min-height:40px;display:flex;align-items:center;gap:5px;transition:opacity .13s"
             onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
             ▶ Ronde starten
           </button>
-        </div>` : '';
+        </div>`;
+      }
 
-      return `<div style="margin-bottom:10px">
-        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
-          ${rondeTag}<span style="font-size:13px;color:#334155">${escHtml(s.taak)}</span>${looptTag}${afgerondTag}
-        </div>
-        ${suggestHtml}
+      // Open ronde zonder beschikbare suggestie, of losse taak
+      return `<div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:8px 0">
+        ${rondeTag}<span style="font-size:13px;color:#334155">${escHtml(s.taak)}</span>
       </div>`;
-    }).join('');
+    });
 
-    nuBlok.innerHTML = `
-      <div style="background:#eff6ff;border:1.5px solid #2563eb;border-radius:10px;padding:16px;margin-bottom:16px">
-        <div style="font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#2563eb;margin-bottom:8px">
-          Nu — ${fmtSchemaTime(cur)}
-        </div>
-        <div>${taakHtml}</div>
-      </div>`;
+    // Header + rijen (rijen gescheiden door dunne lijn)
+    const rijenHtml = taakHtml.map((r, i) =>
+      i > 0 ? `<div style="border-top:0.5px solid #dbeafe">${r}</div>` : r
+    ).join('');
+    const tellerHtml = suggestieCount
+      ? `<span style="font-size:12px;color:#64748b">${suggestieCount} suggestie${suggestieCount === 1 ? '' : 's'}</span>`
+      : '';
+    const nuInner = `
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:6px">
+        <span style="font-size:14px;font-weight:700;color:#1e293b">Voorgesteld om nu te lopen</span>
+        ${tellerHtml}
+      </div>
+      ${rijenHtml}`;
+
+    nuRowHtml = nuTimelineRow(fmtSchemaTime(cur), nuInner);
   } else {
     const d = new Date();
     const nowStr = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
-    nuBlok.innerHTML = `<div style="background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:16px">
-      <div style="font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#5b6b7f;margin-bottom:8px">Nu — ${nowStr}</div>
-      <div style="font-size:13px;color:#64748b">Geen geplande taak gevonden voor dit moment.</div>
-    </div>`;
+    const leegHtml = `<div style="font-size:14px;font-weight:700;color:#1e293b;margin-bottom:4px">Voorgesteld om nu te lopen</div>
+      <div style="font-size:13px;color:#64748b;line-height:1.45">Geen geplande taak gevonden voor dit moment.</div>`;
+    nuRowHtml = nuTimelineRow(nowStr, leegHtml);
   }
 
   // ── UPCOMING LIST ─────────────────────────────────────────────────────
@@ -4144,26 +4178,10 @@ function renderPlan() {
   });
   const upcoming = groups.slice(0, 7);
 
-  if (!upcoming.length) {
-    planLijst.innerHTML = '<div class="empty">Geen verdere taken ingepland</div>';
-    return;
-  }
-
-  // Verticale tijdlijn: tijd (rechts) · doorlopende lijn met stip · kaart.
-  // Eerstvolgende tijdstip geaccentueerd; latere gedempt. Geen datawijziging:
-  // ronde-taken tonen het ronde-label als kop met beschrijving eronder,
-  // losse taken tonen alleen de tekst.
-  const TL_TIME_W = 46;   // breedte tijdkolom (px)
-  const TL_DOT_W  = 22;   // breedte stip-kolom (px) — lijn loopt door het midden
-  const lineLeft  = TL_TIME_W + TL_DOT_W / 2; // x-positie van de doorlopende lijn
-
+  // Geplande uren: stippen altijd grijs (NU is de enige accent-node).
   const rowsHtml = upcoming.map((grp, gi) => {
     const timeStr = fmtSchemaTime({ h: grp.h, m: grp.m });
-    const isFirst = gi === 0;
-
-    const dotStyle = isFirst
-      ? 'width:11px;height:11px;border-radius:50%;background:#2563eb;box-shadow:0 0 0 3px #eff6ff'
-      : 'width:9px;height:9px;border-radius:50%;background:#fff;border:2px solid #cbd5e1';
+    const isLast = gi === upcoming.length - 1;
 
     const taakHtml = grp.items.map((s, si) => {
       const sep = si > 0 ? 'border-top:0.5px solid #eef2f6;margin-top:8px;padding-top:8px;' : '';
@@ -4171,29 +4189,30 @@ function renderPlan() {
         const rondeTag = `<span style="display:inline-block;background:#dbeafe;color:#1d4ed8;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap;margin-bottom:4px">${escHtml(s.ronde)}</span>`;
         return `<div style="${sep}">
           ${rondeTag}
-          <div style="font-size:13px;color:${isFirst?'#334155':'#64748b'};line-height:1.45">${escHtml(s.taak)}</div>
+          <div style="font-size:13px;color:#64748b;line-height:1.45">${escHtml(s.taak)}</div>
         </div>`;
       }
       // Losse taak — alleen tekst (geen kop in de data)
-      return `<div style="${sep}font-size:13px;color:${isFirst?'#1e293b':'#64748b'};font-weight:${isFirst?'500':'400'};line-height:1.45">${escHtml(s.taak)}</div>`;
+      return `<div style="${sep}font-size:13px;color:#64748b;line-height:1.45">${escHtml(s.taak)}</div>`;
     }).join('');
 
-    const cardStyle = isFirst
-      ? 'background:#fff;border:1px solid #dbeafe;border-radius:10px;padding:12px 14px;box-shadow:0 1px 2px rgba(15,23,42,.04)'
-      : 'background:#fff;border:1px solid #eef2f6;border-radius:10px;padding:12px 14px';
-
-    return `<div style="display:flex;align-items:flex-start;gap:0;position:relative;padding-bottom:${gi < upcoming.length - 1 ? '14px' : '0'}">
+    return `<div style="display:flex;align-items:flex-start;gap:0;position:relative;padding-bottom:${isLast ? '0' : '14px'}">
       <div style="width:${TL_TIME_W}px;flex-shrink:0;text-align:right;padding-right:8px;padding-top:11px;font-size:13px;font-weight:600;color:#5b6b7f;font-variant-numeric:tabular-nums">${timeStr}</div>
       <div style="width:${TL_DOT_W}px;flex-shrink:0;display:flex;justify-content:center;padding-top:13px;z-index:1">
-        <span style="${dotStyle}"></span>
+        <span style="width:9px;height:9px;border-radius:50%;background:#fff;border:2px solid #cbd5e1"></span>
       </div>
-      <div style="flex:1;min-width:0;${cardStyle}">${taakHtml}</div>
+      <div style="flex:1;min-width:0;background:#fff;border:1px solid #eef2f6;border-radius:10px;padding:12px 14px">${taakHtml}</div>
     </div>`;
   }).join('');
 
+  const geenMeer = upcoming.length ? '' :
+    `<div style="padding-left:${TL_TIME_W + TL_DOT_W}px;color:#94a3b8;font-size:12px;padding-top:4px">Geen verdere taken ingepland</div>`;
+
   planLijst.innerHTML = `<div style="position:relative">
-    <div style="position:absolute;left:${lineLeft}px;top:14px;bottom:14px;width:2px;background:#e2e8f0"></div>
+    <div style="position:absolute;left:${TL_LINE_X}px;top:14px;bottom:14px;width:2px;background:#e2e8f0"></div>
+    ${nuRowHtml}
     ${rowsHtml}
+    ${geenMeer}
   </div>`;
 }
 
