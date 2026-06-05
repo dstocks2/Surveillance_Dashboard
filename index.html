@@ -323,6 +323,12 @@ input[type=text]:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px #d
   .toast{font-size:12px;padding:10px 16px;max-width:90vw;white-space:normal;text-align:center;bottom:calc(66px + env(safe-area-inset-bottom) + 12px)}
 }
 
+/* Segmented 24u/12u-schakelaar (tijdlijn-venster) */
+#tl-window-seg{display:inline-flex;border:1px solid #cbd5e1;border-radius:8px;overflow:hidden;background:#f1f5f9}
+.tl-seg{padding:6px 14px;font-size:12px;font-family:inherit;border:0;background:transparent;color:#64748b;cursor:pointer;font-weight:600;transition:background .12s,color .12s;min-width:44px}
+.tl-seg + .tl-seg{border-left:1px solid #cbd5e1}
+.tl-seg.on{background:#fff;color:#1e293b;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+
 /* ── Touch / iPad optimisations ── */
 @media (max-width: 1024px) {
   .nbtn {
@@ -749,7 +755,10 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;margin-bottom:0">
       <p class="lbl" style="margin-bottom:0" id="tl-header-label">Tijdslijn afgelopen 24 uur</p>
       <div style="display:flex;align-items:center;gap:8px">
-        <button type="button" onclick="wisselTlVenster()" style="align-items:center;gap:4px;padding:6px 10px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;color:#64748b;font-size:12px;cursor:pointer;font-family:inherit;min-width:42px" id="tl-window-btn" title="Wissel tijdlijn-venster">24u</button>
+        <div id="tl-window-seg" role="group" aria-label="Tijdlijn-venster">
+          <button type="button" class="tl-seg on" id="tl-seg-24" onclick="zetTlVenster(false)">24u</button>
+          <button type="button" class="tl-seg" id="tl-seg-12" onclick="zetTlVenster(true)">12u</button>
+        </div>
         <button type="button" class="tl-toggle-btn" onclick="toggleTimeline()" style="display:none;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;color:#64748b;font-size:12px;cursor:pointer;font-family:inherit" id="tl-toggle-btn">
           <span id="tl-toggle-icon">▼</span> <span id="tl-toggle-label">Toon tijdlijn</span>
         </button>
@@ -1010,7 +1019,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.4.21</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.4.22</span>
     </div>
   </nav>
 
@@ -1330,7 +1339,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.4.21';
+const APP_VERSION = '2.4.22';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -2319,11 +2328,12 @@ function toggleTimeline() {
   if (isOpen) { clearTimeout(S._tlTimer); S._tlTimer = setTimeout(() => { const _c = Date.now() - tlWindowMs(); drawTimeline(logInWindow(_c), Object.entries(S.active), _c, Date.now()); }, 50); }
 }
 
-// Wissel het tijdlijn-venster tussen 24u en 12u. Voorkeur wordt lokaal bewaard
-// (per toestel), zodat de keuze een refresh overleeft. Alleen de tijdlijn verandert;
-// de kaarten en de "Recent afgerond"-lijst blijven altijd op 24u.
-function wisselTlVenster() {
-  S._tl12 = !S._tl12;
+// Zet het tijdlijn-venster expliciet op 12u (true) of 24u (false). Voorkeur wordt
+// lokaal bewaard (per toestel), zodat de keuze een refresh overleeft. Alleen de
+// tijdlijn verandert; de kaarten en de "Recent afgerond"-lijst blijven altijd op 24u.
+function zetTlVenster(is12) {
+  if (S._tl12 === is12) return; // al actief — niets te doen
+  S._tl12 = is12;
   LS.set('rn_tl_12', S._tl12);
   updateTlVensterUI();
   const _c = Date.now() - tlWindowMs();
@@ -2331,13 +2341,14 @@ function wisselTlVenster() {
   S._tlTimer = setTimeout(() => drawTimeline(logInWindow(_c), Object.entries(S.active), _c, Date.now()), 30);
 }
 
-// Houd knop-label en kop-tekst in sync met de huidige venster-keuze.
+// Houd de segment-knoppen en de kop-tekst in sync met de huidige venster-keuze.
 function updateTlVensterUI() {
-  const btn = document.getElementById('tl-window-btn');
-  const hdr = document.getElementById('tl-header-label');
-  const u = tlUren();
-  if (btn) btn.textContent = u + 'u';
-  if (hdr) hdr.textContent = 'Tijdslijn afgelopen ' + u + ' uur';
+  const seg24 = document.getElementById('tl-seg-24');
+  const seg12 = document.getElementById('tl-seg-12');
+  const hdr   = document.getElementById('tl-header-label');
+  if (seg24) seg24.classList.toggle('on', !S._tl12);
+  if (seg12) seg12.classList.toggle('on',  S._tl12);
+  if (hdr) hdr.textContent = 'Tijdslijn afgelopen ' + tlUren() + ' uur';
 }
 
 function updBtn() {
