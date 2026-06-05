@@ -1007,7 +1007,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.4.16</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.4.18</span>
     </div>
   </nav>
 
@@ -1230,6 +1230,10 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
                   <option value="">— geen categorie —</option>
                 </select>
               </div>
+              <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:13px;color:#334155">
+                <input type="checkbox" id="inp-ronde-edit-dubbel" style="margin-top:2px;flex-shrink:0">
+                <span>Dubbel lopen toestaan <span style="display:block;font-size:11px;color:#64748b;font-weight:400">Geen "dubbele ronde"-melding (bijv. assistentie of inzet)</span></span>
+              </label>
             </div>
             <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end">
               <button type="button" class="sm" onclick="cancelRondeEdit()" style="background:#f1f5f9;color:#64748b">Annuleren</button>
@@ -1323,7 +1327,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.4.16';
+const APP_VERSION = '2.4.18';
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1673,10 +1677,11 @@ function sanitizeMedewerkers(arr) {
 function sanitizeRoutes(arr) {
   if (!Array.isArray(arr)) return [];
   return arr.map(r => {
-    if (typeof r === 'string') return { naam: decodeEntities(sanitizeFromFirebase(r)), categorie: '' };
+    if (typeof r === 'string') return { naam: decodeEntities(sanitizeFromFirebase(r)), categorie: '', dubbelOk: false };
     return {
       naam:      decodeEntities(sanitizeFromFirebase(r.naam      || '')),
-      categorie: decodeEntities(sanitizeFromFirebase(r.categorie || ''))
+      categorie: decodeEntities(sanitizeFromFirebase(r.categorie || '')),
+      dubbelOk:  r.dubbelOk === true
     };
   }).filter(r => r.naam);
 }
@@ -2369,14 +2374,18 @@ function doStart() {
         logEvent('start', started.join(' & ') + ' gestart op ' + route, { names: started, route, ts: startTime });
         showToast(started.join(' & ') + ' gestart — ' + route);
         schrijfGedeeldeMelding('grijs', started.join(' & ') + ' gestart', route);
-        // Duplicate route check only after confirmed write
-        const startedFull = started.map(s => (S.medewerkers.find(m => m.naam.split(' ')[0] === s) || {naam: s}).naam);
-        const sameRoute = Object.entries(S.active)
-          .filter(([nm, a]) => a.route === route && !startedFull.includes(nm) && a.start !== startTime);
-        if (sameRoute.length > 0) {
-          const anderen = sameRoute.map(([nm]) => nm.split(' ')[0]).join(' & ');
-          schrijfGedeeldeMelding('oranje', 'Dubbele ronde — ' + route, started.join(' & ') + ' gestart, maar ' + anderen + ' loopt deze ronde al.');
-          voegMeldingToe('oranje', 'Dubbele ronde — ' + route, started.join(' & ') + ' gestart, maar ' + anderen + ' loopt deze ronde al.', null, null);
+        // Duplicate route check only after confirmed write — tenzij route dubbel mag
+        const routeObj = S.routes.find(r => r.naam === route);
+        const dubbelToegestaan = routeObj && routeObj.dubbelOk === true;
+        if (!dubbelToegestaan) {
+          const startedFull = started.map(s => (S.medewerkers.find(m => m.naam.split(' ')[0] === s) || {naam: s}).naam);
+          const sameRoute = Object.entries(S.active)
+            .filter(([nm, a]) => a.route === route && !startedFull.includes(nm) && a.start !== startTime);
+          if (sameRoute.length > 0) {
+            const anderen = sameRoute.map(([nm]) => nm.split(' ')[0]).join(' & ');
+            schrijfGedeeldeMelding('oranje', 'Dubbele ronde — ' + route, started.join(' & ') + ' gestart, maar ' + anderen + ' loopt deze ronde al.');
+            voegMeldingToe('oranje', 'Dubbele ronde — ' + route, started.join(' & ') + ' gestart, maar ' + anderen + ' loopt deze ronde al.', null, null);
+          }
         }
       })
       .catch(e => {
@@ -2759,6 +2768,19 @@ function openNotitieEditor(rkey, container) {
         e.preventDefault();
         commitNotitieEditor(rkey, container);
       }
+    });
+    // Bij verlaten van een leeg veld zonder bestaande notitie: terug naar basis.
+    area.addEventListener('blur', () => {
+      // korte vertraging zodat een klik op "Bewaar" eerst kan committen
+      setTimeout(() => {
+        const stillOpen = noteBox.querySelector('.lc-note-area');
+        if (!stillOpen) return; // al opgeslagen/opnieuw gerenderd
+        if (stillOpen.value.trim() === '' && !huidige) {
+          const penSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+          noteBox.innerHTML =
+            `<button type="button" class="lc-note-add" data-noteedit="${rkey}">${penSvg}Notitie toevoegen</button>`;
+        }
+      }, 150);
     });
   }
 }
@@ -5325,6 +5347,7 @@ function openRondeModal(idx) {
   catSel.innerHTML = '<option value="">— geen categorie —</option>' +
     (S.routeCats || []).map(c => `<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('');
   catSel.value = isEdit ? (S.routes[idx].categorie || '') : '';
+  document.getElementById('inp-ronde-edit-dubbel').checked = isEdit ? (S.routes[idx].dubbelOk === true) : false;
   document.getElementById('ronde-modal-overlay').style.display = 'flex';
   setTimeout(() => document.getElementById('inp-ronde-edit-naam').focus(), 50);
 }
@@ -5335,12 +5358,13 @@ function saveRondeEdit() {
   const naam = sanitizeForStorage(document.getElementById('inp-ronde-edit-naam').value || '').slice(0, 60);
   if (!naam) { showToast('Vul een naam in'); return; }
   const cat = document.getElementById('inp-ronde-edit-cat').value || '';
+  const dubbelOk = document.getElementById('inp-ronde-edit-dubbel').checked === true;
   const isEdit = _rondeEditIdx !== null;
   const isDuplicate = S.routes.some((r, i) => r.naam.toLowerCase() === naam.toLowerCase() && (!isEdit || i !== _rondeEditIdx));
   if (isDuplicate) { showToast('Deze ronde bestaat al'); return; }
   if (isEdit) {
     const oude = S.routes[_rondeEditIdx].naam;
-    S.routes[_rondeEditIdx] = { naam, categorie: cat };
+    S.routes[_rondeEditIdx] = { naam, categorie: cat, dubbelOk };
     S.routes.sort((a, b) => a.naam.toLowerCase().localeCompare(b.naam.toLowerCase(), 'nl'));
     // Update alle schema-items die naar de oude ronde verwijzen
     if (oude !== naam && S.schema && S.schema.length) {
@@ -5349,13 +5373,13 @@ function saveRondeEdit() {
       if (schemaChanged) LS.set('rn_schema', S.schema);
     }
     save();
-    logEvent('settings', 'Ronde gewijzigd: ' + oude + ' → ' + naam + (cat ? ' [' + cat + ']' : ''));
+    logEvent('settings', 'Ronde gewijzigd: ' + oude + ' → ' + naam + (cat ? ' [' + cat + ']' : '') + (dubbelOk ? ' (dubbel ok)' : ''));
     showToast(naam + ' bijgewerkt');
   } else {
-    S.routes.push({ naam, categorie: cat });
+    S.routes.push({ naam, categorie: cat, dubbelOk });
     S.routes.sort((a, b) => a.naam.toLowerCase().localeCompare(b.naam.toLowerCase(), 'nl'));
     save();
-    logEvent('settings', 'Ronde toegevoegd: ' + naam + (cat ? ' [' + cat + ']' : ''));
+    logEvent('settings', 'Ronde toegevoegd: ' + naam + (cat ? ' [' + cat + ']' : '') + (dubbelOk ? ' (dubbel ok)' : ''));
     showToast(naam + ' toegevoegd');
   }
   _rondeEditIdx = null;
