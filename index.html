@@ -1019,7 +1019,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.4.23</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.5.1</span>
     </div>
   </nav>
 
@@ -1339,7 +1339,39 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.4.23';
+const APP_VERSION = '2.5.1';
+
+// ==============================================================================
+//  SURVEILLANCE DASHBOARD — niet-module script
+//  Inhoudsopgave (zoek op 'SECTIE:' om naar een blok te springen)
+//
+//    1. LOGGING & EVENT LOG  — logEvent, fbListenEventLog, EVENT_LOG
+//    2. FIREBASE SYNC (schrijf)  — fbSave, fbSavePin, fbSaveDienst, fbSaveActive, fbPushLogEntry
+//    3. SANITIZE & ESCAPE  — sanitizeFromFirebase, escHtml, safeColor, decodeEntities, sanitize*
+//    4. STATE  — S (medewerkers/active/log/schema/routes/dienst...), defaults, pending-locks
+//    5. UTILITIES  — save, fmtT/fmtDT/elaps, notitie-helpers, showToast, goTab
+//    6. RENDER (top-level)  — render, naam/route-knoppen, selectie, doStart
+//    7. RETOUR-FLOW  — doRetour, renderAllActive, doRetourAllen, handleRetourClick, groupCardHTML
+//    8. LIVE-PANE  — renderLive, tickLiveDurations, notitie-editor
+//    9. TIMELINE (canvas)  — drawTimeline, roundRect
+//   10. PRUNING & RECONCILE  — pruneLog, pruneNotities, pruneStaleActive, reconcileState, checkActiveTimeout, wisLog
+//   11. DAGDELEN  — hhmm-conversies, autoTekstKleur, dagdeel-overlap/mutatie
+//   12. SCHEMA & VOORGESTELDE RONDE  — schematijden, suggestSurveillant, renderPlan
+//   13. MEDEWERKERS-LIJST  — rolfilter, renderMedewerkersList, highlight
+//   14. INSTELLINGEN (cfg)  — renderCfg, cfg-navigatie, rail-lock
+//   15. SCHEMA- & DAGDEEL-MODALS  — open/save/close schema- en dagdeelmodal
+//   16. PINCODE (cfg-lock)  — hashPin, cfg-lock keypad, checkPin
+//   17. PIN-KEYPAD (setup/change)  — pinKeypad*, showPinSetup, saveGedrag, logRetention
+//   18. CRUD: NAMEN/ROUTES/CATEGORIEEN  — sanitizeInput, add/rm name/route/cat, ronde-modal
+//   19. OP DIENST  — dienstInitialen, dienstToggle, renderDienst
+//   20. CONFIRM-MODAL & TOPBAR  — customConfirm, updateTopbarHeight
+//   21. MELDINGEN  — audio-ping, voegMeldingToe, verwijderMelding, renderMeldingen, event-log render/export
+//   22. MODAL-A11Y  — MODAL_REGISTRY, focus-trap, Escape-handling
+//   23. FIREBASE INIT & LISTENERS  — initFirebase, fbListenMeldingen/Connected, schrijfGedeeldeMelding
+//   24. AUTH (login/logout)  — login-overlay, onAuthChanged, doLogin, doLogout
+//
+// ==============================================================================
+
 
 // Central interval registry for clean teardown and debugging
 const TIMERS = {
@@ -1382,6 +1414,9 @@ let EVENT_LOG = []; // local cache for rendering, populated from Firebase
 // elke volgende snapshot opnieuw fbRemove doet voor dezelfde entry.
 const _deletingAuditKeys = new Set();
 
+// ==============================================================================
+// SECTIE: LOGGING & EVENT LOG  — logEvent, fbListenEventLog, EVENT_LOG
+// ==============================================================================
 function logEvent(type, msg, detail) {
   // type: 'start'|'retour'|'dienst'|'settings'|'sync'|'auto'|'system'|'melding'|'pin'|'error'
   const evt = {
@@ -1457,6 +1492,9 @@ function fbListenEventLog() {
 }
 
 // ── Firebase sync ─────────────────────────────────────────────────────────
+// ==============================================================================
+// SECTIE: FIREBASE SYNC (schrijf)  — fbSave, fbSavePin, fbSaveDienst, fbSaveActive, fbPushLogEntry
+// ==============================================================================
 function fbSave() {
   if (!window.fbDb) return;
   if (window._appOutdated) { showUpdateBanner(); return; } // guard: never write with stale state
@@ -1628,6 +1666,9 @@ window.addEventListener('online',  () => setFbStatus('ok'));
 window.addEventListener('offline', () => setFbStatus('error'));
 
 // Sanitize a string coming from Firebase to prevent XSS
+// ==============================================================================
+// SECTIE: SANITIZE & ESCAPE  — sanitizeFromFirebase, escHtml, safeColor, decodeEntities, sanitize*
+// ==============================================================================
 function sanitizeFromFirebase(str) {
   if (typeof str !== 'string') return '';
   return str
@@ -1992,7 +2033,6 @@ function fbListen() {
 
 const VERSION = '5';
 // Medewerkersnamen komen uit Firebase (dashboard/medewerkers); geen hardcoded seed.
-const DN = [];
 const DR = [
   {naam:'0-1 ronde',categorie:''},{naam:'Alarm opvolging',categorie:'Alarm & assistentie'},
   {naam:'Assistentie',categorie:'Alarm & assistentie'},{naam:'Begeleiding',categorie:'Alarm & assistentie'},
@@ -2024,6 +2064,9 @@ if (LS.get('rn_version') !== VERSION) {
   LS.set('rn_version', VERSION);
 }
 
+// ==============================================================================
+// SECTIE: STATE  — S (medewerkers/active/log/schema/routes/dienst...), defaults, pending-locks
+// ==============================================================================
 let S = {
   medewerkers: LS.get('rn_medewerkers') || [],
   routes: sanitizeRoutes(LS.get('rn_routes') || DR),
@@ -2111,6 +2154,9 @@ setInterval(() => {
   }
 }, 10000);
 
+// ==============================================================================
+// SECTIE: UTILITIES  — save, fmtT/fmtDT/elaps, notitie-helpers, showToast, goTab
+// ==============================================================================
 function save() {
   // medewerkers is de bron — names wordt er live uit afgeleid
   LS.set('rn_medewerkers', S.medewerkers || []);
@@ -2222,6 +2268,9 @@ function goTab(id) {
   });
 }
 
+// ==============================================================================
+// SECTIE: RENDER (top-level)  — render, naam/route-knoppen, selectie, doStart
+// ==============================================================================
 function render() {
   renderNameBtns();
   renderRouteBtns();
@@ -2454,6 +2503,9 @@ function doStart() {
   }
 }
 
+// ==============================================================================
+// SECTIE: RETOUR-FLOW  — doRetour, renderAllActive, doRetourAllen, handleRetourClick, groupCardHTML
+// ==============================================================================
 async function doRetour(name) {
   const n = name || (S.sns.size === 1 ? [...S.sns][0] : null);
   if (!n) {
@@ -2657,12 +2709,10 @@ const COLORS = [
   '#0891b2','#be185d','#059669','#ea580c','#4f46e5',
   '#0f766e','#b45309','#9333ea','#0284c7','#15803d'
 ];
-function personColor(name) {
-  let h = 0;
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
-  return COLORS[h % COLORS.length];
-}
 
+// ==============================================================================
+// SECTIE: LIVE-PANE  — renderLive, tickLiveDurations, notitie-editor
+// ==============================================================================
 function renderLive() {
   // Always update card data; skip canvas draw when pane not visible
   const _liveVisible = document.getElementById('pane-live').classList.contains('on');
@@ -2854,6 +2904,9 @@ function commitNotitieEditor(rkey, container) {
 function tlUren()    { return S._tl12 ? 12 : 24; }
 function tlWindowMs() { return tlUren() * 3600000; }
 
+// ==============================================================================
+// SECTIE: TIMELINE (canvas)  — drawTimeline, roundRect
+// ==============================================================================
 function drawTimeline(recent, active, cutoff, now) {
   const canvas = document.getElementById('timeline-canvas');
   const axisEl = document.getElementById('timeline-axis');
@@ -3279,6 +3332,9 @@ function roundRect(ctx, x, y, w, h, r) {
 
 // Voorkomt dat twee prune-ronden in dezelfde sessie overlappen.
 let _pruneBusy = false;
+// ==============================================================================
+// SECTIE: PRUNING & RECONCILE  — pruneLog, pruneNotities, pruneStaleActive, reconcileState, checkActiveTimeout, wisLog
+// ==============================================================================
 function pruneLog() {
   // Niet opschonen met verouderde state (writes geblokkeerd) of zonder Firebase.
   if (window._appOutdated || _pruneBusy) return;
@@ -3547,6 +3603,9 @@ const DAGDELEN_DEFAULT = [
 ];
 
 // Convert "HH:MM" → minutes-of-day (0-1439). Returns NaN on invalid input.
+// ==============================================================================
+// SECTIE: DAGDELEN  — hhmm-conversies, autoTekstKleur, dagdeel-overlap/mutatie
+// ==============================================================================
 function hhmmToMin(s) {
   if (typeof s !== 'string') return NaN;
   const m = s.match(/^(\d{1,2}):(\d{2})$/);
@@ -3823,6 +3882,9 @@ const SCHEMA = [
   { h: 30, m: 0,  ronde: "Openingsronde",   taak: "Openingsronde: poli L deuren, fietsenstalling J0K & HvdB, voordeur + rolluiken HvdB, rolluik Stratenum" },
 ];
 
+// ==============================================================================
+// SECTIE: SCHEMA & VOORGESTELDE RONDE  — schematijden, suggestSurveillant, renderPlan
+// ==============================================================================
 function nowMinsAdj() {
   // Returns minutes since midnight, but hours 0-6 are treated as 24-30
   // so the nacht items (h=24+) sort correctly
@@ -3946,7 +4008,6 @@ function renderPlan() {
   if (curIdx >= 0) {
     const cur = planSchema[curIdx];
     const sameTimeCheck = planSchema.filter(s => s.h === cur.h && s.m === cur.m);
-    const slotDoneTime = cur.h * 60 + cur.m;
     // A ronde at this slot is "done" if there's a log entry for it that started
     // at or after the slot time (in wall-clock adjusted minutes) and has ended.
     const allDone = sameTimeCheck.every(s => {
@@ -4088,7 +4149,6 @@ function renderPlan() {
     return;
   }
 
-  const alreadySuggestedUpcoming = new Set();
   planLijst.innerHTML = upcoming.map((grp, gi) => {
     const timeStr = fmtSchemaTime({ h: grp.h, m: grp.m });
     const isFirst = gi === 0;
@@ -4119,6 +4179,9 @@ TIMERS.set('planRefresh', () => {
 let _medFilterRol = 'alle';
 let _medFilterDienst = false;
 
+// ==============================================================================
+// SECTIE: MEDEWERKERS-LIJST  — rolfilter, renderMedewerkersList, highlight
+// ==============================================================================
 function renderMedRolFilter() {
   const el = document.getElementById('med-rol-filter');
   if (!el) return;
@@ -4237,6 +4300,9 @@ function clearMedFilters() {
   renderMedewerkersList();
 }
 
+// ==============================================================================
+// SECTIE: INSTELLINGEN (cfg)  — renderCfg, cfg-navigatie, rail-lock
+// ==============================================================================
 function renderCfg() {
   // Vul gedrag-inputs in met huidige waarden
   const inpTW = document.getElementById('inp-timeout-warn');
@@ -4467,6 +4533,9 @@ const DAGEN_LABELS = [
 
 let _schemaModalIdx = null; // null = new item, number = edit index
 
+// ==============================================================================
+// SECTIE: SCHEMA- & DAGDEEL-MODALS  — open/save/close schema- en dagdeelmodal
+// ==============================================================================
 function openSchemaModal(idx) {
   _schemaModalIdx = idx;
   const isEdit = idx !== null;
@@ -4742,10 +4811,6 @@ function openMedewerkerModal(idx) {
 
 function editMedewerker(i) { openMedewerkerModal(i); }
 
-function toggleMedewerkerSort() {
-  window._medSortMode = (window._medSortMode || 'naam') === 'naam' ? 'rol' : 'naam';
-  renderMedewerkersList();
-}
 
 function saveMedewerkerEdit() {
   const naam = sanitizeForStorage(document.getElementById('inp-medewerker-edit-naam').value || '').slice(0, 60);
@@ -4829,9 +4894,7 @@ function rmDagdeel(i) {
   });
 }
 
-function toggleSchema() { cfgGoSection('schema'); }
 
-function toggleSection(id) { cfgGoSection(id); }
 
 // ── CFG LAYOUT ────────────────────────────────────────────────────────────
 var _cfgActiveSection = 'medewerkers';
@@ -4963,6 +5026,9 @@ function _updateRailLockLabel(unlocked) {
 const CFG_PIN_KEY = 'rn_cfg_pin';
 
 // SHA-256 hash via Web Crypto API — PIN nooit plaintext opgeslagen of zichtbaar
+// ==============================================================================
+// SECTIE: PINCODE (cfg-lock)  — hashPin, cfg-lock keypad, checkPin
+// ==============================================================================
 async function hashPin(pin) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pin));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
@@ -5044,6 +5110,9 @@ async function checkPin() {
 let _pinMode = 'setup', _pinStep = 1, _pinVal1 = '', _pinValNow = '';
 const PIN_MAX = 4;
 
+// ==============================================================================
+// SECTIE: PIN-KEYPAD (setup/change)  — pinKeypad*, showPinSetup, saveGedrag, logRetention
+// ==============================================================================
 function pinKeypadOpen(mode) {
   _pinMode = mode;
   _pinStep = 1;
@@ -5137,9 +5206,7 @@ async function pinKeypadNext() {
 
 // Publieke wrappers voor bestaande aanroepen
 function showPinSetup()      { pinKeypadOpen('setup'); }
-function hidePinSetup()      { pinKeypadClose(); }
 function changePinDialog()   { pinKeypadOpen('change'); }
-function closePinChangeDialog() { pinKeypadClose(); }
 
 // ── GEDRAG-INSTELLINGEN ────────────────────────────────────────────────────
 async function saveGedrag() {
@@ -5259,6 +5326,9 @@ async function rmSchemaItem(i) {
   renderCfg();
 }
 
+// ==============================================================================
+// SECTIE: CRUD: NAMEN/ROUTES/CATEGORIEEN  — sanitizeInput, add/rm name/route/cat, ronde-modal
+// ==============================================================================
 function sanitizeInput(str) {
   return str
     .replace(/&/g, '&amp;')
@@ -5280,10 +5350,6 @@ function sanitizeForStorage(str) {
     .trim();
 }
 
-function addName() {
-  // Legacy: delegate to modal
-  openMedewerkerModal(null);
-}
 
 async function rmName(i) {
   if (!S.medewerkers || !S.medewerkers[i]) return;
@@ -5297,7 +5363,6 @@ async function rmName(i) {
   showToast(naam.split(' ')[0] + ' verwijderd');
 }
 
-function addRoute() { openRondeModal(null); } // legacy: delegate to modal
 
 async function rmRoute(i) {
   const ronde = S.routes[i].naam;
@@ -5461,6 +5526,9 @@ function cancelRondeEdit() {
 
 // Initialen: eerste letter voornaam + eerste letter achternaam, tussenvoegsels overslaan.
 const _TUSSENVOEGSELS = new Set(['van','de','den','der','het','te','ten','ter','v.d.','vd','op','aan','in','tot','het']);
+// ==============================================================================
+// SECTIE: OP DIENST  — dienstInitialen, dienstToggle, renderDienst
+// ==============================================================================
 function dienstInitialen(naam) {
   const delen = String(naam || '').trim().split(/\s+/).filter(Boolean);
   if (!delen.length) return '?';
@@ -5620,6 +5688,9 @@ function dienstLeeg() {
 let _modalResolve = null;
 
 let _confirmOpen = false;
+// ==============================================================================
+// SECTIE: CONFIRM-MODAL & TOPBAR  — customConfirm, updateTopbarHeight
+// ==============================================================================
 function customConfirm(msg) {
   if (_confirmOpen) return Promise.resolve(false); // prevent stacking
   _confirmOpen = true;
@@ -5682,6 +5753,9 @@ function _unlockAudio() {
 ['pointerdown', 'touchstart', 'keydown', 'click'].forEach(ev =>
   window.addEventListener(ev, _unlockAudio, { once: false, passive: true })
 );
+// ==============================================================================
+// SECTIE: MELDINGEN  — audio-ping, voegMeldingToe, verwijderMelding, renderMeldingen, event-log render/export
+// ==============================================================================
 function speelMeldingPing() {
   try {
     _meldAudio.currentTime = 0;
@@ -5979,6 +6053,9 @@ document.addEventListener('keydown', e => {
 // generieke confirm/logout-overlays hebben hun eigen annuleer-pad. Zo kan één
 // centrale handler de bovenste zichtbare modal met Escape sluiten en focus
 // binnen de modal houden (Tab/Shift+Tab), zonder de bestaande HTML te wijzigen.
+// ==============================================================================
+// SECTIE: MODAL-A11Y  — MODAL_REGISTRY, focus-trap, Escape-handling
+// ==============================================================================
 const MODAL_REGISTRY = [
   { id: 'medewerker-modal-overlay', close: () => cancelMedewerkerEdit() },
   { id: 'ronde-modal-overlay',      close: () => cancelRondeEdit() },
@@ -6038,6 +6115,9 @@ document.addEventListener('keydown', e => {
 });
 
 // Start Firebase when ready — Firebase is the ONLY source for active/log
+// ==============================================================================
+// SECTIE: FIREBASE INIT & LISTENERS  — initFirebase, fbListenMeldingen/Connected, schrijfGedeeldeMelding
+// ==============================================================================
 function initFirebase() {
   updateTlVensterUI(); // herstel 24u/12u-knoplabel + kop uit bewaarde voorkeur
   fbListen(); // this will populate S.active and S.log and trigger re-render
@@ -6231,6 +6311,9 @@ window.addEventListener('scroll', () => {
 // onAuthStateChanged in the module script via window.onAuthChanged.
 let _appStarted = false;
 
+// ==============================================================================
+// SECTIE: AUTH (login/logout)  — login-overlay, onAuthChanged, doLogin, doLogout
+// ==============================================================================
 function showLoginOverlay(show) {
   const ov = document.getElementById('login-overlay');
   if (ov) ov.style.display = show ? 'flex' : 'none';
