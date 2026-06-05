@@ -1017,7 +1017,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.2</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.3</span>
     </div>
   </nav>
 
@@ -1337,7 +1337,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.2';
+const APP_VERSION = '2.6.3';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -1808,10 +1808,15 @@ function sanitizeLog(arr) {
 // end van nu (dur ~22u) hoort niet op de dagelijkse tijdlijn — die had de
 // stale-active cleanup of de retour-bevestiging moeten vangen, maar als die
 // faalden vangt deze filter het laatste vangnet op.
+// Rondes korter dan deze drempel (ms) zijn test/misklik en worden NIET getoond
+// in "Recent afgerond" of de tijdlijn. De log-entry blijft bestaan (niet-destructief).
+const MIN_RONDE_MS = 30 * 1000; // 30 seconden
+
 function logInWindow(cutoff) {
   // Filter op r.end >= cutoff: ronde telt mee als hij EINDIGDE binnen het venster.
   // r.start mag buiten het venster liggen (nacht-rondes gestart vóór de cutoff).
-  return S.log.filter(r => r.end && r.end >= cutoff && r.start);
+  // Ultrakorte rondes (< MIN_RONDE_MS) worden verborgen.
+  return S.log.filter(r => r.end && r.end >= cutoff && r.start && (r.end - r.start) >= MIN_RONDE_MS);
 }
 
 function fbListen() {
@@ -4077,7 +4082,7 @@ function renderPlan() {
     sameTime.sort((a, b) => {
       const rank = s => {
         if (s.ronde && routeRunners[s.ronde]) return 1; // active
-        if (s.ronde && S.log.find(r => r.route === s.ronde && r.end && r.start >= _slotStartMs)) return 2; // completed
+        if (s.ronde && S.log.find(r => r.route === s.ronde && r.end && r.start >= _slotStartMs && (r.end - r.start) >= MIN_RONDE_MS)) return 2; // completed
         return 0; // open
       };
       return rank(a) - rank(b);
@@ -4089,8 +4094,9 @@ function renderPlan() {
       const runners = s.ronde && routeRunners[s.ronde] ? routeRunners[s.ronde] : [];
       const isActive = runners.length > 0;
 
-      // Check if this route was completed during the current schema slot (today only)
-      const completedEntry = s.ronde ? S.log.find(r => r.route === s.ronde && r.end && r.start >= _slotStartMs) : null;
+      // Check if this route was completed during the current schema slot (today only).
+      // Ultrakorte rondes (< MIN_RONDE_MS) tellen niet als afgerond → blijven voorgesteld.
+      const completedEntry = s.ronde ? S.log.find(r => r.route === s.ronde && r.end && r.start >= _slotStartMs && (r.end - r.start) >= MIN_RONDE_MS) : null;
       const isCompleted = !!completedEntry && !isActive;
 
       // Suggestion logic — pass alreadySuggested to avoid recommending same person twice
