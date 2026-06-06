@@ -228,6 +228,11 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .lc-note-save:hover{background:#1e40af}
 /* Retour-rij onderaan */
 .lc-retour{margin-top:12px;padding-top:12px;border-top:1px solid #e2e8f0;display:flex;gap:7px;flex-wrap:wrap}
+.lc-add{margin-top:10px}
+.lc-add-btn{display:flex;align-items:center;gap:6px;width:100%;padding:9px 12px;background:#eff6ff;color:#1d4ed8;border:1px dashed #93c5fd;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer}
+.lc-add-btn:hover{background:#dbeafe;border-style:solid}
+.lc-add-btn svg{width:16px;height:16px;flex-shrink:0}
+.lc-add-btn span{text-align:left;flex:1;min-width:0}
 .card.ca .rbtn{margin-top:0}
 .empty{text-align:center;padding:3rem;color:#5b6b7f;font-size:13px}
 /* Lege 'onderweg'-melding spant beide grid-kolommen en krijgt dezelfde
@@ -1021,7 +1026,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.15</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.16</span>
     </div>
   </nav>
 
@@ -1341,7 +1346,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.15';
+const APP_VERSION = '2.6.16';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -1542,7 +1547,9 @@ function cleanActiveForFirebase() {
   // Strip local-only flags (_warned etc.) before writing to Firebase
   const clean = {};
   Object.entries(S.active).forEach(([n, a]) => {
-    clean[n] = { route: a.route, start: a.start };
+    const entry = { route: a.route, start: a.start };
+    if (a.groupId) entry.groupId = a.groupId; // optioneel; nooit undefined naar Firebase
+    clean[n] = entry;
   });
   return Object.keys(clean).length ? clean : null;
 }
@@ -1793,7 +1800,12 @@ function sanitizeActive(obj) {
     const name  = decodeEntities(sanitizeFromFirebase(k));
     const route = decodeEntities(sanitizeFromFirebase(v.route || ''));
     const start = typeof v.start === 'number' ? v.start : 0;
-    if (name && route && start) clean[name] = { route, start };
+    if (name && route && start) {
+      const entry = { route, start };
+      const gid = typeof v.groupId === 'string' ? v.groupId.slice(0, 32) : '';
+      if (gid) entry.groupId = gid;
+      clean[name] = entry;
+    }
   });
   return clean;
 }
@@ -2363,6 +2375,9 @@ function selN(n) {
     if (el) { el.className = 'v'; el.textContent = [...S.sns].join(', '); }
   }
   renderNameBtns(); updBtn();
+  // "+ toevoegen" knop op actieve kaarten reageert op S.sns; her-renderen.
+  renderAllActive();
+  if (typeof renderLive === 'function') renderLive();
 }
 
 function selR(r) {
@@ -2436,10 +2451,11 @@ function doStart() {
   if (S.sns.size === 0 || !S.sr) return;
   const startTime = Date.now();
   const route = S.sr;
+  const groupId = startTime.toString(); // gedeelde id voor alle in deze start-actie
   const started = [], skipped = [];
   [...S.sns].forEach(n => {
     if (S.active[n]) { skipped.push(n.split(' ')[0]); return; }
-    S.active[n] = { route, start: startTime };
+    S.active[n] = { route, start: startTime, groupId };
     started.push(n.split(' ')[0]);
   });
 
@@ -2620,19 +2636,23 @@ function renderAllActive() {
     el.innerHTML = '<div class="empty">Geen actieve rondes</div>';
     return;
   }
-  // Group by route+startTime (people who started together on same ronde)
+  // Group by groupId (mensen toegevoegd aan dezelfde kaart) met fallback op
+  // start-timestamp voor entries zonder groupId (oude data). Kaart-start =
+  // vroegste start van de groepsleden.
   const groups = {};
   Object.entries(S.active).forEach(([n, a]) => {
-    const key = a.route + '|' + a.start;
+    const key = a.groupId || a.start.toString();
     if (!groups[key]) groups[key] = { route: a.route, start: a.start, members: [] };
     groups[key].members.push([n, a]);
+    if (a.start < groups[key].start) groups[key].start = a.start;
   });
   el.innerHTML = Object.values(groups)
     .sort((a, b) => a.start - b.start)
     .map(g => groupCardHTML(g.route, g.start, g.members, true))
     .join('');
-  // Delegatie: retour + notitie-acties (zelfde als live-pane).
+  // Delegatie: retour + notitie-acties + toevoegen (zelfde als live-pane).
   el.onclick = e => {
+    if (handleAddClick(e)) return;
     if (handleRetourClick(e)) return;
     const noteBtn = e.target.closest('[data-noteedit]');
     if (noteBtn) { openNotitieEditor(noteBtn.getAttribute('data-noteedit'), el); return; }
@@ -2647,6 +2667,79 @@ function renderAllActive() {
 // Report retour for multiple people sequentially (used by "Beide retour" button)
 async function doRetourAllen(names) {
   for (const n of names) await doRetour(n);
+}
+
+// Voegt geselecteerde namen toe aan een bestaande actieve kaart (groupId).
+// Elke nieuwe persoon krijgt zijn eigen start = Date.now(), maar deelt de
+// groupId van de doelgroep, zodat de kaart visueel hetzelfde blijft. Volgt
+// hetzelfde optimistic-update + Firebase-write + rollback patroon als doStart.
+function voegToeAanGroep(groupId, route) {
+  if (!groupId || !route || !S.sns || S.sns.size === 0) return;
+  const startTime = Date.now();
+  const added = [], skipped = [];
+  [...S.sns].forEach(n => {
+    if (S.active[n]) { skipped.push(n.split(' ')[0]); return; }
+    S.active[n] = { route, start: startTime, groupId };
+    added.push(n);
+  });
+
+  if (!added.length) {
+    if (skipped.length) showToast(skipped.join(', ') + ' al onderweg, overgeslagen');
+    return;
+  }
+
+  // Optimistic UI: selectie resetten, kaarten/live opnieuw tekenen
+  S.sns = new Set();
+  renderNameBtns(); updBtn(); renderAllActive();
+  if (typeof renderLive === 'function') renderLive();
+  if (skipped.length) setTimeout(() => showToast(skipped.join(', ') + ' al onderweg, overgeslagen'), 2800);
+
+  added.forEach(n => markActivePending(n, 'add', { route, start: startTime, groupId }));
+
+  if (!window.fbDb) {
+    const labels = added.map(n => n.split(' ')[0]).join(' & ');
+    showToast(labels + ' toegevoegd — ' + route);
+    schrijfGedeeldeMelding('grijs', labels + ' toegevoegd', route);
+    return;
+  }
+
+  const updates = { '/dashboard/active': cleanActiveForFirebase() };
+  window.fbUpdate(window.fbRef(window.fbDb), updates)
+    .then(() => {
+      setFbStatus('ok');
+      added.forEach(n => clearActivePending(n));
+      const labels = added.map(n => n.split(' ')[0]).join(' & ');
+      logEvent('start', labels + ' toegevoegd aan ' + route, { names: added.map(n => n.split(' ')[0]), route, groupId, ts: startTime });
+      showToast(labels + ' toegevoegd — ' + route);
+      schrijfGedeeldeMelding('grijs', labels + ' toegevoegd', route);
+    })
+    .catch(e => {
+      // Rollback
+      added.forEach(n => {
+        clearActivePending(n);
+        if (S.active[n] && S.active[n].start === startTime) delete S.active[n];
+      });
+      setFbStatus('error');
+      renderNameBtns(); updBtn(); renderAllActive();
+      if (typeof renderLive === 'function') renderLive();
+      const labels = added.map(n => n.split(' ')[0]).join(' & ');
+      logEvent('error', 'Toevoegen MISLUKT — ' + labels + ' aan ' + route, { error: String(e), names: added, route, groupId });
+      voegMeldingToe('rood', 'Toevoegen mislukt — ' + labels, route + ' kon niet worden opgeslagen.', 'Opnieuw proberen', () => {
+        added.forEach(n => S.sns.add(n));
+        renderNameBtns(); updBtn(); renderAllActive();
+      });
+      showToast('⚠ Toevoegen mislukt — controleer verbinding en probeer opnieuw', 5000);
+    });
+}
+
+// Event-delegatie voor de "+ toevoegen" knop op een actieve kaart.
+function handleAddClick(e) {
+  const ab = e.target.closest('.lc-add-btn');
+  if (!ab) return false;
+  const groupId = ab.getAttribute('data-add-group') || '';
+  const route   = ab.getAttribute('data-add-route') || '';
+  voegToeAanGroep(groupId, route);
+  return true;
 }
 
 // Gedeelde delegatie-afhandeling voor de retour-knoppen op een live-/actief-
@@ -2670,6 +2763,9 @@ function groupCardHTML(route, start, members, btn) {
   const names = members.map(([n]) => n);
   const rkey = notitieKey(route, start);
   const notitie = getNotitie(route, start);
+  // groupId van de eerste member; alle members in een groep delen 'm.
+  // Fallback (oude data): start-timestamp als string.
+  const groupId = (members[0] && members[0][1] && members[0][1].groupId) || start.toString();
 
   // "Over de tijd" alleen tonen als de ronde de ingestelde limiet overschrijdt.
   const overMin = (Date.now() - start) / 60000;
@@ -2677,9 +2773,23 @@ function groupCardHTML(route, start, members, btn) {
   const over = overMin > limietMin
     ? ' <span class="lc-over">&middot; over de tijd</span>' : '';
 
+  // Per-persoon start-info alleen tonen wanneer leden verschillende starts
+  // hebben (bv. iemand later toegevoegd). Anders zou een title overal staan
+  // met identieke informatie — onnodig.
+  const uniqStarts = new Set(members.map(([_, a]) => a.start));
+  let mwTitle = '';
+  if (uniqStarts.size > 1) {
+    const parts = members
+      .slice()
+      .sort((a, b) => a[1].start - b[1].start)
+      .map(([n, a]) => n.split(' ')[0] + ' gestart ' + fmtT(a.start) + ' · ' + elaps(a.start));
+    mwTitle = ' title="' + escHtml(parts.join('\n')) + '"';
+  }
+
   // Notitie-blok: of een "toevoegen"-knop, of de bestaande notitie + bewerk-link.
   const penIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
   const noteIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12l-4 4H4Z"/><path d="M16 20v-4h4"/></svg>';
+  const plusIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>';
   let noteBlock = '';
   if (btn) {
     noteBlock = notitie
@@ -2691,6 +2801,21 @@ function groupCardHTML(route, start, members, btn) {
       : `<div class="lc-note" data-rkey="${rkey}">
            <button type="button" class="lc-note-add" data-noteedit="${rkey}">${penIcon}Notitie toevoegen</button>
          </div>`;
+  }
+
+  // Toevoeg-knop: alleen zichtbaar als de gebruiker minstens één naam heeft
+  // geselecteerd EN die naam nog niet actief is. Klik = voeg selectie toe aan
+  // déze groep (eigen start, geërfde groupId).
+  let addBlock = '';
+  if (btn && S.sns && S.sns.size > 0) {
+    const memberSet = new Set(names);
+    const toevoegbaar = [...S.sns].filter(n => !S.active[n] && !memberSet.has(n));
+    if (toevoegbaar.length) {
+      const labels = toevoegbaar.map(n => n.split(' ')[0]).join(' & ');
+      addBlock = `<div class="lc-add"><button type="button" class="lc-add-btn"
+        data-add-group="${escHtml(groupId)}" data-add-route="${escHtml(route)}">
+        ${plusIcon}<span>${escHtml(labels)} toevoegen</span></button></div>`;
+    }
   }
 
   // Retour-knoppen onderaan, gescheiden door fijne lijn.
@@ -2709,11 +2834,12 @@ function groupCardHTML(route, start, members, btn) {
     retourBlock = `<div class="lc-retour">${bothBtn}${perPerson}</div>`;
   }
 
-  return `<div class="card ca" data-rkey="${rkey}" data-start="${start}">
+  return `<div class="card ca" data-rkey="${rkey}" data-start="${start}" data-groupid="${escHtml(groupId)}">
     <div class="lc-rij"><span class="dot dot-r"></span><span class="lc-ronde">${escHtml(route)}</span></div>
-    <div class="lc-mw">${names.map(escHtml).join(' &amp; ')}</div>
+    <div class="lc-mw"${mwTitle}>${names.map(escHtml).join(' &amp; ')}</div>
     <div class="lc-meta">gestart ${fmtT(start)} &middot; loopt <span class="cel">${elaps(start)}</span>${over}</div>
     ${noteBlock}
+    ${addBlock}
     ${retourBlock}
   </div>`;
 }
@@ -2752,9 +2878,10 @@ function renderLive() {
   const renderActiveCards = () => {
     const liveGroups = {};
     Object.entries(S.active).forEach(([n, a]) => {
-      const key = a.route + '|' + a.start;
+      const key = a.groupId || a.start.toString();
       if (!liveGroups[key]) liveGroups[key] = { route: a.route, start: a.start, members: [] };
       liveGroups[key].members.push([n, a]);
+      if (a.start < liveGroups[key].start) liveGroups[key].start = a.start;
     });
     const groups = Object.values(liveGroups);
     if (!groups.length) {
@@ -2813,8 +2940,9 @@ function renderLive() {
     const _tlRecent = _tlCut > cutoff ? logInWindow(_tlCut) : recent;
     drawTimeline(_tlRecent, Object.entries(S.active), _tlCut, now);
   }
-  // Event delegation op de live-container: retour-knoppen én notitie-acties.
+  // Event delegation op de live-container: retour-knoppen, notitie-acties, toevoegen.
   elActive.onclick = e => {
+    if (handleAddClick(e)) return;
     if (handleRetourClick(e)) return;
     const noteBtn = e.target.closest('[data-noteedit]');
     if (noteBtn) { openNotitieEditor(noteBtn.getAttribute('data-noteedit'), elActive); return; }
@@ -4109,7 +4237,7 @@ function renderPlan() {
     sameTime.sort((a, b) => {
       const rank = s => {
         if (s.ronde && routeRunners[s.ronde]) return 1; // active
-        if (s.ronde && S.log.find(r => r.route === s.ronde && r.end && (r.start >= _slotStartMs || r.end >= _slotStartMs) && (r.end - r.start) >= MIN_RONDE_MS)) return 2; // completed
+        if (s.ronde && S.log.find(r => r.route === s.ronde && r.end && r.start >= _slotStartMs && (r.end - r.start) >= MIN_RONDE_MS)) return 2; // completed
         return 0; // open
       };
       return rank(a) - rank(b);
@@ -4121,10 +4249,9 @@ function renderPlan() {
       const runners = s.ronde && routeRunners[s.ronde] ? routeRunners[s.ronde] : [];
       const isActive = runners.length > 0;
 
-      // Check if this route was completed during (or ending within) the current schema slot.
-      // Also matches rondes started slightly before the slot but returned within it.
+      // Check if this route was completed during the current schema slot (today only).
       // Ultrakorte rondes (< MIN_RONDE_MS) tellen niet als afgerond → blijven voorgesteld.
-      const completedEntry = s.ronde ? S.log.find(r => r.route === s.ronde && r.end && (r.start >= _slotStartMs || r.end >= _slotStartMs) && (r.end - r.start) >= MIN_RONDE_MS) : null;
+      const completedEntry = s.ronde ? S.log.find(r => r.route === s.ronde && r.end && r.start >= _slotStartMs && (r.end - r.start) >= MIN_RONDE_MS) : null;
       const isCompleted = !!completedEntry && !isActive;
 
       // Suggestion logic — pass alreadySuggested to avoid recommending same person twice
