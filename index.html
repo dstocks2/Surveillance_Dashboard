@@ -230,6 +230,9 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .lc-retour{margin-top:12px;padding-top:12px;border-top:1px solid #e2e8f0;display:flex;gap:7px;flex-wrap:wrap}
 .card.ca .rbtn{margin-top:0}
 .empty{text-align:center;padding:3rem;color:#5b6b7f;font-size:13px}
+/* Lege 'onderweg'-melding spant beide grid-kolommen en krijgt dezelfde
+   omkaderde kaart-look als 'Recent afgerond' ernaast, i.p.v. links zweven. */
+#live-cards-active .empty{grid-column:1/-1;background:#fff;border:1px solid #e2e8f0;border-radius:11px;padding:2.4rem 1rem;color:#94a3b8}
 table{width:100%;border-collapse:collapse;font-size:12px}
 th{text-align:left;padding:9px 12px;font-size:11px;font-weight:600;color:#64748b;background:#f8fafc;border-bottom:1px solid #e2e8f0;white-space:nowrap}
 td{padding:9px 12px;border-bottom:1px solid #f1f5f9;color:#334155;vertical-align:middle}
@@ -1018,7 +1021,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.13</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.14</span>
     </div>
   </nav>
 
@@ -1338,7 +1341,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.13';
+const APP_VERSION = '2.6.14';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
