@@ -1018,7 +1018,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.12</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.13</span>
     </div>
   </nav>
 
@@ -1042,12 +1042,12 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
           <!-- Rolfilter — dynamisch gevuld via renderMedRolFilter() -->
           <div id="med-rol-filter" style="display:flex;gap:2px;background:#f1f5f9;border-radius:8px;padding:3px"></div>
           <!-- Op dienst toggle -->
-          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#64748b;flex-shrink:0;user-select:none">
+          <div style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#64748b;flex-shrink:0;user-select:none">
             <span id="med-toggle-track" onclick="toggleMedDienst()" style="display:inline-block;width:34px;height:19px;border-radius:99px;background:#e2e8f0;position:relative;cursor:pointer;transition:background .15s;flex-shrink:0">
               <span id="med-toggle-thumb" style="position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:99px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .15s"></span>
             </span>
             Op dienst
-          </label>
+          </div>
         </div>
         <!-- Teller -->
         <div id="med-count-label" style="font-size:11px;color:#5b6b7f;margin-top:7px"></div>
@@ -1210,11 +1210,11 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
             <p id="medewerker-modal-title" style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 16px">Medewerker toevoegen</p>
             <div style="display:flex;flex-direction:column;gap:12px">
               <div style="display:flex;flex-direction:column;gap:4px">
-                <label style="font-size:11px;color:#64748b">Naam</label>
+                <label for="inp-medewerker-edit-naam" style="font-size:11px;color:#64748b">Naam</label>
                 <input type="text" id="inp-medewerker-edit-naam" maxlength="80" placeholder="Voor- en achternaam…" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:100%;box-sizing:border-box" onkeydown="if(event.key==='Enter')document.getElementById('inp-medewerker-edit-rol').focus()">
               </div>
               <div style="display:flex;flex-direction:column;gap:4px">
-                <label style="font-size:11px;color:#64748b">Functie / rol <span style="font-weight:400;color:#5b6b7f">(optioneel)</span></label>
+                <label for="inp-medewerker-edit-rol" style="font-size:11px;color:#64748b">Functie / rol <span style="font-weight:400;color:#5b6b7f">(optioneel)</span></label>
                 <input type="text" id="inp-medewerker-edit-rol" maxlength="80" placeholder="bijv. Teamleider, Beveiliger…" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:100%;box-sizing:border-box" onkeydown="if(event.key==='Enter')saveMedewerkerEdit()">
               </div>
             </div>
@@ -1232,16 +1232,16 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
             <p id="ronde-modal-title" style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 16px">Ronde toevoegen</p>
             <div style="display:flex;flex-direction:column;gap:12px">
               <div style="display:flex;flex-direction:column;gap:4px">
-                <label style="font-size:11px;color:#64748b">Naam</label>
+                <label for="inp-ronde-edit-naam" style="font-size:11px;color:#64748b">Naam</label>
                 <input type="text" id="inp-ronde-edit-naam" maxlength="80" placeholder="bijv. Buitenronde, P-noord…" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:100%;box-sizing:border-box" onkeydown="if(event.key==='Enter')saveRondeEdit()">
               </div>
               <div style="display:flex;flex-direction:column;gap:4px">
-                <label style="font-size:11px;color:#64748b">Categorie <span style="color:#cbd5e1;font-weight:400">(optioneel)</span></label>
+                <label for="inp-ronde-edit-cat" style="font-size:11px;color:#64748b">Categorie <span style="color:#cbd5e1;font-weight:400">(optioneel)</span></label>
                 <select id="inp-ronde-edit-cat" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;background:#fff;width:100%">
                   <option value="">— geen categorie —</option>
                 </select>
               </div>
-              <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:13px;color:#334155">
+              <label for="inp-ronde-edit-dubbel" style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:13px;color:#334155">
                 <input type="checkbox" id="inp-ronde-edit-dubbel" style="margin-top:2px;flex-shrink:0">
                 <span>Dubbel lopen toestaan <span style="display:block;font-size:11px;color:#64748b;font-weight:400">Geen "dubbele ronde"-melding (bijv. assistentie of inzet)</span></span>
               </label>
@@ -1259,7 +1259,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     <button type="button" onclick="cancelCatEdit()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#5b6b7f;cursor:pointer;line-height:1">&times;</button>
     <p id="cat-modal-title" style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 16px">Categorie toevoegen</p>
     <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:16px">
-      <label style="font-size:11px;color:#64748b">Naam</label>
+      <label for="inp-cat-naam" style="font-size:11px;color:#64748b">Naam</label>
       <input type="text" id="inp-cat-naam" maxlength="80" placeholder="bijv. Parkeren, Noodhulp…" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:100%;box-sizing:border-box" onkeydown="if(event.key==='Enter')saveCatEdit()">
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end">
@@ -1276,20 +1276,20 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
             <p id="dagdeel-modal-title" style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 16px">Dagdeel wijzigen</p>
             <div style="display:flex;flex-direction:column;gap:12px">
               <div style="display:flex;flex-direction:column;gap:4px">
-                <label style="font-size:11px;color:#64748b">Naam</label>
+                <label for="inp-dagdeel-edit-naam" style="font-size:11px;color:#64748b">Naam</label>
                 <input type="text" id="inp-dagdeel-edit-naam" maxlength="40" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:100%;box-sizing:border-box">
               </div>
               <div style="display:flex;gap:10px;flex-wrap:wrap">
                 <div style="display:flex;flex-direction:column;gap:4px">
-                  <label style="font-size:11px;color:#64748b">Start</label>
+                  <label for="inp-dagdeel-edit-start" style="font-size:11px;color:#64748b">Start</label>
                   <input type="time" id="inp-dagdeel-edit-start" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:115px">
                 </div>
                 <div style="display:flex;flex-direction:column;gap:4px">
-                  <label style="font-size:11px;color:#64748b">Eind</label>
+                  <label for="inp-dagdeel-edit-eind" style="font-size:11px;color:#64748b">Eind</label>
                   <input type="time" id="inp-dagdeel-edit-eind" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:115px">
                 </div>
                 <div style="display:flex;flex-direction:column;gap:4px">
-                  <label style="font-size:11px;color:#64748b">Kleur</label>
+                  <label for="inp-dagdeel-edit-kleur" style="font-size:11px;color:#64748b">Kleur</label>
                   <input type="color" id="inp-dagdeel-edit-kleur" style="padding:2px;border:1px solid #cbd5e1;border-radius:6px;width:48px;height:36px;cursor:pointer;background:#fff">
                 </div>
               </div>
@@ -1309,20 +1309,20 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <div style="display:flex;flex-direction:column;gap:12px">
           <div style="display:flex;gap:10px;flex-wrap:wrap">
             <div style="display:flex;flex-direction:column;gap:4px">
-              <label style="font-size:11px;color:#64748b">Tijd</label>
+              <label for="inp-schema-modal-tijd" style="font-size:11px;color:#64748b">Tijd</label>
               <input type="time" id="inp-schema-modal-tijd" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:115px">
             </div>
             <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:150px">
-              <label style="font-size:11px;color:#64748b">Ronde (optioneel)</label>
+              <label for="inp-schema-modal-ronde" style="font-size:11px;color:#64748b">Ronde (optioneel)</label>
               <select id="inp-schema-modal-ronde" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:100%"></select>
             </div>
           </div>
           <div style="display:flex;flex-direction:column;gap:4px">
-            <label style="font-size:11px;color:#64748b">Taakomschrijving</label>
+            <label for="inp-schema-modal-taak" style="font-size:11px;color:#64748b">Taakomschrijving</label>
             <input type="text" id="inp-schema-modal-taak" maxlength="120" placeholder="Omschrijving van de taak" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:inherit;width:100%;box-sizing:border-box">
           </div>
           <div style="display:flex;flex-direction:column;gap:6px">
-            <label style="font-size:11px;color:#64748b">Zichtbaar op (leeg = alle dagen)</label>
+            <div style="font-size:11px;color:#64748b">Zichtbaar op (leeg = alle dagen)</div>
             <div style="display:flex;gap:6px;flex-wrap:wrap" id="schema-modal-dagen"></div>
           </div>
         </div>
@@ -1338,7 +1338,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.12';
+const APP_VERSION = '2.6.13';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -4653,8 +4653,8 @@ function openSchemaModal(idx) {
     const style = checked
       ? 'background:#2563eb;color:#fff;border-color:#2563eb'
       : 'background:#f8fafc;color:#475569;border-color:#cbd5e1';
-    return `<label style="cursor:pointer;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:600;border:1px solid;user-select:none;transition:background .15s;${style}">
-      <input type="checkbox" name="schema-dag" value="${key}"${checked ? ' checked' : ''} style="display:none" onchange="updateDagenCheckbox(this)">
+    return `<label for="schema-dag-${key}" style="cursor:pointer;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:600;border:1px solid;user-select:none;transition:background .15s;${style}">
+      <input type="checkbox" id="schema-dag-${key}" name="schema-dag" value="${key}"${checked ? ' checked' : ''} style="display:none" onchange="updateDagenCheckbox(this)">
       ${label}
     </label>`;
   }).join('');
