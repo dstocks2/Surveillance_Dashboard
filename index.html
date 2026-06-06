@@ -1026,7 +1026,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.17</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.18</span>
     </div>
   </nav>
 
@@ -1346,7 +1346,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.17';
+const APP_VERSION = '2.6.18';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -1812,17 +1812,24 @@ function sanitizeActive(obj) {
 
 function sanitizeLog(arr) {
   if (!Array.isArray(arr)) return [];
-  return arr.map(r => ({
-    id:    decodeEntities(sanitizeFromFirebase(String(r.id || ''))),
-    name:  decodeEntities(sanitizeFromFirebase(r.name  || '')),
-    route: decodeEntities(sanitizeFromFirebase(r.route || '')),
-    start: typeof r.start === 'number' ? r.start : 0,
-    end:   typeof r.end   === 'number' ? r.end   : 0,
-    dur:   typeof r.dur   === 'number' ? r.dur   : 0,
+  return arr.map(r => {
+    const out = {
+      id:    decodeEntities(sanitizeFromFirebase(String(r.id || ''))),
+      name:  decodeEntities(sanitizeFromFirebase(r.name  || '')),
+      route: decodeEntities(sanitizeFromFirebase(r.route || '')),
+      start: typeof r.start === 'number' ? r.start : 0,
+      end:   typeof r.end   === 'number' ? r.end   : 0,
+      dur:   typeof r.dur   === 'number' ? r.dur   : 0,
+    };
+    // groupId conditioneel — bestaande log-entries van vóór deze feature
+    // hebben geen groupId; nieuwe entries wel. Nooit undefined toevoegen.
+    const gid = typeof r.groupId === 'string' ? r.groupId.slice(0, 32) : '';
+    if (gid) out.groupId = gid;
     // _fbKey behouden indien aanwezig — nodig om lokale S.log-entries te kunnen
     // koppelen aan hun Firebase-key (o.a. voor lokale spiegeling na pruneLog).
-    ...(r._fbKey ? { _fbKey: r._fbKey } : {}),
-  })).filter(r => r.name && r.route && r.start)
+    if (r._fbKey) out._fbKey = r._fbKey;
+    return out;
+  }).filter(r => r.name && r.route && r.start)
      .sort((a, b) => (b.end || 0) - (a.end || 0))
      .slice(0, 200);
 }
@@ -2564,6 +2571,11 @@ async function doRetour(name) {
   }
 
   const logEntry = { id: Date.now().toString(36) + Math.random().toString(36).slice(2,6), name: n, route: a.route, start: a.start, end, dur };
+  // groupId conditioneel meegeven: nooit undefined naar Firebase (rules-valkuil).
+  // Wanneer aanwezig kunnen done-kaarten en timeline-bars groeperen op groep
+  // i.p.v. op start/end, zodat later toegevoegde personen op dezelfde balk
+  // blijven staan.
+  if (a.groupId) logEntry.groupId = a.groupId;
 
   // Guard: blokkeer dubbele retour — als start-ts al in S.log staat is de ronde al gemeld
   // (kan gebeuren bij sync-conflict: twee apparaten melden retour voor dezelfde ronde)
@@ -2900,12 +2912,17 @@ function renderLive() {
     // Group ALL recent rondes by route+end first, then limit the view.
     const doneGroups = {};
     recent.forEach(row => {
-      // Round end to nearest 2 seconds to catch near-simultaneous retours
-      const key = row.route + '|' + Math.round(row.end / 2000);
+      // Bij voorkeur op groupId groeperen (samen-lopende ronde, ook met later
+      // toegevoegde leden); val terug op route + afgeronde end-tijd (binnen 2s)
+      // voor entries van vóór de groupId-feature.
+      const key = row.groupId
+        ? 'g:' + row.groupId
+        : row.route + '|' + Math.round(row.end / 2000);
       if (!doneGroups[key]) doneGroups[key] = { route: row.route, start: row.start, end: row.end, dur: row.dur, names: [] };
       doneGroups[key].names.push(row.name);
       // Use the latest end time and longest dur for the group
       if (row.end > doneGroups[key].end) { doneGroups[key].end = row.end; doneGroups[key].dur = row.dur; }
+      if (row.start < doneGroups[key].start) doneGroups[key].start = row.start;
     });
     const grouped = Object.values(doneGroups).sort((a,b) => b.end - a.end);
 
@@ -3303,16 +3320,18 @@ function drawTimeline(recent, active, cutoff, now) {
     return COLORS[h % COLORS.length];
   }
 
-  // Completed bars — group by route+start so people who started the same ronde
-  // together share one bar (otherwise their name labels overlap). Bar end is
-  // the latest end-time of the group.
+  // Completed bars — bij voorkeur groeperen op groupId (samen-lopende ronde,
+  // incl. later toegevoegde leden); val terug op route+start voor entries van
+  // vóór de groupId-feature. Bar-start is vroegste start, bar-end is laatste
+  // end-tijd binnen de groep.
   const completedGroups = {};
   recent.forEach(row => {
-    const key = row.route + '|' + row.start;
+    const key = row.groupId ? 'g:' + row.groupId : row.route + '|' + row.start;
     if (!completedGroups[key]) {
       completedGroups[key] = { route: row.route, start: row.start, end: row.end, names: [] };
-    } else if (row.end > completedGroups[key].end) {
-      completedGroups[key].end = row.end;
+    } else {
+      if (row.end > completedGroups[key].end) completedGroups[key].end = row.end;
+      if (row.start < completedGroups[key].start) completedGroups[key].start = row.start;
     }
     completedGroups[key].names.push(row.name);
   });
