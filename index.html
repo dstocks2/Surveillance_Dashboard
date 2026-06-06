@@ -1017,7 +1017,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.10</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.11</span>
     </div>
   </nav>
 
@@ -1337,7 +1337,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.10';
+const APP_VERSION = '2.6.11';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -1746,14 +1746,22 @@ function sanitizeSchema(arr) {
   return arr.map(item => {
     if (!item || typeof item !== 'object') return null;
     const h = Number(item.h), m = Number(item.m);
-    return {
+    const out = {
       h: Number.isFinite(h) ? h : 0,
       m: Number.isFinite(m) ? m : 0,
       ronde: item.ronde == null ? null : decodeEntities(sanitizeFromFirebase(String(item.ronde))),
       taak:  decodeEntities(sanitizeFromFirebase(String(item.taak || ''))),
-      dagen: Array.isArray(item.dagen) ? item.dagen.filter(d => WD.includes(d)) : undefined,
       weekdagsOnly: item.weekdagsOnly === true
     };
+    // dagen alleen meenemen als het een geldig, niet-leeg array is.
+    // NOOIT undefined toevoegen: Firebase weigert objecten met undefined-waarden
+    // (→ "update failed: values argument contains undefined") waardoor de hele
+    // schema-write faalt.
+    if (Array.isArray(item.dagen)) {
+      const filtered = item.dagen.filter(d => WD.includes(d));
+      if (filtered.length) out.dagen = filtered;
+    }
+    return out;
   }).filter(Boolean);
 }
 
