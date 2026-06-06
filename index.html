@@ -205,7 +205,7 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .rbtn{width:100%;margin-top:10px;padding:7px;border-radius:6px;border:1.5px solid #15803d;background:transparent;color:#15803d;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .13s}
 .rbtn:hover{background:#15803d;color:#fff}
 /* ── Actieve 'onderweg'-kaart: nieuwe look ─────────────────────────────────── */
-.card.ca{border-color:#e2e8f0;border-width:1px;background:#fff;border-left:2px solid #ef4444;display:flex;flex-direction:column}
+.card.ca{position:relative;border-color:#e2e8f0;border-width:1px;background:#fff;border-left:2px solid #ef4444;display:flex;flex-direction:column}
 .lc-rij{display:flex;align-items:center;gap:8px}
 .lc-ronde{font-size:15px;font-weight:700;color:#1e293b;line-height:1.2}
 .lc-mw{margin-top:5px;font-size:14px;font-weight:500;color:#334155}
@@ -228,11 +228,11 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .lc-note-save:hover{background:#1e40af}
 /* Retour-rij onderaan */
 .lc-retour{margin-top:12px;padding-top:12px;border-top:1px solid #e2e8f0;display:flex;gap:7px;flex-wrap:wrap}
-.lc-add{margin-top:10px}
-.lc-add-btn{display:flex;align-items:center;gap:6px;width:100%;padding:9px 12px;background:#eff6ff;color:#1d4ed8;border:1px dashed #93c5fd;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer}
-.lc-add-btn:hover{background:#dbeafe;border-style:solid}
+.lc-add{position:absolute;top:8px;right:8px;margin:0}
+.lc-add-btn{display:flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;background:#eff6ff;color:#1d4ed8;border:1px solid #93c5fd;border-radius:6px;cursor:pointer}
+.lc-add-btn:hover{background:#dbeafe;border-color:#3b82f6}
 .lc-add-btn svg{width:16px;height:16px;flex-shrink:0}
-.lc-add-btn span{text-align:left;flex:1;min-width:0}
+.lc-add-btn span{display:none}
 .card.ca .rbtn{margin-top:0}
 .empty{text-align:center;padding:3rem;color:#5b6b7f;font-size:13px}
 /* Lege 'onderweg'-melding spant beide grid-kolommen en krijgt dezelfde
@@ -1026,7 +1026,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.16</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.17</span>
     </div>
   </nav>
 
@@ -1346,7 +1346,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.16';
+const APP_VERSION = '2.6.17';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -2782,7 +2782,7 @@ function groupCardHTML(route, start, members, btn) {
     const parts = members
       .slice()
       .sort((a, b) => a[1].start - b[1].start)
-      .map(([n, a]) => n.split(' ')[0] + ' gestart ' + fmtT(a.start) + ' · ' + elaps(a.start));
+      .map(([n, a]) => n.split(' ')[0] + ' gestart ' + fmtT(a.start));
     mwTitle = ' title="' + escHtml(parts.join('\n')) + '"';
   }
 
@@ -2813,6 +2813,7 @@ function groupCardHTML(route, start, members, btn) {
     if (toevoegbaar.length) {
       const labels = toevoegbaar.map(n => n.split(' ')[0]).join(' & ');
       addBlock = `<div class="lc-add"><button type="button" class="lc-add-btn"
+        title="${escHtml(labels)} toevoegen"
         data-add-group="${escHtml(groupId)}" data-add-route="${escHtml(route)}">
         ${plusIcon}<span>${escHtml(labels)} toevoegen</span></button></div>`;
     }
