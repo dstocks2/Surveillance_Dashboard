@@ -1021,7 +1021,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.14</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.15</span>
     </div>
   </nav>
 
@@ -1341,7 +1341,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.14';
+const APP_VERSION = '2.6.15';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -4109,7 +4109,7 @@ function renderPlan() {
     sameTime.sort((a, b) => {
       const rank = s => {
         if (s.ronde && routeRunners[s.ronde]) return 1; // active
-        if (s.ronde && S.log.find(r => r.route === s.ronde && r.end && r.start >= _slotStartMs && (r.end - r.start) >= MIN_RONDE_MS)) return 2; // completed
+        if (s.ronde && S.log.find(r => r.route === s.ronde && r.end && (r.start >= _slotStartMs || r.end >= _slotStartMs) && (r.end - r.start) >= MIN_RONDE_MS)) return 2; // completed
         return 0; // open
       };
       return rank(a) - rank(b);
@@ -4121,9 +4121,10 @@ function renderPlan() {
       const runners = s.ronde && routeRunners[s.ronde] ? routeRunners[s.ronde] : [];
       const isActive = runners.length > 0;
 
-      // Check if this route was completed during the current schema slot (today only).
+      // Check if this route was completed during (or ending within) the current schema slot.
+      // Also matches rondes started slightly before the slot but returned within it.
       // Ultrakorte rondes (< MIN_RONDE_MS) tellen niet als afgerond → blijven voorgesteld.
-      const completedEntry = s.ronde ? S.log.find(r => r.route === s.ronde && r.end && r.start >= _slotStartMs && (r.end - r.start) >= MIN_RONDE_MS) : null;
+      const completedEntry = s.ronde ? S.log.find(r => r.route === s.ronde && r.end && (r.start >= _slotStartMs || r.end >= _slotStartMs) && (r.end - r.start) >= MIN_RONDE_MS) : null;
       const isCompleted = !!completedEntry && !isActive;
 
       // Suggestion logic — pass alreadySuggested to avoid recommending same person twice
