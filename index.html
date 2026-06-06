@@ -1017,7 +1017,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.8</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.9</span>
     </div>
   </nav>
 
@@ -1337,7 +1337,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.8';
+const APP_VERSION = '2.6.9';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -4677,8 +4677,11 @@ function openSchemaModal(idx) {
     const el = document.getElementById(id);
     if (el) { el.oninput = schemaModalCheckDirty; el.onchange = schemaModalCheckDirty; }
   });
-  // For dag checkboxes — delegate via container
-  document.getElementById('schema-modal-dagen').addEventListener('change', schemaModalCheckDirty);
+  // For dag checkboxes — delegate via container.
+  // Gebruik .onchange (overschrijft) i.p.v. addEventListener (stapelt bij heropenen
+  // van de modal → spookluisteraars met verouderde _smsInitial die de save-knop
+  // ten onrechte weer disabled zetten).
+  document.getElementById('schema-modal-dagen').onchange = schemaModalCheckDirty;
 
   // For new items: save button enabled immediately when fields filled
   if (!isEdit) {
