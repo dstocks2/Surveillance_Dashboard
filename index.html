@@ -1026,7 +1026,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.18</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.19</span>
     </div>
   </nav>
 
@@ -1346,7 +1346,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.18';
+const APP_VERSION = '2.6.19';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -2544,13 +2544,15 @@ function doStart() {
 // ==============================================================================
 // SECTIE: RETOUR-FLOW  — doRetour, renderAllActive, doRetourAllen, handleRetourClick, groupCardHTML
 // ==============================================================================
-async function doRetour(name) {
+async function doRetour(name, _opts) {
+  _opts = _opts || {};
+  const skipMelding = !!_opts.skipMelding;
   const n = name || (S.sns.size === 1 ? [...S.sns][0] : null);
   if (!n) {
-    if (S.sns.size > 1) { showToast('Selecteer één naam voor retour'); return; }
-    return;
+    if (S.sns.size > 1) { showToast('Selecteer één naam voor retour'); return false; }
+    return false;
   }
-  if (!S.active[n]) { showToast(n.split(' ')[0] + ' is niet onderweg'); return; }
+  if (!S.active[n]) { showToast(n.split(' ')[0] + ' is niet onderweg'); return false; }
   const a = S.active[n];
   const end = Date.now();
   const dur = Math.max(0, Math.round((end - a.start) / 60000));
@@ -2567,7 +2569,7 @@ async function doRetour(name) {
       ' (gestart ' + startStr + ').\n\nDit is waarschijnlijk een vergeten retour van een vorige dienst. ' +
       'Toch retour melden met deze duur?'
     );
-    if (!ok) { showToast('Retour geannuleerd'); return; }
+    if (!ok) { showToast('Retour geannuleerd'); return false; }
   }
 
   const logEntry = { id: Date.now().toString(36) + Math.random().toString(36).slice(2,6), name: n, route: a.route, start: a.start, end, dur };
@@ -2584,7 +2586,7 @@ async function doRetour(name) {
     showToast(n.split(' ')[0] + ' stond al als retour geregistreerd');
     delete S.active[n]; // verwijder stale active entry
     renderAllActive(); updBtn(); renderLive();
-    return;
+    return false;
   }
 
   // Optimistic update: remove locally first for snappy UI
@@ -2615,7 +2617,8 @@ async function doRetour(name) {
       opruimStaleLangeRondeMeldingen();
       logEvent('retour', n.split(' ')[0] + ' retour van ' + a.route + ' (' + dur + ' min)', { name: n, route: a.route, start: a.start, end, dur, logId: logEntry.id });
       showToast(n.split(' ')[0] + ' terug! \u2014 ' + dur + ' min');
-      schrijfGedeeldeMelding('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.');
+      if (!skipMelding) schrijfGedeeldeMelding('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.');
+      return true;
     } catch (e) {
       clearActivePending(n);
       _pendingLog.delete(logEntry.id);
@@ -2628,10 +2631,12 @@ async function doRetour(name) {
       logEvent('error', 'Retour MISLUKT \u2014 ' + n.split(' ')[0] + ' van ' + a.route, { error: String(e), name: n, route: a.route });
       voegMeldingToe('rood', 'Retour mislukt \u2014 ' + n.split(' ')[0], a.route + ' kon niet worden opgeslagen. Controleer de verbinding.', 'Opnieuw proberen', () => doRetour(n));
       showToast('\u26a0 Retour mislukt \u2014 controleer verbinding en probeer opnieuw', 5000);
+      return false;
     }
   } else {
     showToast(n.split(' ')[0] + ' terug! \u2014 ' + dur + ' min');
-    schrijfGedeeldeMelding('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.');
+    if (!skipMelding) schrijfGedeeldeMelding('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.');
+    return true;
   }
 }
 
@@ -2678,7 +2683,28 @@ function renderAllActive() {
 
 // Report retour for multiple people sequentially (used by "Beide retour" button)
 async function doRetourAllen(names) {
-  for (const n of names) await doRetour(n);
+  // Verzamel naam/route/start vóór retour — anders staan ze niet meer in S.active.
+  const before = names
+    .filter(n => S.active[n])
+    .map(n => ({ name: n, route: S.active[n].route, start: S.active[n].start }));
+
+  const okList = [];
+  for (let i = 0; i < names.length; i++) {
+    const ok = await doRetour(names[i], { skipMelding: true });
+    if (ok) okList.push(names[i]);
+  }
+
+  // Eén gebundelde melding voor de geslaagde retours.
+  if (!okList.length) return;
+  const okInfo = before.filter(x => okList.includes(x.name));
+  if (!okInfo.length) return;
+  const labels = okInfo.map(x => x.name.split(' ')[0]).join(' & ');
+  const route  = okInfo[0].route;
+  const now    = Date.now();
+  const durs   = okInfo.map(x => Math.max(0, Math.round((now - x.start) / 60000)));
+  const minD = Math.min(...durs), maxD = Math.max(...durs);
+  const durStr = (minD === maxD) ? (minD + ' min.') : (minD + '\u2013' + maxD + ' min.');
+  schrijfGedeeldeMelding('grijs', labels + ' retour', route + ' \u2014 ' + durStr);
 }
 
 // Voegt geselecteerde namen toe aan een bestaande actieve kaart (groupId).
