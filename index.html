@@ -423,18 +423,74 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .meld-sluiten{font-size:11px;color:#5b6b7f;cursor:pointer;background:none;border:none;font-family:inherit}
 .meld-sluiten:hover{color:#64748b}
 
-/* Custom confirm dialog */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px}
-.modal-box{background:#fff;border-radius:12px;padding:24px 22px;max-width:340px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2)}
-@media(max-width:600px){
-  .modal-box{padding:20px 16px;border-radius:10px}
+/* Custom confirm dialog — Apple-stijl */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.38);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+.modal-box{
+  background:rgba(252,252,253,.88);
+  -webkit-backdrop-filter:blur(34px) saturate(1.7);
+  backdrop-filter:blur(34px) saturate(1.7);
+  border-radius:26px;
+  max-width:360px;width:100%;
+  box-shadow:0 0 0 .5px rgba(0,0,0,.05),0 10px 30px -12px rgba(15,22,40,.28),0 34px 70px -24px rgba(12,18,34,.38);
+  position:relative;overflow:hidden;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",system-ui,sans-serif;
 }
-.modal-msg{font-size:14px;color:#1e293b;line-height:1.5;margin-bottom:20px;font-family:inherit;white-space:pre-wrap}
-.modal-btns{display:flex;gap:10px;justify-content:flex-end}
-.modal-btn{padding:10px 22px;border-radius:8px;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;min-width:70px;min-height:44px;transition:opacity .13s}
-.modal-btn:hover{opacity:.85}
-.modal-btn-nee{background:#f1f5f9;color:#64748b}
-.modal-btn-ja{background:#dc2626;color:#fff}
+.modal-box::after{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.85),inset 0 0 0 .5px rgba(255,255,255,.4);
+}
+.modal-body{padding:28px 26px 0;text-align:center;display:flex;flex-direction:column;align-items:center}
+.modal-glyph{
+  width:54px;height:54px;border-radius:16px;margin-bottom:15px;
+  background:linear-gradient(180deg,#fff0ef,#ffe9e7);
+  display:flex;align-items:center;justify-content:center;
+  color:#ff3b30;
+  box-shadow:0 0 0 1px rgba(255,59,48,.16),0 8px 18px -8px rgba(255,59,48,.45);
+  flex-shrink:0;
+}
+.modal-title{font-size:19px;font-weight:650;letter-spacing:-.025em;line-height:1.2;color:#1d1d1f;margin:0 0 7px}
+.modal-msg{font-size:13.5px;color:#6e6e73;line-height:1.5;max-width:28ch;margin:0 auto;white-space:pre-wrap;font-family:inherit}
+.modal-target{
+  display:inline-flex;align-items:center;gap:8px;margin-top:14px;
+  padding:6px 12px 6px 8px;border-radius:980px;
+  background:rgba(118,118,128,.09);white-space:nowrap;max-width:100%;overflow:hidden;
+}
+.modal-target-ic{
+  width:22px;height:22px;border-radius:50%;background:#fff;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  box-shadow:0 0 0 .5px rgba(0,0,0,.07);color:#234268;
+}
+.modal-target-nm{font-size:12.5px;font-weight:600;color:#1d1d1f;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.modal-btns{display:flex;gap:9px;padding:22px 20px 20px}
+.modal-btn{
+  flex:1;height:46px;border:none;border-radius:13px;
+  font-size:15px;font-weight:590;letter-spacing:-.01em;cursor:pointer;
+  font-family:inherit;
+  transition:transform .12s cubic-bezier(.2,.8,.3,1),background .15s,filter .15s;
+}
+.modal-btn:active{transform:scale(.965)}
+.modal-btn:focus-visible{outline:none;box-shadow:0 0 0 4px rgba(0,122,255,.22)}
+.modal-btn-nee{background:#ececed;color:#1d1d1f}
+.modal-btn-nee:hover{background:#e2e2e4}
+.modal-btn-ja{
+  background:linear-gradient(180deg,#ff5147,#ff3b30);color:#fff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 8px 16px -6px rgba(255,59,48,.5);
+}
+.modal-btn-ja:hover{filter:brightness(.96)}
+@keyframes ccPop{from{opacity:0;transform:scale(1.12)}to{opacity:1;transform:none}}
+.modal-box.cc-intro{animation:ccPop .38s cubic-bezier(.2,.9,.28,1) both}
+@media(prefers-color-scheme:dark){
+  .modal-box{background:rgba(38,38,42,.82)}
+  .modal-box::after{box-shadow:inset 0 1px 0 rgba(255,255,255,.1),inset 0 0 0 .5px rgba(255,255,255,.08)}
+  .modal-title{color:#f5f5f7}
+  .modal-msg{color:#a1a1a6}
+  .modal-glyph{background:linear-gradient(180deg,#3a2422,#42201d)}
+  .modal-target{background:rgba(255,255,255,.1)}
+  .modal-target-ic{background:#48484c;color:#dfe6f0;box-shadow:none}
+  .modal-target-nm{color:#f5f5f7}
+  .modal-btn-nee{background:#39393d;color:#f5f5f7}
+  .modal-btn-nee:hover{background:#444448}
+}
 .logout-box{text-align:center;max-width:380px}
 .logout-icon{width:46px;height:46px;margin:2px auto 14px;border-radius:12px;background:#eff6ff;display:flex;align-items:center;justify-content:center}
 .logout-title{font-size:17px;font-weight:700;color:#1e293b;margin-bottom:8px}
@@ -1026,7 +1082,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.22</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.23</span>
     </div>
   </nav>
 
@@ -1182,11 +1238,23 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 </div>
 
 <div class="modal-overlay" id="modal-overlay" style="display:none" onclick="modalCancel()">
-  <div class="modal-box" onclick="event.stopPropagation()">
-    <div class="modal-msg" id="modal-msg"></div>
+  <div class="modal-box" id="modal-box" onclick="event.stopPropagation()" role="alertdialog" aria-modal="true" aria-labelledby="modal-title-txt" aria-describedby="modal-desc-txt">
+    <div class="modal-body">
+      <div class="modal-glyph" aria-hidden="true" id="modal-glyph">
+        <!-- icon injected by customConfirm -->
+      </div>
+      <div class="modal-title" id="modal-title-txt"></div>
+      <div class="modal-msg" id="modal-msg" id2="modal-desc-txt"></div>
+      <div class="modal-target" id="modal-target" style="display:none">
+        <span class="modal-target-ic" id="modal-target-ic" aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.5"/><polyline points="8,4.5 8,8.5 10.5,10.5"/></svg>
+        </span>
+        <span class="modal-target-nm" id="modal-target-nm"></span>
+      </div>
+    </div>
     <div class="modal-btns">
-      <button type="button" class="modal-btn modal-btn-nee" onclick="modalCancel()">Nee</button>
-      <button type="button" class="modal-btn modal-btn-ja"  onclick="modalConfirm()">Ja</button>
+      <button type="button" class="modal-btn modal-btn-nee" id="modal-btn-nee" onclick="modalCancel()">Annuleren</button>
+      <button type="button" class="modal-btn modal-btn-ja"  id="modal-btn-ja"  onclick="modalConfirm()">Bevestigen</button>
     </div>
   </div>
 </div>
@@ -1346,7 +1414,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.22';
+const APP_VERSION = '2.6.23';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -2556,9 +2624,8 @@ async function doRetour(name, _opts) {
     const mins = dur % 60;
     const startStr = new Date(a.start).toLocaleString('nl-NL', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
     const ok = await customConfirm(
-      n.split(' ')[0] + ' staat al ' + hrs + 'u ' + mins + 'min op ' + a.route +
-      ' (gestart ' + startStr + ').\n\nDit is waarschijnlijk een vergeten retour van een vorige dienst. ' +
-      'Toch retour melden met deze duur?'
+      n.split(' ')[0] + ' staat al ' + hrs + 'u ' + mins + 'min op ' + a.route + ' (gestart ' + startStr + '). Dit is waarschijnlijk een vergeten retour van een vorige dienst. Toch retour melden met deze duur?',
+      { title: 'Lange ronde', confirmLabel: 'Toch melden', cancelLabel: 'Annuleren', destructive: false }
     );
     if (!ok) { showToast('Retour geannuleerd'); return false; }
   }
@@ -3757,7 +3824,9 @@ TIMERS.set('timeoutCheck', checkActiveTimeout, 5 * 60 * 1000);
 
 async function wisLog() {
   pruneLog();
-  if (!await customConfirm('Weet je zeker dat je alle log-data wilt wissen?')) return;
+  if (!await customConfirm('Alle log-data wordt permanent gewist. Dit kan niet ongedaan worden gemaakt.', {
+    title: 'Log-data wissen?', confirmLabel: 'Wissen', cancelLabel: 'Annuleren'
+  })) return;
   const wipedLog = S.log.length;
   const wipedActive = Object.keys(S.active);
   S.log = [];
@@ -3774,7 +3843,9 @@ async function wisLog() {
 }
 
 async function wisEventLog() {
-  if (!await customConfirm('Weet je zeker dat je de volledige audit log wilt wissen?')) return;
+  if (!await customConfirm('De volledige audit log wordt permanent gewist. Dit kan niet ongedaan worden gemaakt.', {
+    title: 'Audit log wissen?', confirmLabel: 'Wissen', cancelLabel: 'Annuleren'
+  })) return;
   const count = EVENT_LOG.length;
   EVENT_LOG.length = 0;
   if (window.fbDb && window.fbRemove) {
@@ -4999,7 +5070,8 @@ function saveDagdeelEdit() {
   }).join('\n');
 
   customConfirm(
-    `Het volgende dagdeel wordt volledig verwijderd:\n\n${warnings}\n\nDoorgaan?`
+    warnings,
+    { title: 'Dagdeel volledig verwijderd', confirmLabel: 'Doorgaan', cancelLabel: 'Annuleren' }
   ).then(ok => { if (ok) doSave(); });
 }
 
@@ -5088,7 +5160,10 @@ function rmDagdeel(i) {
   const list = S.dagdelen ? [...S.dagdelen] : [...DAGDELEN_DEFAULT];
   const d = list[i];
   if (!d) return;
-  customConfirm(`Dagdeel "${d.naam}" verwijderen?`).then(ok => {
+  customConfirm(`Dagdeel wordt verwijderd. Dit kan niet ongedaan worden gemaakt.`, {
+    title: `Dagdeel verwijderen?`, targetName: d.naam,
+    confirmLabel: 'Verwijderen', cancelLabel: 'Annuleren'
+  }).then(ok => {
     if (!ok) return;
     // Remove item, then let a neighbour fill the gap.
     const remaining = list.filter((_, idx) => idx !== i);
@@ -5528,7 +5603,10 @@ async function rmSchemaItem(i) {
   const item = activeSchema[i];
   const hDisp = item.h % 24;
   const tijdStr = String(hDisp).padStart(2,'0') + ':' + String(item.m).padStart(2,'0');
-  if (!await customConfirm(`Schema-item verwijderen: ${tijdStr} — ${item.taak}?`)) return;
+  if (!await customConfirm('Dit schema-item wordt permanent verwijderd.', {
+    title: 'Schema-item verwijderen?', targetName: tijdStr + ' — ' + item.taak,
+    confirmLabel: 'Verwijderen', cancelLabel: 'Annuleren'
+  })) return;
   const _rem = activeSchema[i];
   activeSchema.splice(i, 1);
   S.schema = activeSchema;
@@ -5567,7 +5645,10 @@ function sanitizeForStorage(str) {
 async function rmName(i) {
   if (!S.medewerkers || !S.medewerkers[i]) return;
   const naam = S.medewerkers[i].naam;
-  if (!await customConfirm('Weet je zeker dat je "' + naam + '" wilt verwijderen?')) return;
+  if (!await customConfirm('Deze medewerker wordt permanent verwijderd.', {
+    title: 'Medewerker verwijderen?', targetName: naam,
+    confirmLabel: 'Verwijderen', cancelLabel: 'Annuleren'
+  })) return;
   S.medewerkers.splice(i, 1);
   if (S.dienst.has(naam)) markDienstPending(naam, 'remove');
   S.dienst.delete(naam);
@@ -5579,7 +5660,10 @@ async function rmName(i) {
 
 async function rmRoute(i) {
   const ronde = S.routes[i].naam;
-  if (!await customConfirm('Weet je zeker dat je "' + ronde + '" wilt verwijderen?')) return;
+  if (!await customConfirm('Deze ronde wordt permanent verwijderd. Dit kan niet ongedaan worden gemaakt.', {
+    title: 'Ronde verwijderen?', targetName: ronde,
+    confirmLabel: 'Verwijderen', cancelLabel: 'Annuleren'
+  })) return;
   S.routes.splice(i, 1);
   // Verwijder ronde-koppeling uit schema-items
   if (S.schema && S.schema.length) {
@@ -5668,10 +5752,13 @@ function saveCatEdit() {
 async function rmCat(i) {
   const cat = S.routeCats[i];
   const count = S.routes.filter(r => r.categorie === cat).length;
-  const msg = count > 0
-    ? `"${cat}" verwijderen? ${count} ronde${count !== 1 ? 's' : ''} verlies${count !== 1 ? 'n' : 't'} deze categorie.`
-    : `Weet je zeker dat je "${cat}" wilt verwijderen?`;
-  if (!await customConfirm(msg)) return;
+  const desc = count > 0
+    ? `${count} ronde${count !== 1 ? 's' : ''} verlies${count !== 1 ? 'n' : 't'} hierdoor de categorie-koppeling.`
+    : 'Deze categorie wordt permanent verwijderd.';
+  if (!await customConfirm(desc, {
+    title: `Categorie verwijderen?`, targetName: cat,
+    confirmLabel: 'Verwijderen', cancelLabel: 'Annuleren'
+  })) return;
   S.routeCats.splice(i, 1);
   // Rondes met deze categorie krijgen lege categorie
   S.routes.forEach(r => { if (r.categorie === cat) r.categorie = ''; });
@@ -5904,13 +5991,75 @@ let _confirmOpen = false;
 // ==============================================================================
 // SECTIE: CONFIRM-MODAL & TOPBAR  — customConfirm, updateTopbarHeight
 // ==============================================================================
-function customConfirm(msg) {
+function customConfirm(msg, opts) {
+  // opts: { title, confirmLabel, cancelLabel, targetName, destructive }
   if (_confirmOpen) return Promise.resolve(false); // prevent stacking
   _confirmOpen = true;
+  opts = opts || {};
+
+  // Titel: uit opts of haal eerste zin uit msg
+  const title = opts.title || msg;
+  // Beschrijving: alleen als title != msg
+  const desc  = (opts.title && opts.title !== msg) ? msg : '';
+
+  // Vul modal
+  document.getElementById('modal-title-txt').textContent = title;
+  document.getElementById('modal-msg').textContent = desc;
+  document.getElementById('modal-msg').id2 = 'modal-desc-txt'; // aria
+
+  // Icoon: prullenbak voor destructief, vraagteken anders
+  const glyph = document.getElementById('modal-glyph');
+  if (opts.destructive === false) {
+    // Waarschuwings-icoon (uitroepteken)
+    glyph.innerHTML = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+    glyph.style.background = 'linear-gradient(180deg,#fff8e1,#fff3cd)';
+    glyph.style.color = '#ff9500';
+    glyph.style.boxShadow = '0 0 0 1px rgba(255,149,0,.16),0 8px 18px -8px rgba(255,149,0,.4)';
+  } else {
+    // Prullenbak (standaard rood = destructief)
+    glyph.innerHTML = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>`;
+    glyph.style.background = 'linear-gradient(180deg,#fff0ef,#ffe9e7)';
+    glyph.style.color = '#ff3b30';
+    glyph.style.boxShadow = '0 0 0 1px rgba(255,59,48,.16),0 8px 18px -8px rgba(255,59,48,.45)';
+  }
+
+  // Target pill
+  const targetEl = document.getElementById('modal-target');
+  const targetNm = document.getElementById('modal-target-nm');
+  if (opts.targetName) {
+    targetNm.textContent = opts.targetName;
+    targetEl.style.display = 'inline-flex';
+  } else {
+    targetEl.style.display = 'none';
+  }
+
+  // Knoplaabels
+  document.getElementById('modal-btn-nee').textContent = opts.cancelLabel  || 'Annuleren';
+  document.getElementById('modal-btn-ja').textContent  = opts.confirmLabel || 'Bevestigen';
+
+  // Pop-animatie
+  const box = document.getElementById('modal-box');
+  box.classList.remove('cc-intro');
+  if (matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+    requestAnimationFrame(() => box.classList.add('cc-intro'));
+  }
+
+  document.getElementById('modal-overlay').style.display = 'flex';
+
+  // Focus op annuleer-knop (veilige default)
+  requestAnimationFrame(() => {
+    const btn = document.getElementById('modal-btn-nee');
+    if (btn) btn.focus();
+  });
+
+  // Esc-key handler
+  function onKey(e) {
+    if (e.key === 'Escape') { document.removeEventListener('keydown', onKey); modalCancel(); }
+  }
+  document.addEventListener('keydown', onKey);
+
   return new Promise(resolve => {
-    _modalResolve = (val) => { _confirmOpen = false; resolve(val); };
-    document.getElementById('modal-msg').textContent = msg;
-    document.getElementById('modal-overlay').style.display = 'flex';
+    _modalResolve = (val) => { _confirmOpen = false; document.removeEventListener('keydown', onKey); resolve(val); };
   });
 }
 function modalConfirm() {
