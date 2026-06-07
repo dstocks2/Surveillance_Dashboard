@@ -2426,6 +2426,14 @@ function goTab(id) {
 }
 
 // ==============================================================================
+// Voeg een lijst namen samen als leesbare zin: "A, B & C" (of "A & B" bij 2).
+function joinNamen(namen) {
+  if (!namen || namen.length === 0) return '';
+  if (namen.length === 1) return namen[0];
+  if (namen.length === 2) return namen[0] + ' & ' + namen[1];
+  return namen.slice(0, -1).join(', ') + ' & ' + namen[namen.length - 1];
+}
+
 // SECTIE: RENDER (top-level)  — render, naam/route-knoppen, selectie, doStart
 // ==============================================================================
 function render() {
@@ -2618,9 +2626,9 @@ function doStart() {
           const fullName = (S.medewerkers.find(m => m.naam.split(' ')[0] === s) || {naam: s}).naam;
           clearActivePending(fullName);
         });
-        logEvent('start', started.join(' & ') + ' gestart op ' + route, { names: started, route, ts: startTime });
-        showToast(started.join(' & ') + ' gestart — ' + route);
-        schrijfGedeeldeMelding('grijs', started.join(' & ') + ' gestart', route);
+        logEvent('start', joinNamen(started) + ' gestart op ' + route, { names: started, route, ts: startTime });
+        showToast(joinNamen(started) + ' gestart — ' + route);
+        schrijfGedeeldeMelding('grijs', joinNamen(started) + ' gestart', route);
         // Duplicate route check only after confirmed write — tenzij route dubbel mag
         const routeObj = S.routes.find(r => r.naam === route);
         const dubbelToegestaan = routeObj && routeObj.dubbelOk === true;
@@ -2629,9 +2637,9 @@ function doStart() {
           const sameRoute = Object.entries(S.active)
             .filter(([nm, a]) => a.route === route && !startedFull.includes(nm) && a.start !== startTime);
           if (sameRoute.length > 0) {
-            const anderen = sameRoute.map(([nm]) => nm.split(' ')[0]).join(' & ');
-            schrijfGedeeldeMelding('oranje', 'Dubbele ronde — ' + route, started.join(' & ') + ' gestart, maar ' + anderen + ' loopt deze ronde al.');
-            voegMeldingToe('oranje', 'Dubbele ronde — ' + route, started.join(' & ') + ' gestart, maar ' + anderen + ' loopt deze ronde al.', null, null);
+            const anderen = joinNamen(sameRoute.map(([nm]) => nm.split(' ')[0]));
+            schrijfGedeeldeMelding('oranje', 'Dubbele ronde — ' + route, joinNamen(started) + ' gestart, maar ' + anderen + ' loopt deze ronde al.');
+            voegMeldingToe('oranje', 'Dubbele ronde — ' + route, joinNamen(started) + ' gestart, maar ' + anderen + ' loopt deze ronde al.', null, null);
           }
         }
       })
@@ -2645,8 +2653,8 @@ function doStart() {
         });
         setFbStatus('error');
         renderNameBtns(); renderRouteBtns(); updBtn(); renderAllActive();
-        logEvent('error', 'Start MISLUKT — ' + started.join(' & ') + ' op ' + route, { error: String(e), names: started, route });
-        voegMeldingToe('rood', 'Start mislukt — ' + started.join(' & '), route + ' kon niet worden opgeslagen. Controleer de verbinding.', 'Opnieuw proberen', () => {
+        logEvent('error', 'Start MISLUKT — ' + joinNamen(started) + ' op ' + route, { error: String(e), names: started, route });
+        voegMeldingToe('rood', 'Start mislukt — ' + joinNamen(started), route + ' kon niet worden opgeslagen. Controleer de verbinding.', 'Opnieuw proberen', () => {
           // Restore selection so user can retry
           started.forEach(s => {
             const fullName = (S.medewerkers.find(m => m.naam.split(' ')[0] === s) || {naam: s}).naam;
@@ -2659,8 +2667,8 @@ function doStart() {
       });
   } else {
     // No Firebase — local only
-    showToast(started.join(' & ') + ' gestart — ' + route);
-    schrijfGedeeldeMelding('grijs', started.join(' & ') + ' gestart', route);
+    showToast(joinNamen(started) + ' gestart — ' + route);
+    schrijfGedeeldeMelding('grijs', joinNamen(started) + ' gestart', route);
   }
 }
 
@@ -2820,7 +2828,7 @@ async function doRetourAllen(names) {
   if (!okList.length) return;
   const okInfo = before.filter(x => okList.includes(x.name));
   if (!okInfo.length) return;
-  const labels = okInfo.map(x => x.name.split(' ')[0]).join(' & ');
+  const labels = joinNamen(okInfo.map(x => x.name.split(' ')[0]));
   const route  = okInfo[0].route;
   const now    = Date.now();
   const durs   = okInfo.map(x => Math.max(0, Math.round((now - x.start) / 60000)));
@@ -2857,7 +2865,7 @@ function voegToeAanGroep(groupId, route) {
   added.forEach(n => markActivePending(n, 'add', { route, start: startTime, groupId }));
 
   if (!window.fbDb) {
-    const labels = added.map(n => n.split(' ')[0]).join(' & ');
+    const labels = joinNamen(added.map(n => n.split(' ')[0]));
     showToast(labels + ' toegevoegd — ' + route);
     schrijfGedeeldeMelding('grijs', labels + ' toegevoegd', route);
     return;
@@ -2868,7 +2876,7 @@ function voegToeAanGroep(groupId, route) {
     .then(() => {
       setFbStatus('ok');
       added.forEach(n => clearActivePending(n));
-      const labels = added.map(n => n.split(' ')[0]).join(' & ');
+      const labels = joinNamen(added.map(n => n.split(' ')[0]));
       logEvent('start', labels + ' toegevoegd aan ' + route, { names: added.map(n => n.split(' ')[0]), route, groupId, ts: startTime });
       showToast(labels + ' toegevoegd — ' + route);
       schrijfGedeeldeMelding('grijs', labels + ' toegevoegd', route);
@@ -2882,7 +2890,7 @@ function voegToeAanGroep(groupId, route) {
       setFbStatus('error');
       renderNameBtns(); updBtn(); renderAllActive();
       if (typeof renderLive === 'function') renderLive();
-      const labels = added.map(n => n.split(' ')[0]).join(' & ');
+      const labels = joinNamen(added.map(n => n.split(' ')[0]));
       logEvent('error', 'Toevoegen MISLUKT — ' + labels + ' aan ' + route, { error: String(e), names: added, route, groupId });
       voegMeldingToe('rood', 'Toevoegen mislukt — ' + labels, route + ' kon niet worden opgeslagen.', 'Opnieuw proberen', () => {
         added.forEach(n => S.sns.add(n));
@@ -2971,7 +2979,7 @@ function groupCardHTML(route, start, members, btn) {
     const memberSet = new Set(names);
     const toevoegbaar = [...S.sns].filter(n => !S.active[n] && !memberSet.has(n));
     if (toevoegbaar.length) {
-      const labels = toevoegbaar.map(n => n.split(' ')[0]).join(' & ');
+      const labels = joinNamen(toevoegbaar.map(n => n.split(' ')[0]));
       addBlock = `<div class="lc-add"><button type="button" class="lc-add-btn"
         title="${escHtml(labels)} toevoegen"
         data-add-group="${escHtml(groupId)}" data-add-route="${escHtml(route)}">
@@ -2997,7 +3005,7 @@ function groupCardHTML(route, start, members, btn) {
 
   return `<div class="card ca" data-rkey="${rkey}" data-start="${start}" data-groupid="${escHtml(groupId)}">
     <div class="lc-rij"><span class="dot dot-r"></span><span class="lc-ronde">${escHtml(route)}</span></div>
-    <div class="lc-mw"${mwTitle}>${names.map(escHtml).join(' &amp; ')}</div>
+    <div class="lc-mw"${mwTitle}>${joinNamen(names.map(escHtml))}</div>
     <div class="lc-meta">gestart ${fmtT(start)} &middot; loopt <span class="cel">${elaps(start)}</span>${over}</div>
     ${noteBlock}
     ${addBlock}
@@ -3188,14 +3196,28 @@ function openNotitieEditor(rkey, container) {
     });
     // Bij verlaten van een leeg veld zonder bestaande notitie: terug naar basis.
     area.addEventListener('blur', () => {
-      // korte vertraging zodat een klik op "Bewaar" eerst kan committen
+      // Korte vertraging zodat een klik op "Bewaar" eerst kan committen.
       setTimeout(() => {
         const stillOpen = noteBox.querySelector('.lc-note-area');
         if (!stillOpen) return; // al opgeslagen/opnieuw gerenderd
-        if (stillOpen.value.trim() === '' && !huidige) {
-          const penSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+        const nieuw = stillOpen.value.trim();
+        const penSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+        if (nieuw === '' && !huidige) {
+          // Leeg veld, geen bestaande notitie → terug naar "toevoegen"
           noteBox.innerHTML =
             `<button type="button" class="lc-note-add" data-noteedit="${rkey}">${penSvg}Notitie toevoegen</button>`;
+        } else if (nieuw === huidige.trim()) {
+          // Ongewijzigd → terug naar weergave zonder op te slaan
+          const noteIcon = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+          if (huidige) {
+            noteBox.innerHTML =
+              `<div class="lc-note-show">${noteIcon}<span>${escHtml(huidige)}</span>
+                 <button type="button" class="lc-note-edit" data-noteedit="${rkey}">bewerk</button>
+               </div>`;
+          } else {
+            noteBox.innerHTML =
+              `<button type="button" class="lc-note-add" data-noteedit="${rkey}">${penSvg}Notitie toevoegen</button>`;
+          }
         }
       }, 150);
     });
@@ -4393,7 +4415,7 @@ function renderPlan() {
       // Actief of afgerond: compacte statusregel (geen knop)
       if (isActive || isCompleted) {
         const statusTag = isActive
-          ? `<span style="font-size:11px;color:#15803d;font-weight:500">● wordt gedaan door ${escHtml(runners.map(n=>n.split(' ')[0]).join(' & '))}</span>`
+          ? `<span style="font-size:11px;color:#15803d;font-weight:500">● wordt gedaan door ${escHtml(joinNamen(runners.map(n=>n.split(' ')[0])))}</span>`
           : (() => {
               const dur = Math.round((completedEntry.end - completedEntry.start) / 60000);
               const door = completedEntry.name ? completedEntry.name.split(' ')[0] : '';
@@ -5631,21 +5653,36 @@ function checkCfgLock() {
   }
 }
 
-// Auto-lock: check every 60s whether the configured window has expired.
-// If cfg pane is open and cache expired, lock immediately.
+// Ververs de inactiviteits-timer bij elke interactie in het cfg-pane.
+function bumpCfgActivity() {
+  if (LS.get('rn_cfg_unlocked')) LS.set('rn_cfg_unlocked', Date.now());
+}
+(function() {
+  const pane = document.getElementById('pane-cfg');
+  if (!pane) return;
+  ['input','change','click','keydown'].forEach(evt =>
+    pane.addEventListener(evt, bumpCfgActivity, { passive: true })
+  );
+})();
+
+// Auto-lock: check every 30s of de inactiviteits-timer verlopen is.
+// Slaat vergrendeling over als er een edit-modal open staat.
 setInterval(() => {
   const unlocked = LS.get('rn_cfg_unlocked');
-  if (!unlocked) return; // already locked
-  if (Date.now() - unlocked >= S.pinCacheDur * 60 * 1000) {
-    localStorage.removeItem('rn_cfg_unlocked');
-    // Only show the lock screen if the cfg pane is currently visible
-    const pane = document.getElementById('pane-cfg');
-    if (pane && pane.classList.contains('on')) {
-      logEvent('pin', 'Instellingen automatisch vergrendeld (' + S.pinCacheDur + ' min)');
-      showCfgLock();
-    }
+  if (!unlocked) return;
+  if (Date.now() - Number(unlocked) < S.pinCacheDur * 60 * 1000) return;
+  // Niet vergrendelen als een edit-modal open staat — anders gaat invulwerk verloren.
+  const editModalOpen = ['medewerker-modal-overlay','ronde-modal-overlay',
+    'cat-modal-overlay','dagdeel-modal-overlay','schema-modal-overlay']
+    .some(id => { const el = document.getElementById(id); return el && el.style.display !== 'none'; });
+  if (editModalOpen) { LS.set('rn_cfg_unlocked', Date.now()); return; }
+  localStorage.removeItem('rn_cfg_unlocked');
+  const pane = document.getElementById('pane-cfg');
+  if (pane && pane.classList.contains('on')) {
+    logEvent('pin', 'Instellingen automatisch vergrendeld na inactiviteit (' + S.pinCacheDur + ' min)');
+    showCfgLock();
   }
-}, 60000);
+}, 30000);
 
 async function rmSchemaItem(i) {
   const activeSchema = S.schema ? [...S.schema] : [...SCHEMA];
