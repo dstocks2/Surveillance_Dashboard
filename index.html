@@ -133,9 +133,9 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .pin-key-del{color:#64748b}
 .pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid #cbd5e1;background:#fff;transition:background .15s,border-color .15s}
 .pin-dot.filled{background:#1e40af;border-color:#1e40af}
-.nbtn{padding:9px 15px;border-radius:8px;border:1.5px solid #cbd5e1;background:#fff;color:#334155;font-size:13px;cursor:pointer;transition:all .13s;font-family:inherit}
+.nbtn{padding:9px 15px;border-radius:8px;border:1.5px solid #cbd5e1;background:#fff;color:#334155;font-size:13px;cursor:pointer;transition:all .13s;font-family:inherit;-webkit-tap-highlight-color:transparent}
 .nbtn:focus,.nbtn:focus-visible{outline:none;box-shadow:none}
-.nbtn:hover{border-color:#2563eb;color:#1e3a5c;background:#eff6ff}
+@media(hover:hover) and (pointer:fine){.nbtn:hover{border-color:#2563eb;color:#1e3a5c;background:#eff6ff}}
 .nbtn.sel{background:#1e3a5c;border-color:#1e3a5c;color:#fff;font-weight:600}
 .nbtn-av{display:inline-flex;align-items:center;gap:7px}
 .nbtn-avatar{width:22px;height:22px;border-radius:50%;background:#cdd6e2;color:#445;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;letter-spacing:.02em;line-height:1}
@@ -203,8 +203,8 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .ct{font-size:11px;color:#5b6b7f;margin-top:4px;font-weight:400;display:flex;align-items:center;gap:4px}
 .card.ca .ct{color:#c9a0a0}
 .card.cd .ct{color:#86a88e}
-.rbtn{width:100%;margin-top:10px;padding:7px;border-radius:6px;border:1.5px solid #15803d;background:transparent;color:#15803d;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .13s}
-.rbtn:hover{background:#15803d;color:#fff}
+.rbtn{width:100%;margin-top:10px;padding:7px;border-radius:6px;border:1.5px solid #15803d;background:transparent;color:#15803d;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .13s;-webkit-tap-highlight-color:transparent}
+@media(hover:hover) and (pointer:fine){.rbtn:hover{background:#15803d;color:#fff}}
 /* ── Actieve 'onderweg'-kaart: nieuwe look ─────────────────────────────────── */
 .card.ca{position:relative;border-color:#e2e8f0;border-width:1px;background:#fff;border-left:2px solid #ef4444;display:flex;flex-direction:column}
 .lc-rij{display:flex;align-items:center;gap:8px}
@@ -1146,7 +1146,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.40</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.41</span>
     </div>
   </nav>
 
@@ -1480,7 +1480,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.40';
+const APP_VERSION = '2.6.41';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
