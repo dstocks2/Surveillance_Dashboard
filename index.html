@@ -5161,7 +5161,7 @@ function rmDagdeel(i) {
   const d = list[i];
   if (!d) return;
   customConfirm(`Dagdeel wordt verwijderd. Dit kan niet ongedaan worden gemaakt.`, {
-    title: `Dagdeel verwijderen?`, targetName: d.naam,
+    title: `Dagdeel verwijderen?`, targetName: d.naam, targetIcon: 'dagdeel',
     confirmLabel: 'Verwijderen', cancelLabel: 'Annuleren'
   }).then(ok => {
     if (!ok) return;
@@ -5604,7 +5604,7 @@ async function rmSchemaItem(i) {
   const hDisp = item.h % 24;
   const tijdStr = String(hDisp).padStart(2,'0') + ':' + String(item.m).padStart(2,'0');
   if (!await customConfirm('Dit schema-item wordt permanent verwijderd.', {
-    title: 'Schema-item verwijderen?', targetName: tijdStr + ' — ' + item.taak,
+    title: 'Schema-item verwijderen?', targetName: tijdStr + ' — ' + item.taak, targetIcon: 'schema',
     confirmLabel: 'Verwijderen', cancelLabel: 'Annuleren'
   })) return;
   const _rem = activeSchema[i];
@@ -5646,7 +5646,7 @@ async function rmName(i) {
   if (!S.medewerkers || !S.medewerkers[i]) return;
   const naam = S.medewerkers[i].naam;
   if (!await customConfirm('Deze medewerker wordt permanent verwijderd.', {
-    title: 'Medewerker verwijderen?', targetName: naam,
+    title: 'Medewerker verwijderen?', targetName: naam, targetIcon: 'medewerker',
     confirmLabel: 'Verwijderen', cancelLabel: 'Annuleren'
   })) return;
   S.medewerkers.splice(i, 1);
@@ -5661,7 +5661,7 @@ async function rmName(i) {
 async function rmRoute(i) {
   const ronde = S.routes[i].naam;
   if (!await customConfirm('Deze ronde wordt permanent verwijderd. Dit kan niet ongedaan worden gemaakt.', {
-    title: 'Ronde verwijderen?', targetName: ronde,
+    title: 'Ronde verwijderen?', targetName: ronde, targetIcon: 'ronde',
     confirmLabel: 'Verwijderen', cancelLabel: 'Annuleren'
   })) return;
   S.routes.splice(i, 1);
@@ -5756,7 +5756,7 @@ async function rmCat(i) {
     ? `${count} ronde${count !== 1 ? 's' : ''} verlies${count !== 1 ? 'n' : 't'} hierdoor de categorie-koppeling.`
     : 'Deze categorie wordt permanent verwijderd.';
   if (!await customConfirm(desc, {
-    title: `Categorie verwijderen?`, targetName: cat,
+    title: `Categorie verwijderen?`, targetName: cat, targetIcon: 'categorie',
     confirmLabel: 'Verwijderen', cancelLabel: 'Annuleren'
   })) return;
   S.routeCats.splice(i, 1);
@@ -6026,8 +6026,18 @@ function customConfirm(msg, opts) {
   // Target pill
   const targetEl = document.getElementById('modal-target');
   const targetNm = document.getElementById('modal-target-nm');
+  const targetIc = document.getElementById('modal-target-ic');
   if (opts.targetName) {
     targetNm.textContent = opts.targetName;
+    // Icoon: gebruik opts.targetIcon SVG of val terug op klokje
+    const IC = {
+      medewerker: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="3.5"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.5a3.5 3.5 0 0 1 0 7"/><path d="M21 21v-2a4 4 0 0 0-3-3.5"/></svg>`,
+      ronde:      `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`,
+      dagdeel:    `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg>`,
+      schema:     `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
+      categorie:  `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>`,
+    };
+    targetIc.innerHTML = IC[opts.targetIcon] || IC.dagdeel;
     targetEl.style.display = 'inline-flex';
   } else {
     targetEl.style.display = 'none';
