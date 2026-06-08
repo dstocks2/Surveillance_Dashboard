@@ -66,6 +66,14 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .cfg-nav-item.active{background:#eff6ff;color:#1d4ed8;font-weight:600;border-right:3px solid #2563eb}
 .cfg-nav-item svg{flex-shrink:0;opacity:.75}
 .cfg-nav-item.active svg{opacity:1}
+.cfg-nav-sub{display:none;flex-direction:column;padding:2px 0 4px 34px;gap:0}
+.cfg-nav-sub.open{display:flex}
+.cfg-nav-sub-item{padding:6px 12px;font-size:12px;font-weight:500;color:#64748b;background:none;border:none;cursor:pointer;font-family:inherit;text-align:left;border-radius:6px;transition:background .1s,color .1s;width:100%}
+.cfg-nav-sub-item:hover{background:#f1f5f9;color:#1e293b}
+.cfg-nav-sub-item.active{color:#1d4ed8;font-weight:600;background:#eff6ff}
+.cfg-icon-btn{background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:13px;padding:0 2px;flex-shrink:0;line-height:1;font-family:inherit;transition:color .1s}
+.cfg-icon-btn:hover{color:#2563eb}
+.cfg-icon-btn-del:hover{color:#ef4444}
 .cfg-rail-footer{padding:16px 18px 20px;border-top:1px solid #f1f5f9;margin-top:auto}
 .cfg-rail-lock-row{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#16a34a;margin-bottom:10px}
 .cfg-rail-btn{padding:5px 10px;border:1px solid #e2e8f0;border-radius:6px;background:#f8fafc;color:#64748b;font-size:11px;cursor:pointer;font-family:inherit;transition:all .12s;margin-right:4px}
@@ -1114,10 +1122,18 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/></svg>
       Medewerkers
     </button>
+    <div class="cfg-nav-sub open" id="cfg-nav-sub-medewerkers">
+      <button type="button" class="cfg-nav-sub-item active" id="cfg-nav-sub-med-medewerkers" onclick="medSubView('medewerkers')">Medewerkers</button>
+      <button type="button" class="cfg-nav-sub-item" id="cfg-nav-sub-med-rollen" onclick="medSubView('rollen')">Rollen / Functies</button>
+    </div>
     <button type="button" class="cfg-nav-item" id="cfg-nav-rondes" onclick="cfgGoSection('rondes')">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
       Rondes
     </button>
+    <div class="cfg-nav-sub" id="cfg-nav-sub-rondes">
+      <button type="button" class="cfg-nav-sub-item active" id="cfg-nav-sub-rondes-rondes" onclick="rondesSubView('rondes')">Rondes</button>
+      <button type="button" class="cfg-nav-sub-item" id="cfg-nav-sub-rondes-cats" onclick="rondesSubView('cats')">Categorieën</button>
+    </div>
     <button type="button" class="cfg-nav-item" id="cfg-nav-dagdelen" onclick="cfgGoSection('dagdelen')">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       Dagdelen
@@ -1146,7 +1162,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.41</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.43</span>
     </div>
   </nav>
 
@@ -1156,51 +1172,63 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     <!-- Medewerkers -->
     <div class="cfg-section active" id="cfg-sec-medewerkers">
       <div class="cfg-sec-header">
-        <div><div class="cfg-sec-title">Medewerkers</div><div class="cfg-sec-sub">Actieve beveiligers in het systeem</div></div>
-        <button type="button" class="cfg-action-btn" onclick="openMedewerkerModal(null)">+ Medewerker</button>
+        <div><div class="cfg-sec-title">Medewerkers</div><div class="cfg-sec-sub" id="med-sub-title">Actieve beveiligers in het systeem</div></div>
+        <button type="button" class="cfg-action-btn" id="med-action-btn" onclick="medActionBtn()">+ Medewerker</button>
       </div>
-      <!-- Sticky filterbar -->
-      <div id="med-filterbar" style="position:sticky;top:0;z-index:10;background:#fff;padding:10px 0 12px;margin-bottom:4px;border-bottom:1px solid #e2e8f0">
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <!-- Zoekveld -->
-          <div style="flex:1;min-width:180px;position:relative">
-            <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <input type="text" id="med-search" placeholder="Zoek op naam of functie..." oninput="renderMedewerkersList()" style="width:100%;padding:7px 10px 7px 30px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;font-family:inherit;box-sizing:border-box;outline:none" onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#e2e8f0'">
+      <!-- Segmented control — mobiel bovenin, desktop verborgen -->
+      <div id="med-seg-ctrl" style="display:none;background:#f1f5f9;border-radius:8px;padding:3px;gap:3px;margin-bottom:16px">
+        <button type="button" id="med-seg-medewerkers" onclick="medSubView('medewerkers')" style="flex:1;padding:6px 0;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;background:#1e3a5c;color:#fff;transition:all .13s">Medewerkers</button>
+        <button type="button" id="med-seg-rollen" onclick="medSubView('rollen')" style="flex:1;padding:6px 0;border:none;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;background:transparent;color:#475569;transition:all .13s">Rollen / Functies</button>
+      </div>
+      <!-- View: Medewerkers -->
+      <div id="med-view-medewerkers">
+        <!-- Sticky filterbar -->
+        <div id="med-filterbar" style="position:sticky;top:0;z-index:10;background:#fff;padding:10px 0 12px;margin-bottom:4px;border-bottom:1px solid #e2e8f0">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <div style="flex:1;min-width:180px;position:relative">
+              <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input type="text" id="med-search" placeholder="Zoek op naam of functie..." oninput="renderMedewerkersList()" style="width:100%;padding:7px 10px 7px 30px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;font-family:inherit;box-sizing:border-box;outline:none" onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#e2e8f0'">
+            </div>
+            <div id="med-rol-filter" style="display:flex;gap:2px;background:#f1f5f9;border-radius:8px;padding:3px"></div>
+            <div style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#64748b;flex-shrink:0;user-select:none">
+              <span id="med-toggle-track" onclick="toggleMedDienst()" style="display:inline-block;width:34px;height:19px;border-radius:99px;background:#e2e8f0;position:relative;cursor:pointer;transition:background .15s;flex-shrink:0">
+                <span id="med-toggle-thumb" style="position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:99px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .15s"></span>
+              </span>
+              Op dienst
+            </div>
           </div>
-          <!-- Rolfilter — dynamisch gevuld via renderMedRolFilter() -->
-          <div id="med-rol-filter" style="display:flex;gap:2px;background:#f1f5f9;border-radius:8px;padding:3px"></div>
-          <!-- Op dienst toggle -->
-          <div style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#64748b;flex-shrink:0;user-select:none">
-            <span id="med-toggle-track" onclick="toggleMedDienst()" style="display:inline-block;width:34px;height:19px;border-radius:99px;background:#e2e8f0;position:relative;cursor:pointer;transition:background .15s;flex-shrink:0">
-              <span id="med-toggle-thumb" style="position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:99px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .15s"></span>
-            </span>
-            Op dienst
-          </div>
+          <div id="med-count-label" style="font-size:11px;color:#5b6b7f;margin-top:7px"></div>
         </div>
-        <!-- Teller -->
-        <div id="med-count-label" style="font-size:11px;color:#5b6b7f;margin-top:7px"></div>
+        <div id="medewerkers-list" style="margin-bottom:8px"></div>
       </div>
-      <div id="medewerkers-list" style="margin-bottom:8px"></div>
+      <!-- View: Rollen / Functies -->
+      <div id="med-view-rollen" style="display:none">
+        <div id="rollen-list"></div>
+        <button type="button" onclick="openRolModal(null)" style="margin:8px 0 14px;background:none;border:none;cursor:pointer;color:#2563eb;font-size:12px;font-family:inherit;text-align:left;padding:4px 0;font-weight:500">+ Rol / Functie toevoegen</button>
+      </div>
     </div>
 
     <!-- Rondes -->
     <div class="cfg-section" id="cfg-sec-rondes">
-      <div class="cfg-sec-header">
-        <div><div class="cfg-sec-title">Rondes</div><div class="cfg-sec-sub">Vaste looproutes in en om het gebouw</div></div>
+      <div class="cfg-sec-header" id="rondes-header-rondes">
+        <div><div class="cfg-sec-title">Rondes</div><div class="cfg-sec-sub" id="rondes-sub-title">Vaste looproutes in en om het gebouw</div></div>
         <div style="display:flex;gap:6px">
-          <button type="button" class="cfg-action-btn" onclick="openRondeModal(null)">+ Ronde</button>
+          <button type="button" class="cfg-action-btn" id="rondes-action-btn" onclick="rondesActionBtn()">+ Ronde</button>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:260px 1fr;gap:20px;align-items:start">
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:0;display:flex;flex-direction:column;overflow:hidden">
-          <div style="font-size:11px;font-weight:700;color:#5b6b7f;letter-spacing:.07em;text-transform:uppercase;padding:14px 14px 10px">Categorieën</div>
-          <div id="route-cats-list"></div>
-          <button type="button" onclick="openCatModal(null)" style="margin:8px 14px 14px;background:none;border:none;cursor:pointer;color:#2563eb;font-size:12px;font-family:inherit;text-align:left;padding:4px 0;font-weight:500">+ Categorie toevoegen</button>
-        </div>
-        <div>
-          <div style="font-size:11px;font-weight:600;color:#5b6b7f;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px">Rondes</div>
-          <div id="rondes-list"></div>
-        </div>
+      <!-- Segmented control — mobiel bovenin, desktop verborgen (rail regelt het) -->
+      <div id="rondes-seg-ctrl" style="display:none;background:#f1f5f9;border-radius:8px;padding:3px;gap:3px;margin-bottom:16px">
+        <button type="button" id="rondes-seg-rondes" onclick="rondesSubView('rondes')" style="flex:1;padding:6px 0;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;background:#1e3a5c;color:#fff;transition:all .13s">Rondes</button>
+        <button type="button" id="rondes-seg-cats" onclick="rondesSubView('cats')" style="flex:1;padding:6px 0;border:none;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;background:transparent;color:#475569;transition:all .13s">Categorieën</button>
+      </div>
+      <!-- View: Rondes -->
+      <div id="rondes-view-rondes">
+        <div id="rondes-list"></div>
+      </div>
+      <!-- View: Categorieën -->
+      <div id="rondes-view-cats" style="display:none">
+        <div id="route-cats-list"></div>
+        <button type="button" onclick="openCatModal(null)" style="margin:8px 0 14px;background:none;border:none;cursor:pointer;color:#2563eb;font-size:12px;font-family:inherit;text-align:left;padding:4px 0;font-weight:500">+ Categorie toevoegen</button>
       </div>
     </div>
 
@@ -1357,7 +1385,8 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       </div>
       <div class="edit-modal-field">
         <label for="inp-medewerker-edit-rol">Functie / rol <span style="font-weight:400;color:#6e6e73">(optioneel)</span></label>
-        <input type="text" id="inp-medewerker-edit-rol" maxlength="80" placeholder="bijv. Teamleider, Beveiliger…" onkeydown="if(event.key==='Enter')saveMedewerkerEdit()">
+        <input type="text" id="inp-medewerker-edit-rol" maxlength="80" placeholder="bijv. Teamleider, Beveiliger…" list="rollen-datalist" onkeydown="if(event.key==='Enter')saveMedewerkerEdit()">
+        <datalist id="rollen-datalist"></datalist>
       </div>
     </div>
     <div class="edit-modal-foot">
@@ -1409,6 +1438,24 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     <div class="edit-modal-foot">
       <button type="button" class="edit-modal-btn edit-modal-btn-cancel" onclick="cancelCatEdit()">Annuleren</button>
       <button type="button" class="edit-modal-btn edit-modal-btn-save" onclick="saveCatEdit()"><svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan</button>
+    </div>
+  </div>
+</div>
+<div id="rol-modal-overlay" class="edit-modal-overlay" style="display:none" onmousedown="if(event.target===this)this._mdOnOverlay=true" onmouseup="if(event.target===this&&this._mdOnOverlay)cancelRolEdit();this._mdOnOverlay=false">
+  <div class="edit-modal-box" style="max-width:360px">
+    <div class="edit-modal-hdr">
+      <p id="rol-modal-title" class="edit-modal-title">Rol / Functie toevoegen</p>
+      <button type="button" class="edit-modal-close" onclick="cancelRolEdit()" aria-label="Sluiten"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="edit-modal-body">
+      <div class="edit-modal-field">
+        <label for="inp-rol-naam">Naam</label>
+        <input type="text" id="inp-rol-naam" maxlength="80" placeholder="bijv. Teamleider, Beveiliger…" onkeydown="if(event.key==='Enter')saveRolEdit()">
+      </div>
+    </div>
+    <div class="edit-modal-foot">
+      <button type="button" class="edit-modal-btn edit-modal-btn-cancel" onclick="cancelRolEdit()">Annuleren</button>
+      <button type="button" class="edit-modal-btn edit-modal-btn-save" onclick="saveRolEdit()"><svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan</button>
     </div>
   </div>
 </div>
@@ -1480,7 +1527,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.41';
+const APP_VERSION = '2.6.43';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -1646,6 +1693,7 @@ function fbSave() {
   updates['/dashboard/medewerkers'] = S.medewerkers || [];
   updates['/dashboard/routes']    = S.routes;
   updates['/dashboard/routeCats'] = S.routeCats || ROUTE_CATEGORIEEN_DEFAULT;
+  updates['/dashboard/rollen'] = S.rollen || [];
   if (S.schema) updates['/dashboard/schema'] = S.schema;
   if (S.dagdelen) updates['/dashboard/dagdelen'] = S.dagdelen;
   updates['/dashboard/gedrag'] = { timeoutWarn: S.timeoutWarn, meldingTTL: S.meldingTTL, pinCacheDur: S.pinCacheDur, logRetention: S.logRetention };
@@ -2127,6 +2175,13 @@ function fbListen() {
         LS.set('rn_route_cats', S.routeCats);
       }
     }
+    if (d.rollen !== undefined && Array.isArray(d.rollen)) {
+      const fbRollen = d.rollen.map(r => decodeEntities(sanitizeFromFirebase(String(r)))).filter(Boolean);
+      if (JSON.stringify(fbRollen) !== JSON.stringify(S.rollen || [])) {
+        S.rollen = fbRollen;
+        LS.set('rn_rollen', S.rollen);
+      }
+    }
     // Sync schema from Firebase — only accept valid arrays
     if (d.schema !== undefined && Array.isArray(d.schema) && d.schema.length) {
       const fbSchema = sanitizeSchema(d.schema);
@@ -2176,6 +2231,7 @@ function fbListen() {
     LS.set('rn_dienst',      [...S.dienst]);
     LS.set('rn_routes',      S.routes);
     LS.set('rn_route_cats',  S.routeCats || ROUTE_CATEGORIEEN_DEFAULT);
+  LS.set('rn_rollen', S.rollen || []);
     LS.set('rn_medewerkers', S.medewerkers || []);
 
     setFbStatus('ok');
@@ -2234,6 +2290,7 @@ let S = {
   medewerkers: LS.get('rn_medewerkers') || [],
   routes: sanitizeRoutes(LS.get('rn_routes') || DR),
   routeCats: (LS.get('rn_route_cats') || ROUTE_CATEGORIEEN_DEFAULT.slice()).map(c => c.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>')),
+  rollen: (LS.get('rn_rollen') || []).map(r => r.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>')),
   schema: LS.get('rn_schema') || null, // null = use hardcoded SCHEMA default
   dagdelen: LS.get('rn_dagdelen') || null, // null = use DAGDELEN_DEFAULT
   active: {},   // always loaded from Firebase — never from localStorage
@@ -4759,6 +4816,18 @@ function renderCfg() {
   }
   renderRouteCatsList();
 
+  // Teller in rail sub-items bijwerken
+  var subRondes = document.getElementById('cfg-nav-sub-rondes-rondes');
+  var subCats   = document.getElementById('cfg-nav-sub-rondes-cats');
+  if (subRondes) subRondes.textContent = 'Rondes' + (S.routes && S.routes.length ? ' (' + S.routes.length + ')' : '');
+  if (subCats)   subCats.textContent   = 'Categorieën' + (S.routeCats && S.routeCats.length ? ' (' + S.routeCats.length + ')' : '');
+  var subMed = document.getElementById('cfg-nav-sub-med-medewerkers');
+  var subRol = document.getElementById('cfg-nav-sub-med-rollen');
+  if (subMed) subMed.textContent = 'Medewerkers' + (S.medewerkers && S.medewerkers.length ? ' (' + S.medewerkers.length + ')' : '');
+  if (subRol) subRol.textContent = 'Rollen / Functies' + (S.rollen && S.rollen.length ? ' (' + S.rollen.length + ')' : '');
+  // Rollen-lijst renderen
+  renderRollenList();
+
   // Populate ronde dropdowns
   const rondeOptions = ['', ...S.routes.map(r => r.naam)].map(r =>
     `<option value="${escHtml(r)}">${r ? escHtml(r) : '— geen ronde —'}</option>`
@@ -5179,6 +5248,9 @@ function openMedewerkerModal(idx) {
   const _medItem = isEdit ? (S.medewerkers || [])[idx] : null;
   document.getElementById('inp-medewerker-edit-naam').value = _medItem ? (_medItem.naam || '') : '';
   document.getElementById('inp-medewerker-edit-rol').value  = _medItem ? (_medItem.rol  || '') : '';
+  // Datalist vullen met bekende rollen
+  var dl = document.getElementById('rollen-datalist');
+  if (dl) dl.innerHTML = (S.rollen || []).map(function(r) { return '<option value="' + escHtml(r) + '">'; }).join('');
   document.getElementById('medewerker-modal-overlay').style.display = 'flex';
   setTimeout(() => document.getElementById('inp-medewerker-edit-naam').focus(), 50);
 }
@@ -5275,10 +5347,145 @@ function rmDagdeel(i) {
 
 // ── CFG LAYOUT ────────────────────────────────────────────────────────────
 var _cfgActiveSection = 'medewerkers';
+var _rondesSubView = 'rondes'; // 'rondes' | 'cats'
+
+function rondesSubView(which) {
+  _rondesSubView = which;
+  // Desktop rail sub-items
+  var btnR = document.getElementById('cfg-nav-sub-rondes-rondes');
+  var btnC = document.getElementById('cfg-nav-sub-rondes-cats');
+  if (btnR) btnR.classList.toggle('active', which === 'rondes');
+  if (btnC) btnC.classList.toggle('active', which === 'cats');
+  // Mobiel segmented control
+  var segR = document.getElementById('rondes-seg-rondes');
+  var segC = document.getElementById('rondes-seg-cats');
+  if (segR) { segR.style.background = which === 'rondes' ? '#1e3a5c' : 'transparent'; segR.style.color = which === 'rondes' ? '#fff' : '#475569'; segR.style.fontWeight = which === 'rondes' ? '600' : '500'; }
+  if (segC) { segC.style.background = which === 'cats'   ? '#1e3a5c' : 'transparent'; segC.style.color = which === 'cats'   ? '#fff' : '#475569'; segC.style.fontWeight = which === 'cats'   ? '600' : '500'; }
+  // Views
+  var vR = document.getElementById('rondes-view-rondes');
+  var vC = document.getElementById('rondes-view-cats');
+  if (vR) vR.style.display = which === 'rondes' ? '' : 'none';
+  if (vC) vC.style.display = which === 'cats'   ? '' : 'none';
+  // Kop + actieknop wisselen
+  var subTitle = document.getElementById('rondes-sub-title');
+  var actionBtn = document.getElementById('rondes-action-btn');
+  if (subTitle) subTitle.textContent = which === 'rondes' ? 'Vaste looproutes in en om het gebouw' : 'Groeperingen voor de rondes';
+  if (actionBtn) { actionBtn.textContent = which === 'rondes' ? '+ Ronde' : '+ Categorie'; }
+}
+
+function rondesActionBtn() {
+  if (_rondesSubView === 'cats') { openCatModal(null); } else { openRondeModal(null); }
+}
+
+var _medSubView = 'medewerkers'; // 'medewerkers' | 'rollen'
+var _rolEditIdx = null;
+
+function medSubView(which) {
+  _medSubView = which;
+  // Desktop rail
+  var btnM = document.getElementById('cfg-nav-sub-med-medewerkers');
+  var btnR = document.getElementById('cfg-nav-sub-med-rollen');
+  if (btnM) btnM.classList.toggle('active', which === 'medewerkers');
+  if (btnR) btnR.classList.toggle('active', which === 'rollen');
+  // Mobiel segmented control
+  var segM = document.getElementById('med-seg-medewerkers');
+  var segR = document.getElementById('med-seg-rollen');
+  if (segM) { segM.style.background = which === 'medewerkers' ? '#1e3a5c' : 'transparent'; segM.style.color = which === 'medewerkers' ? '#fff' : '#475569'; segM.style.fontWeight = which === 'medewerkers' ? '600' : '500'; }
+  if (segR) { segR.style.background = which === 'rollen'      ? '#1e3a5c' : 'transparent'; segR.style.color = which === 'rollen'      ? '#fff' : '#475569'; segR.style.fontWeight = which === 'rollen'      ? '600' : '500'; }
+  // Views
+  var vM = document.getElementById('med-view-medewerkers');
+  var vR = document.getElementById('med-view-rollen');
+  if (vM) vM.style.display = which === 'medewerkers' ? '' : 'none';
+  if (vR) vR.style.display = which === 'rollen'      ? '' : 'none';
+  // Kop + actieknop
+  var subTitle = document.getElementById('med-sub-title');
+  var actionBtn = document.getElementById('med-action-btn');
+  if (subTitle) subTitle.textContent = which === 'medewerkers' ? 'Actieve beveiligers in het systeem' : 'Functies en rollen voor medewerkers';
+  if (actionBtn) actionBtn.textContent = which === 'medewerkers' ? '+ Medewerker' : '+ Rol / Functie';
+}
+
+function medActionBtn() {
+  if (_medSubView === 'rollen') { openRolModal(null); } else { openMedewerkerModal(null); }
+}
+
+function renderRollenList() {
+  var el = document.getElementById('rollen-list');
+  if (!el) return;
+  var rollen = S.rollen || [];
+  if (!rollen.length) {
+    el.innerHTML = '<div style="font-size:13px;color:#5b6b7f;padding:10px 0">Geen rollen / functies.</div>';
+    return;
+  }
+  var html = '<div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:10px">';
+  rollen.forEach(function(rol, i) {
+    var count = (S.medewerkers || []).filter(function(m) { return (m.rol || '').trim() === rol; }).length;
+    html +=
+      '<div style="display:flex;align-items:center;padding:8px 14px;border-bottom:1px solid #f1f5f9;gap:6px">' +
+        '<span style="flex:1;font-size:13px;color:#1e293b">' + escHtml(rol) + '</span>' +
+        '<span style="background:#f1f5f9;color:#64748b;border-radius:99px;font-size:11px;font-weight:600;padding:1px 8px;flex-shrink:0">' + count + '</span>' +
+        '<button type="button" onclick="openRolModal(' + i + ')" class="cfg-icon-btn" title="Wijzigen" aria-label="Wijzigen">✎</button>' +
+        '<button type="button" onclick="rmRol(' + i + ')" class="cfg-icon-btn cfg-icon-btn-del" title="Verwijderen" aria-label="Verwijderen">✕</button>' +
+      '</div>';
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function openRolModal(idx) {
+  _rolEditIdx = idx;
+  var isEdit = idx !== null;
+  document.getElementById('rol-modal-title').textContent = isEdit ? 'Rol / Functie wijzigen' : 'Rol / Functie toevoegen';
+  document.getElementById('inp-rol-naam').value = isEdit ? (S.rollen[idx] || '') : '';
+  document.getElementById('rol-modal-overlay').style.display = 'flex';
+  setTimeout(function() { document.getElementById('inp-rol-naam').focus(); }, 50);
+}
+
+function cancelRolEdit() {
+  _rolEditIdx = null;
+  document.getElementById('rol-modal-overlay').style.display = 'none';
+}
+
+function saveRolEdit() {
+  var naam = sanitizeForStorage(document.getElementById('inp-rol-naam').value || '').slice(0, 50);
+  if (!naam) { showToast('Vul een naam in'); return; }
+  var isEdit = _rolEditIdx !== null;
+  if (!S.rollen) S.rollen = [];
+  var isDup = S.rollen.some(function(r, i) { return r.toLowerCase() === naam.toLowerCase() && (!isEdit || i !== _rolEditIdx); });
+  if (isDup) { showToast('Deze rol bestaat al'); return; }
+  if (isEdit) {
+    var oud = S.rollen[_rolEditIdx];
+    S.rollen[_rolEditIdx] = naam;
+    // Update alle medewerkers met deze rol
+    (S.medewerkers || []).forEach(function(m) { if ((m.rol || '').trim() === oud) m.rol = naam; });
+    save();
+    logEvent('settings', 'Rol gewijzigd: ' + oud + ' → ' + naam);
+    showToast(naam + ' bijgewerkt');
+  } else {
+    S.rollen.push(naam);
+    save();
+    logEvent('settings', 'Rol toegevoegd: ' + naam);
+    showToast(naam + ' toegevoegd');
+  }
+  _rolEditIdx = null;
+  document.getElementById('rol-modal-overlay').style.display = 'none';
+  renderCfg();
+}
+
+function rmRol(idx) {
+  var naam = S.rollen[idx];
+  if (!naam) return;
+  customConfirm('Rol “' + naam + '” verwijderen?', function() {
+    S.rollen.splice(idx, 1);
+    save();
+    logEvent('settings', 'Rol verwijderd: ' + naam);
+    showToast(naam + ' verwijderd');
+    renderCfg();
+  });
+}
 
 var CFG_MOB_SECTIONS = {
-  medewerkers: { title: 'Medewerkers', action: '+ Medewerker', fn: function() { openMedewerkerModal(null); } },
-  rondes:      { title: 'Rondes',      action: '+ Ronde',      fn: function() { openRondeModal(null); } },
+  medewerkers: { title: 'Medewerkers', action: '+ Medewerker / Rol', fn: function() { medActionBtn(); } },
+  rondes:      { title: 'Rondes',      action: '+ Ronde / Categorie', fn: function() { rondesActionBtn(); } },
   dagdelen:    { title: 'Dagdelen',    action: '+ Dagdeel',    fn: function() { openDagdeelModal(null); } },
   schema:      { title: 'Dagplanning', action: '+ Item',       fn: function() { openSchemaModal(null); } },
   gedrag:      { title: 'Gedrag',      action: null,           fn: null },
@@ -5293,7 +5500,10 @@ function cfgMobGoSection(id) {
   if (!cfg) return;
   document.getElementById('cfg-mob-detail-title').textContent = cfg.title;
   var btn = document.getElementById('cfg-mob-detail-action');
-  if (cfg.action) { btn.textContent = cfg.action; btn.style.display = 'block'; btn._cfgFn = cfg.fn; }
+  if (cfg.action) {
+    btn.textContent = id === 'rondes' ? (_rondesSubView === 'cats' ? '+ Categorie' : '+ Ronde') : cfg.action;
+    btn.style.display = 'block'; btn._cfgFn = cfg.fn;
+  }
   else { btn.style.display = 'none'; }
   renderCfg();
   if (id === 'auditlog') renderEventLog();
@@ -5305,6 +5515,16 @@ function cfgMobGoSection(id) {
     if (hdr) hdr.remove();
     if (id === 'gedrag') _rewireGedragInputs(body);
     if (id === 'auditlog') _rewireAuditlog(body);
+    if (id === 'rondes') {
+      var seg = body.querySelector('#rondes-seg-ctrl');
+      if (seg) seg.style.display = 'flex';
+      rondesSubView(_rondesSubView);
+    }
+    if (id === 'medewerkers') {
+      var segM = body.querySelector('#med-seg-ctrl');
+      if (segM) segM.style.display = 'flex';
+      medSubView(_medSubView);
+    }
   }
   document.getElementById('cfg-mobile-master').classList.add('hidden');
   document.getElementById('cfg-mobile-detail').classList.add('open');
@@ -5357,8 +5577,8 @@ function cfgShowMobile() {
     if (strip) strip.classList.add('locked');
   }
   var setBadge = function(id, val) { var el = document.getElementById('cfg-mob-badge-' + id); if (el) el.textContent = val || ''; };
-  setBadge('medewerkers', S.medewerkers && S.medewerkers.length ? S.medewerkers.length : '');
-  setBadge('rondes', S.routes && S.routes.length ? S.routes.length : '');
+  setBadge('medewerkers', S.medewerkers && S.medewerkers.length ? S.medewerkers.length + (S.rollen && S.rollen.length ? ' / ' + S.rollen.length : '') : '');
+  setBadge('rondes', S.routes && S.routes.length ? S.routes.length + (S.routeCats && S.routeCats.length ? ' / ' + S.routeCats.length : '') : '');
   var dagdelenSrc = S.dagdelen || DAGDELEN_DEFAULT; setBadge('dagdelen', dagdelenSrc.length || '');
   var schemaSrc = S.schema || SCHEMA; setBadge('schema', schemaSrc && schemaSrc.length ? schemaSrc.length : '');
   try {
@@ -5382,6 +5602,11 @@ function cfgGoSection(id) {
   if (target) target.classList.add('active');
   var navTarget = document.getElementById('cfg-nav-' + id);
   if (navTarget) navTarget.classList.add('active');
+  // Open/sluit sub-navs
+  var sub = document.getElementById('cfg-nav-sub-rondes');
+  if (sub) sub.classList.toggle('open', id === 'rondes');
+  var subMed = document.getElementById('cfg-nav-sub-medewerkers');
+  if (subMed) subMed.classList.toggle('open', id === 'medewerkers');
   renderCfg();
   if (id === 'auditlog') renderEventLog();
 }
@@ -6536,6 +6761,7 @@ const MODAL_REGISTRY = [
   { id: 'medewerker-modal-overlay', close: () => cancelMedewerkerEdit() },
   { id: 'ronde-modal-overlay',      close: () => cancelRondeEdit() },
   { id: 'cat-modal-overlay',        close: () => cancelCatEdit() },
+  { id: 'rol-modal-overlay',        close: () => cancelRolEdit() },
   { id: 'dagdeel-modal-overlay',    close: () => cancelDagdeelEdit() },
   { id: 'schema-modal-overlay',     close: () => closeSchemaModal() },
   { id: 'logout-overlay',           close: () => logoutCancel() },
