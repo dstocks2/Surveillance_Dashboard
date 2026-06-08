@@ -1162,7 +1162,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.50</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.52</span>
     </div>
   </nav>
 
@@ -1227,7 +1227,6 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <!-- View: Categorieën -->
       <div id="rondes-view-cats" style="display:none">
         <div id="route-cats-list"></div>
-        <button type="button" onclick="openCatModal(null)" style="margin:8px 0 14px;background:none;border:none;cursor:pointer;color:#2563eb;font-size:12px;font-family:inherit;text-align:left;padding:4px 0;font-weight:500">+ Categorie toevoegen</button>
       </div>
     </div>
 
@@ -1525,7 +1524,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.50';
+const APP_VERSION = '2.6.52';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -1911,7 +1910,7 @@ function sanitizeMedewerkers(arr) {
     if (typeof m === 'string') return { naam: decodeEntities(sanitizeFromFirebase(m)), rol: '' };
     return {
       naam: decodeEntities(sanitizeFromFirebase(m.naam || '')),
-      rol:  decodeEntities(sanitizeFromFirebase((m.rol || '').slice(0, 200)))
+      rol:  decodeEntities(sanitizeFromFirebase(String(m.rol || '').slice(0, 200)))
     };
   }).filter(m => m.naam);
 }
@@ -2288,7 +2287,7 @@ let S = {
   medewerkers: LS.get('rn_medewerkers') || [],
   routes: sanitizeRoutes(LS.get('rn_routes') || DR),
   routeCats: (LS.get('rn_route_cats') || ROUTE_CATEGORIEEN_DEFAULT.slice()).map(c => c.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>')),
-  rollen: (LS.get('rn_rollen') || []).map(r => r.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>')),
+  rollen: (function() { var v = LS.get('rn_rollen'); return Array.isArray(v) ? v.map(function(r) { return typeof r === 'string' ? r.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>') : ''; }).filter(Boolean) : []; })(),
   schema: LS.get('rn_schema') || null, // null = use hardcoded SCHEMA default
   dagdelen: LS.get('rn_dagdelen') || null, // null = use DAGDELEN_DEFAULT
   active: {},   // always loaded from Firebase — never from localStorage
@@ -4662,7 +4661,7 @@ function _leesRolRijen() {
 
 // Helper: rol-string (kommalijst) → array van niet-lege strings
 function rolArray(rol) {
-  if (!rol) return [];
+  if (!rol || typeof rol !== 'string') return [];
   return rol.split(',').map(function(r) { return r.trim(); }).filter(Boolean);
 }
 
@@ -4718,7 +4717,7 @@ function renderMedewerkersList() {
     }
     if (query) {
       const naam = (med.naam || '').toLowerCase();
-      const rol = (med.rol || '').toLowerCase();
+      const rol = String(med.rol || '').toLowerCase();
       if (!naam.includes(query) && !rol.includes(query)) return false;
     }
     return true;
