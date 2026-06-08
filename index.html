@@ -1162,7 +1162,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.43</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.44</span>
     </div>
   </nav>
 
@@ -1385,8 +1385,8 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       </div>
       <div class="edit-modal-field">
         <label for="inp-medewerker-edit-rol">Functie / rol <span style="font-weight:400;color:#6e6e73">(optioneel)</span></label>
-        <input type="text" id="inp-medewerker-edit-rol" maxlength="80" placeholder="bijv. Teamleider, Beveiliger…" list="rollen-datalist" onkeydown="if(event.key==='Enter')saveMedewerkerEdit()">
-        <datalist id="rollen-datalist"></datalist>
+        <select id="inp-medewerker-edit-rol-select" onchange="medRolSelectChange(this.value)" style="display:none"></select>
+        <input type="text" id="inp-medewerker-edit-rol" maxlength="80" placeholder="bijv. Teamleider, Beveiliger…" onkeydown="if(event.key==='Enter')saveMedewerkerEdit()">
       </div>
     </div>
     <div class="edit-modal-foot">
@@ -1527,7 +1527,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.43';
+const APP_VERSION = '2.6.44';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -5248,9 +5248,34 @@ function openMedewerkerModal(idx) {
   const _medItem = isEdit ? (S.medewerkers || [])[idx] : null;
   document.getElementById('inp-medewerker-edit-naam').value = _medItem ? (_medItem.naam || '') : '';
   document.getElementById('inp-medewerker-edit-rol').value  = _medItem ? (_medItem.rol  || '') : '';
-  // Datalist vullen met bekende rollen
-  var dl = document.getElementById('rollen-datalist');
-  if (dl) dl.innerHTML = (S.rollen || []).map(function(r) { return '<option value="' + escHtml(r) + '">'; }).join('');
+  // Rol-veld: dropdown als er rollen zijn, anders vrij tekstveld
+  var sel = document.getElementById('inp-medewerker-edit-rol-select');
+  var inp = document.getElementById('inp-medewerker-edit-rol');
+  var currentRol = _medItem ? (_medItem.rol || '') : '';
+  var rollen = S.rollen || [];
+  if (rollen.length) {
+    // Toon select, verberg tekstveld
+    sel.style.display = '';
+    inp.style.display = 'none';
+    // Opties: lege optie + alle rollen + "Anders…" voor vrije invoer
+    sel.innerHTML = '<option value="">— geen rol —</option>' +
+      rollen.map(function(r) {
+        return '<option value="' + escHtml(r) + '"' + (r === currentRol ? ' selected' : '') + '>' + escHtml(r) + '</option>';
+      }).join('') +
+      '<option value="__anders__"' + (currentRol && !rollen.includes(currentRol) ? ' selected' : '') + '>Anders…</option>';
+    // Als huidige rol niet in de lijst staat: toon tekstveld erbij
+    if (currentRol && !rollen.includes(currentRol)) {
+      inp.style.display = '';
+      inp.value = currentRol;
+    } else {
+      inp.value = currentRol;
+    }
+  } else {
+    // Geen rollen gedefinieerd: alleen tekstveld
+    sel.style.display = 'none';
+    inp.style.display = '';
+    inp.value = currentRol;
+  }
   document.getElementById('medewerker-modal-overlay').style.display = 'flex';
   setTimeout(() => document.getElementById('inp-medewerker-edit-naam').focus(), 50);
 }
@@ -5260,7 +5285,20 @@ function editMedewerker(i) { openMedewerkerModal(i); }
 
 function saveMedewerkerEdit() {
   const naam = sanitizeForStorage(document.getElementById('inp-medewerker-edit-naam').value || '').slice(0, 60);
-  const rol  = sanitizeForStorage(document.getElementById('inp-medewerker-edit-rol').value  || '').slice(0, 40);
+  const _selEl = document.getElementById('inp-medewerker-edit-rol-select');
+  const _inpEl = document.getElementById('inp-medewerker-edit-rol');
+  const _selVisible = _selEl && _selEl.style.display !== 'none';
+  let rol = '';
+  if (_selVisible) {
+    const selVal = _selEl.value;
+    if (selVal === '__anders__' || selVal === '') {
+      rol = sanitizeForStorage(_inpEl.value || '').slice(0, 40);
+    } else {
+      rol = sanitizeForStorage(selVal).slice(0, 40);
+    }
+  } else {
+    rol = sanitizeForStorage(_inpEl.value || '').slice(0, 40);
+  }
   if (!naam) { showToast('Vul een naam in'); return; }
   const isEdit = _medewerkerEditIdx !== null;
   if (!S.medewerkers) S.medewerkers = [];
@@ -5406,6 +5444,20 @@ function medSubView(which) {
 
 function medActionBtn() {
   if (_medSubView === 'rollen') { openRolModal(null); } else { openMedewerkerModal(null); }
+}
+
+function medRolSelectChange(val) {
+  var inp = document.getElementById('inp-medewerker-edit-rol');
+  if (val === '__anders__') {
+    // Toon vrij tekstveld, reset naar leeg
+    inp.style.display = '';
+    inp.value = '';
+    setTimeout(function() { inp.focus(); }, 30);
+  } else {
+    // Verberg tekstveld — waarde zit in select
+    inp.style.display = 'none';
+    inp.value = val === '' ? '' : val;
+  }
 }
 
 function renderRollenList() {
