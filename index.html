@@ -1162,7 +1162,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.44</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.47</span>
     </div>
   </nav>
 
@@ -1204,7 +1204,6 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <!-- View: Rollen / Functies -->
       <div id="med-view-rollen" style="display:none">
         <div id="rollen-list"></div>
-        <button type="button" onclick="openRolModal(null)" style="margin:8px 0 14px;background:none;border:none;cursor:pointer;color:#2563eb;font-size:12px;font-family:inherit;text-align:left;padding:4px 0;font-weight:500">+ Rol / Functie toevoegen</button>
       </div>
     </div>
 
@@ -1385,8 +1384,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       </div>
       <div class="edit-modal-field">
         <label for="inp-medewerker-edit-rol">Functie / rol <span style="font-weight:400;color:#6e6e73">(optioneel)</span></label>
-        <select id="inp-medewerker-edit-rol-select" onchange="medRolSelectChange(this.value)" style="display:none"></select>
-        <input type="text" id="inp-medewerker-edit-rol" maxlength="80" placeholder="bijv. Teamleider, Beveiliger…" onkeydown="if(event.key==='Enter')saveMedewerkerEdit()">
+        <div id="inp-medewerker-edit-rol-checks" style="display:flex;flex-direction:column;gap:6px;margin-top:2px"></div>
       </div>
     </div>
     <div class="edit-modal-foot">
@@ -1527,7 +1525,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.44';
+const APP_VERSION = '2.6.47';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -1913,7 +1911,7 @@ function sanitizeMedewerkers(arr) {
     if (typeof m === 'string') return { naam: decodeEntities(sanitizeFromFirebase(m)), rol: '' };
     return {
       naam: decodeEntities(sanitizeFromFirebase(m.naam || '')),
-      rol:  decodeEntities(sanitizeFromFirebase(m.rol  || ''))
+      rol:  decodeEntities(sanitizeFromFirebase((m.rol || '').slice(0, 200)))
     };
   }).filter(m => m.naam);
 }
@@ -4620,11 +4618,17 @@ let _medFilterDienst = false;
 // ==============================================================================
 // SECTIE: MEDEWERKERS-LIJST  — rolfilter, renderMedewerkersList, highlight
 // ==============================================================================
+// Helper: rol-string (kommalijst) → array van niet-lege strings
+function rolArray(rol) {
+  if (!rol) return [];
+  return rol.split(',').map(function(r) { return r.trim(); }).filter(Boolean);
+}
+
 function renderMedRolFilter() {
   const el = document.getElementById('med-rol-filter');
   if (!el) return;
   // Collect unique rollen from S.medewerkers, sorted alphabetically
-  const rollen = [...new Set((S.medewerkers || []).map(m => (m.rol || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'nl'));
+  const rollen = [...new Set((S.medewerkers || []).flatMap(m => rolArray(m.rol)))].sort((a, b) => a.localeCompare(b, 'nl'));
   const btnStyle = (active) => `padding:4px 10px;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;background:${active ? '#fff' : 'transparent'};color:${active ? '#1e293b' : '#64748b'};box-shadow:${active ? '0 1px 3px rgba(0,0,0,.08)' : 'none'}`;
   const options = ['alle', ...rollen];
   el.innerHTML = options.map(r => {
@@ -4668,7 +4672,7 @@ function renderMedewerkersList() {
   const filtered = (S.medewerkers || []).map((med, i) => ({ med, i })).filter(({ med }) => {
     if (_medFilterDienst && !S.dienst.has(med.naam)) return false;
     if (_medFilterRol !== 'alle') {
-      if ((med.rol || '').trim() !== _medFilterRol) return false;
+      if (!rolArray(med.rol).includes(_medFilterRol)) return false;
     }
     if (query) {
       const naam = (med.naam || '').toLowerCase();
@@ -4699,7 +4703,7 @@ function renderMedewerkersList() {
   const _medSort = window._medSortMode || 'naam';
   if (_medSort === 'rol') {
     filtered.sort((a, b) => {
-      const ra = (a.med.rol || '').toLowerCase(), rb = (b.med.rol || '').toLowerCase();
+      const ra = (rolArray(a.med.rol)[0] || '').toLowerCase(), rb = (rolArray(b.med.rol)[0] || '').toLowerCase();
       if (ra !== rb) return ra.localeCompare(rb, 'nl');
       return a.med.naam.toLowerCase().localeCompare(b.med.naam.toLowerCase(), 'nl');
     });
@@ -4715,7 +4719,7 @@ function renderMedewerkersList() {
       <span style="width:22px;height:22px;border-radius:50%;background:#cdd6e2;color:#445;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;letter-spacing:.02em" aria-hidden="true">${escHtml(dienstInitialen(n))}</span>
       <div style="flex:1;min-width:0;overflow:hidden">
         <div style="font-weight:600;color:#1e293b;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${escHtml(n)}">${hn}</div>
-        ${rol ? `<div style="font-size:10px;color:#5b6b7f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${hr}</div>` : ''}
+        ${rol ? `<div style="font-size:10px;color:#5b6b7f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${rolArray(rol).map(r => escHtml(r)).join(' · ')}</div>` : ''}
       </div>
       ${isOnDienst ? '<span style="font-size:11px;font-weight:600;color:#15803d;background:#dcfce7;border-radius:4px;padding:2px 7px;flex-shrink:0;white-space:nowrap">op dienst</span>' : ''}
       <button type="button" onclick="editMedewerker(${i})" style="background:none;border:none;cursor:pointer;color:#5b6b7f;font-size:12px;padding:0 3px;flex-shrink:0;line-height:1" title="Wijzigen" aria-label="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#5b6b7f'">✎</button>
@@ -5248,33 +5252,24 @@ function openMedewerkerModal(idx) {
   const _medItem = isEdit ? (S.medewerkers || [])[idx] : null;
   document.getElementById('inp-medewerker-edit-naam').value = _medItem ? (_medItem.naam || '') : '';
   document.getElementById('inp-medewerker-edit-rol').value  = _medItem ? (_medItem.rol  || '') : '';
-  // Rol-veld: dropdown als er rollen zijn, anders vrij tekstveld
-  var sel = document.getElementById('inp-medewerker-edit-rol-select');
-  var inp = document.getElementById('inp-medewerker-edit-rol');
-  var currentRol = _medItem ? (_medItem.rol || '') : '';
+  // Rol-veld: checkboxes per bekende rol
+  var checksEl = document.getElementById('inp-medewerker-edit-rol-checks');
+  var currentRollen = rolArray(_medItem ? (_medItem.rol || '') : '');
   var rollen = S.rollen || [];
-  if (rollen.length) {
-    // Toon select, verberg tekstveld
-    sel.style.display = '';
-    inp.style.display = 'none';
-    // Opties: lege optie + alle rollen + "Anders…" voor vrije invoer
-    sel.innerHTML = '<option value="">— geen rol —</option>' +
-      rollen.map(function(r) {
-        return '<option value="' + escHtml(r) + '"' + (r === currentRol ? ' selected' : '') + '>' + escHtml(r) + '</option>';
-      }).join('') +
-      '<option value="__anders__"' + (currentRol && !rollen.includes(currentRol) ? ' selected' : '') + '>Anders…</option>';
-    // Als huidige rol niet in de lijst staat: toon tekstveld erbij
-    if (currentRol && !rollen.includes(currentRol)) {
-      inp.style.display = '';
-      inp.value = currentRol;
+  if (checksEl) {
+    if (rollen.length) {
+      checksEl.style.display = '';
+      checksEl.innerHTML = rollen.map(function(r, ci) {
+        var checked = currentRollen.includes(r) ? ' checked' : '';
+        return '<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#1e293b;cursor:pointer;padding:5px 8px;border-radius:6px;border:1px solid #e2e8f0;background:#f8fafc;user-select:none">' +
+          '<input type="checkbox" id="med-rol-cb-' + ci + '" value="' + escHtml(r) + '"' + checked + ' style="width:15px;height:15px;accent-color:#1e3a5c;cursor:pointer;flex-shrink:0">' +
+          escHtml(r) +
+          '</label>';
+      }).join('');
     } else {
-      inp.value = currentRol;
+      checksEl.style.display = 'none';
+      checksEl.innerHTML = '';
     }
-  } else {
-    // Geen rollen gedefinieerd: alleen tekstveld
-    sel.style.display = 'none';
-    inp.style.display = '';
-    inp.value = currentRol;
   }
   document.getElementById('medewerker-modal-overlay').style.display = 'flex';
   setTimeout(() => document.getElementById('inp-medewerker-edit-naam').focus(), 50);
@@ -5285,20 +5280,9 @@ function editMedewerker(i) { openMedewerkerModal(i); }
 
 function saveMedewerkerEdit() {
   const naam = sanitizeForStorage(document.getElementById('inp-medewerker-edit-naam').value || '').slice(0, 60);
-  const _selEl = document.getElementById('inp-medewerker-edit-rol-select');
-  const _inpEl = document.getElementById('inp-medewerker-edit-rol');
-  const _selVisible = _selEl && _selEl.style.display !== 'none';
-  let rol = '';
-  if (_selVisible) {
-    const selVal = _selEl.value;
-    if (selVal === '__anders__' || selVal === '') {
-      rol = sanitizeForStorage(_inpEl.value || '').slice(0, 40);
-    } else {
-      rol = sanitizeForStorage(selVal).slice(0, 40);
-    }
-  } else {
-    rol = sanitizeForStorage(_inpEl.value || '').slice(0, 40);
-  }
+  const _checksEl = document.getElementById('inp-medewerker-edit-rol-checks');
+  const _checked = _checksEl ? Array.from(_checksEl.querySelectorAll('input[type=checkbox]:checked')).map(function(cb) { return sanitizeForStorage(cb.value).slice(0, 40); }) : [];
+  const rol = _checked.join(',');
   if (!naam) { showToast('Vul een naam in'); return; }
   const isEdit = _medewerkerEditIdx !== null;
   if (!S.medewerkers) S.medewerkers = [];
@@ -5446,20 +5430,6 @@ function medActionBtn() {
   if (_medSubView === 'rollen') { openRolModal(null); } else { openMedewerkerModal(null); }
 }
 
-function medRolSelectChange(val) {
-  var inp = document.getElementById('inp-medewerker-edit-rol');
-  if (val === '__anders__') {
-    // Toon vrij tekstveld, reset naar leeg
-    inp.style.display = '';
-    inp.value = '';
-    setTimeout(function() { inp.focus(); }, 30);
-  } else {
-    // Verberg tekstveld — waarde zit in select
-    inp.style.display = 'none';
-    inp.value = val === '' ? '' : val;
-  }
-}
-
 function renderRollenList() {
   var el = document.getElementById('rollen-list');
   if (!el) return;
@@ -5470,7 +5440,7 @@ function renderRollenList() {
   }
   var html = '<div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:10px">';
   rollen.forEach(function(rol, i) {
-    var count = (S.medewerkers || []).filter(function(m) { return (m.rol || '').trim() === rol; }).length;
+    var count = (S.medewerkers || []).filter(function(m) { return rolArray(m.rol).includes(rol); }).length;
     html +=
       '<div style="display:flex;align-items:center;padding:8px 14px;border-bottom:1px solid #f1f5f9;gap:6px">' +
         '<span style="flex:1;font-size:13px;color:#1e293b">' + escHtml(rol) + '</span>' +
@@ -5508,7 +5478,7 @@ function saveRolEdit() {
     var oud = S.rollen[_rolEditIdx];
     S.rollen[_rolEditIdx] = naam;
     // Update alle medewerkers met deze rol
-    (S.medewerkers || []).forEach(function(m) { if ((m.rol || '').trim() === oud) m.rol = naam; });
+    (S.medewerkers || []).forEach(function(m) { var arr = rolArray(m.rol); var idx2 = arr.indexOf(oud); if (idx2 !== -1) { arr[idx2] = naam; m.rol = arr.join(','); } });
     save();
     logEvent('settings', 'Rol gewijzigd: ' + oud + ' → ' + naam);
     showToast(naam + ' bijgewerkt');
