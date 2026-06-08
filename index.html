@@ -1054,15 +1054,9 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <span class="cfg-mob-badge" id="cfg-mob-badge-rondes"></span>
       <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
-    <button type="button" class="cfg-mob-row" onclick="cfgMobGoSection('dagdelen')">
-      <div class="cfg-mob-row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3b5fc0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg></div>
-      <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Dagdelen</div><div class="cfg-mob-row-sub">Naam, tijdvak, kleur</div></div>
-      <span class="cfg-mob-badge" id="cfg-mob-badge-dagdelen"></span>
-      <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </button>
     <button type="button" class="cfg-mob-row" onclick="cfgMobGoSection('schema')">
       <div class="cfg-mob-row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3b5fc0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-      <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Dagplanning</div><div class="cfg-mob-row-sub">Tijden en taken</div></div>
+      <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Dagplanning</div><div class="cfg-mob-row-sub">Tijden, taken, dagdelen</div></div>
       <span class="cfg-mob-badge" id="cfg-mob-badge-schema"></span>
       <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
@@ -1134,14 +1128,14 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <button type="button" class="cfg-nav-sub-item active" id="cfg-nav-sub-rondes-rondes" onclick="rondesSubView('rondes')">Rondes</button>
       <button type="button" class="cfg-nav-sub-item" id="cfg-nav-sub-rondes-cats" onclick="rondesSubView('cats')">Categorieën</button>
     </div>
-    <button type="button" class="cfg-nav-item" id="cfg-nav-dagdelen" onclick="cfgGoSection('dagdelen')">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      Dagdelen
-    </button>
     <button type="button" class="cfg-nav-item" id="cfg-nav-schema" onclick="cfgGoSection('schema')">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       Dagplanning
     </button>
+    <div class="cfg-nav-sub" id="cfg-nav-sub-schema">
+      <button type="button" class="cfg-nav-sub-item active" id="cfg-nav-sub-schema-schema" onclick="schemaSubView('schema')">Dagplanning</button>
+      <button type="button" class="cfg-nav-sub-item" id="cfg-nav-sub-schema-dagdelen" onclick="schemaSubView('dagdelen')">Dagdelen</button>
+    </div>
     <div style="margin:10px 0 6px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:10px;font-weight:700;color:#5b6b7f;letter-spacing:.07em;text-transform:uppercase;padding-left:10px">Systeembeheer</div>
     <button type="button" class="cfg-nav-item" id="cfg-nav-gedrag" onclick="cfgGoSection('gedrag')">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -1162,7 +1156,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.52</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.54</span>
     </div>
   </nav>
 
@@ -1231,22 +1225,26 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
 
     <!-- Dagdelen -->
-    <div class="cfg-section" id="cfg-sec-dagdelen">
-      <div class="cfg-sec-header">
-        <div><div class="cfg-sec-title">Dagdelen</div><div class="cfg-sec-sub">Diensten: naam, tijdvak en kleur</div></div>
-        <button type="button" class="cfg-action-btn" onclick="openDagdeelModal(null)">+ Dagdeel</button>
-      </div>
-      <div id="dagdelen-list" style="margin-bottom:12px"></div>
-      <div style="font-size:10px;color:#5b6b7f;padding:4px 0">Tip: een dagdeel mag middernacht overschrijden (bv. nacht 23:00 → 07:00). Tijdvakken mogen niet overlappen.</div>
-    </div>
-
-    <!-- Dagplanning (schema) -->
+    <!-- Dagplanning (schema + dagdelen) -->
     <div class="cfg-section" id="cfg-sec-schema">
-      <div class="cfg-sec-header">
-        <div><div class="cfg-sec-title">Dagplanning</div><div class="cfg-sec-sub">Tijden en taken per dienst</div></div>
-        <button type="button" class="cfg-action-btn" onclick="openSchemaModal(null)">+ Item</button>
+      <div class="cfg-sec-header" id="schema-header">
+        <div><div class="cfg-sec-title" id="schema-title">Dagplanning</div><div class="cfg-sec-sub" id="schema-sub-title">Tijden en taken per dienst</div></div>
+        <button type="button" class="cfg-action-btn" id="schema-action-btn" onclick="schemaActionBtn()">+ Item</button>
       </div>
-      <div id="schema-list" style="margin-bottom:12px"></div>
+      <!-- Segmented control — mobiel bovenin, desktop verborgen -->
+      <div id="schema-seg-ctrl" style="display:none;background:#f1f5f9;border-radius:8px;padding:3px;gap:3px;margin-bottom:16px">
+        <button type="button" id="schema-seg-schema" onclick="schemaSubView('schema')" style="flex:1;padding:6px 0;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;background:#1e3a5c;color:#fff;transition:all .13s">Dagplanning</button>
+        <button type="button" id="schema-seg-dagdelen" onclick="schemaSubView('dagdelen')" style="flex:1;padding:6px 0;border:none;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;background:transparent;color:#475569;transition:all .13s">Dagdelen</button>
+      </div>
+      <!-- View: Dagplanning (schema) -->
+      <div id="schema-view-schema">
+        <div id="schema-list" style="margin-bottom:12px"></div>
+      </div>
+      <!-- View: Dagdelen -->
+      <div id="schema-view-dagdelen" style="display:none">
+        <div id="dagdelen-list" style="margin-bottom:12px"></div>
+        <div style="font-size:10px;color:#5b6b7f;padding:4px 0">Tip: een dagdeel mag middernacht overschrijden (bv. nacht 23:00 → 07:00). Tijdvakken mogen niet overlappen.</div>
+      </div>
     </div>
 
     <!-- Gedrag -->
@@ -1524,7 +1522,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.52';
+const APP_VERSION = '2.6.54';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -4870,6 +4868,12 @@ function renderCfg() {
   var subRol = document.getElementById('cfg-nav-sub-med-rollen');
   if (subMed) subMed.textContent = 'Medewerkers' + (S.medewerkers && S.medewerkers.length ? ' (' + S.medewerkers.length + ')' : '');
   if (subRol) subRol.textContent = 'Rollen / Functies' + (S.rollen && S.rollen.length ? ' (' + S.rollen.length + ')' : '');
+  var subSchemaSchema = document.getElementById('cfg-nav-sub-schema-schema');
+  var subSchemaDagdelen = document.getElementById('cfg-nav-sub-schema-dagdelen');
+  var _schemaSrc = S.schema || SCHEMA;
+  var _dagdSrc = S.dagdelen || DAGDELEN_DEFAULT;
+  if (subSchemaSchema)   subSchemaSchema.textContent   = 'Dagplanning' + (_schemaSrc && _schemaSrc.length ? ' (' + _schemaSrc.length + ')' : '');
+  if (subSchemaDagdelen) subSchemaDagdelen.textContent = 'Dagdelen'    + (_dagdSrc   && _dagdSrc.length   ? ' (' + _dagdSrc.length   + ')' : '');
   // Rollen-lijst renderen
   renderRollenList();
 
@@ -5424,7 +5428,38 @@ function rondesActionBtn() {
 }
 
 var _medSubView = 'medewerkers'; // 'medewerkers' | 'rollen'
+var _schemaSubView = 'schema'; // 'schema' | 'dagdelen'
 var _rolEditIdx = null;
+
+function schemaSubView(which) {
+  _schemaSubView = which;
+  // Desktop rail
+  var btnS = document.getElementById('cfg-nav-sub-schema-schema');
+  var btnD = document.getElementById('cfg-nav-sub-schema-dagdelen');
+  if (btnS) btnS.classList.toggle('active', which === 'schema');
+  if (btnD) btnD.classList.toggle('active', which === 'dagdelen');
+  // Mobiel segmented control
+  var segS = document.getElementById('schema-seg-schema');
+  var segD = document.getElementById('schema-seg-dagdelen');
+  if (segS) { segS.style.background = which === 'schema'   ? '#1e3a5c' : 'transparent'; segS.style.color = which === 'schema'   ? '#fff' : '#475569'; segS.style.fontWeight = which === 'schema'   ? '600' : '500'; }
+  if (segD) { segD.style.background = which === 'dagdelen' ? '#1e3a5c' : 'transparent'; segD.style.color = which === 'dagdelen' ? '#fff' : '#475569'; segD.style.fontWeight = which === 'dagdelen' ? '600' : '500'; }
+  // Views
+  var vS = document.getElementById('schema-view-schema');
+  var vD = document.getElementById('schema-view-dagdelen');
+  if (vS) vS.style.display = which === 'schema'   ? '' : 'none';
+  if (vD) vD.style.display = which === 'dagdelen' ? '' : 'none';
+  // Kop + actieknop
+  var title = document.getElementById('schema-title');
+  var subTitle = document.getElementById('schema-sub-title');
+  var actionBtn = document.getElementById('schema-action-btn');
+  if (title)     title.textContent     = which === 'schema' ? 'Dagplanning' : 'Dagdelen';
+  if (subTitle)  subTitle.textContent  = which === 'schema' ? 'Tijden en taken per dienst' : 'Diensten: naam, tijdvak en kleur';
+  if (actionBtn) actionBtn.textContent = which === 'schema' ? '+ Item' : '+ Dagdeel';
+}
+
+function schemaActionBtn() {
+  if (_schemaSubView === 'dagdelen') { openDagdeelModal(null); } else { openSchemaModal(null); }
+}
 
 function medSubView(which) {
   _medSubView = which;
@@ -5534,8 +5569,7 @@ function rmRol(idx) {
 var CFG_MOB_SECTIONS = {
   medewerkers: { title: 'Medewerkers', action: '+ Medewerker / Rol', fn: function() { medActionBtn(); } },
   rondes:      { title: 'Rondes',      action: '+ Ronde / Categorie', fn: function() { rondesActionBtn(); } },
-  dagdelen:    { title: 'Dagdelen',    action: '+ Dagdeel',    fn: function() { openDagdeelModal(null); } },
-  schema:      { title: 'Dagplanning', action: '+ Item',       fn: function() { openSchemaModal(null); } },
+  schema:      { title: 'Dagplanning', action: '+ Item / Dagdeel', fn: function() { schemaActionBtn(); } },
   gedrag:      { title: 'Gedrag',      action: null,           fn: null },
   auditlog:    { title: 'Audit log',   action: null,           fn: null },
 };
@@ -5549,7 +5583,12 @@ function cfgMobGoSection(id) {
   document.getElementById('cfg-mob-detail-title').textContent = cfg.title;
   var btn = document.getElementById('cfg-mob-detail-action');
   if (cfg.action) {
-    btn.textContent = id === 'rondes' ? (_rondesSubView === 'cats' ? '+ Categorie' : '+ Ronde') : cfg.action;
+    var labelMap = {
+      rondes:      (_rondesSubView === 'cats'      ? '+ Categorie' : '+ Ronde'),
+      medewerkers: (_medSubView    === 'rollen'    ? '+ Rol / Functie' : '+ Medewerker'),
+      schema:      (_schemaSubView === 'dagdelen'  ? '+ Dagdeel' : '+ Item')
+    };
+    btn.textContent = labelMap[id] || cfg.action;
     btn.style.display = 'block'; btn._cfgFn = cfg.fn;
   }
   else { btn.style.display = 'none'; }
@@ -5573,6 +5612,11 @@ function cfgMobGoSection(id) {
       if (segM) segM.style.display = 'flex';
       medSubView(_medSubView);
     }
+    if (id === 'schema') {
+      var segS = body.querySelector('#schema-seg-ctrl');
+      if (segS) segS.style.display = 'flex';
+      schemaSubView(_schemaSubView);
+    }
   }
   document.getElementById('cfg-mobile-master').classList.add('hidden');
   document.getElementById('cfg-mobile-detail').classList.add('open');
@@ -5592,9 +5636,11 @@ function _rewireGedragInputs(container) {
   var tw = container.querySelector('#inp-timeout-warn');
   var mt = container.querySelector('#inp-melding-ttl');
   var pc = container.querySelector('#inp-pin-cache');
+  var lr = container.querySelector('#inp-log-retention');
   if (tw) { tw.value = S.timeoutWarn; tw.oninput = function() { S.timeoutWarn = parseFloat(tw.value); saveGedrag(); }; }
   if (mt) { mt.value = S.meldingTTL;  mt.oninput = function() { S.meldingTTL  = parseFloat(mt.value); saveGedrag(); }; }
   if (pc) { pc.value = S.pinCacheDur; pc.oninput = function() { S.pinCacheDur = parseFloat(pc.value); saveGedrag(); }; }
+  if (lr) { lr.value = S.logRetention; lr.oninput = function() { S.logRetention = parseFloat(lr.value); saveGedrag(); }; }
 }
 
 function _rewireAuditlog(container) {
@@ -5627,8 +5673,11 @@ function cfgShowMobile() {
   var setBadge = function(id, val) { var el = document.getElementById('cfg-mob-badge-' + id); if (el) el.textContent = val || ''; };
   setBadge('medewerkers', S.medewerkers && S.medewerkers.length ? S.medewerkers.length + (S.rollen && S.rollen.length ? ' / ' + S.rollen.length : '') : '');
   setBadge('rondes', S.routes && S.routes.length ? S.routes.length + (S.routeCats && S.routeCats.length ? ' / ' + S.routeCats.length : '') : '');
-  var dagdelenSrc = S.dagdelen || DAGDELEN_DEFAULT; setBadge('dagdelen', dagdelenSrc.length || '');
-  var schemaSrc = S.schema || SCHEMA; setBadge('schema', schemaSrc && schemaSrc.length ? schemaSrc.length : '');
+  var dagdelenSrc = S.dagdelen || DAGDELEN_DEFAULT;
+  var schemaSrc = S.schema || SCHEMA;
+  var schemaCount = (schemaSrc && schemaSrc.length) ? schemaSrc.length : 0;
+  var dagdelenCount = dagdelenSrc.length || 0;
+  setBadge('schema', schemaCount ? schemaCount + (dagdelenCount ? ' / ' + dagdelenCount : '') : '');
   try {
     var _now = new Date();
     var todayLog = EVENT_LOG.filter(function(e){ var d=new Date(e.ts); return d.getDate()===_now.getDate()&&d.getMonth()===_now.getMonth()&&d.getFullYear()===_now.getFullYear(); }).length;
@@ -5640,7 +5689,7 @@ function cfgShowMobile() {
 
 function cfgGoSection(id) {
   _cfgActiveSection = id;
-  ['medewerkers','rondes','dagdelen','schema','gedrag','auditlog'].forEach(function(s) {
+  ['medewerkers','rondes','schema','gedrag','auditlog'].forEach(function(s) {
     var el = document.getElementById('cfg-sec-' + s);
     if (el) el.classList.remove('active');
     var nav = document.getElementById('cfg-nav-' + s);
@@ -5655,6 +5704,12 @@ function cfgGoSection(id) {
   if (sub) sub.classList.toggle('open', id === 'rondes');
   var subMed = document.getElementById('cfg-nav-sub-medewerkers');
   if (subMed) subMed.classList.toggle('open', id === 'medewerkers');
+  var subSchema = document.getElementById('cfg-nav-sub-schema');
+  if (subSchema) subSchema.classList.toggle('open', id === 'schema');
+  // Bij intrede schema: zorg dat juiste sub-view en actieknop staan
+  if (id === 'schema') {
+    setTimeout(function() { schemaSubView(_schemaSubView); }, 0);
+  }
   renderCfg();
   if (id === 'auditlog') renderEventLog();
 }
