@@ -384,8 +384,10 @@ input[type=text]:focus{outline:none;border-color:var(--c-primary);box-shadow:0 0
   .tl-toggle-btn{display:flex !important}
   #timeline-outer{display:none}
   #timeline-outer.tl-open{display:block}
-  #timeline-legend{display:none}
+  #timeline-legend{display:none !important}
   #timeline-legend.tl-open{display:flex !important}
+  #tl-window-seg{display:none !important}
+  #tl-window-seg.tl-open{display:inline-flex !important}
   .lbl{font-size:11px}
   .toast{font-size:12px;padding:10px 16px;max-width:90vw;white-space:normal;text-align:center;bottom:calc(66px + env(safe-area-inset-bottom) + 12px)}
 }
@@ -1214,7 +1216,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.62</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.65</span>
     </div>
   </nav>
 
@@ -1580,7 +1582,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.62';
+const APP_VERSION = '2.6.65';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -1653,8 +1655,6 @@ const EVENT_LOG_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 let EVENT_LOG = []; // local cache for rendering, populated from Firebase
 // Audit-keys waarvoor we al een TTL-verwijdering hebben afgevuurd — voorkomt dat
 // elke volgende snapshot opnieuw fbRemove doet voor dezelfde entry.
-const _deletingAuditKeys = new Set();
-
 // ==============================================================================
 // SECTIE: LOGGING & EVENT LOG  — logEvent, fbListenEventLog, EVENT_LOG
 // ==============================================================================
@@ -1690,26 +1690,17 @@ function fbListenEventLog() {
   if (!window.fbDb) return;
   window.fbOnValue(window.fbRef(window.fbDb, 'dashboard/auditLog'), snap => {
     const data = snap.val();
-    if (!data) { EVENT_LOG = []; _deletingAuditKeys.clear(); return; }
+    if (!data) { EVENT_LOG = []; return; }
+    // GEEN deletes vanuit deze listener (v2.6.63). Deze callback vuurt op elke
+    // auditLog-write op elk apparaat; opschonen hiervandaan liet alle sessies
+    // tegelijk dezelfde deletes afvuren, en elke delete triggerde weer nieuwe
+    // snapshots. Opschonen gebeurt nu uitsluitend in pruneEventLog() (interval
+    // + na init), volgens hetzelfde principe als pruneLog. Verlopen entries
+    // worden hier alleen uit de WEERGAVE gefilterd.
     const cutoff = Date.now() - EVENT_LOG_TTL_MS;
     const items = [];
-    const liveKeys = new Set();
     Object.entries(data).forEach(([key, e]) => {
-      liveKeys.add(key);
-      // Auto-prune entries older than 7 days.
-      // Guard: vuur de delete maar ÉÉN keer per key af (meerdere snapshots kunnen
-      // binnenkomen voordat de verwijdering propageert). En log de prune NIET als
-      // auditLog-event — dat zou zelf weer een entry aanmaken en de log laten
-      // groeien terwijl hij hoort te krimpen (oorzaak van log-explosie).
-      if (e && e.ts && e.ts < cutoff) {
-        if (!_deletingAuditKeys.has(key)) {
-          _deletingAuditKeys.add(key);
-          window.fbRemove(window.fbRef(window.fbDb, 'dashboard/auditLog/' + key))
-            .catch(() => { _deletingAuditKeys.delete(key); });
-        }
-        return;
-      }
-      if (!e || !e.ts) return;
+      if (!e || !e.ts || e.ts < cutoff) return;
       items.push({
         _key: key,
         ts: e.ts,
@@ -1720,8 +1711,6 @@ function fbListenEventLog() {
         appVersion: decodeEntities(sanitizeFromFirebase(e.appVersion || ''))
       });
     });
-    // Opruimen van keys die echt weg zijn, zodat de guard-set niet onbeperkt groeit
-    for (const k of [..._deletingAuditKeys]) if (!liveKeys.has(k)) _deletingAuditKeys.delete(k);
     items.sort((a, b) => b.ts - a.ts);
     EVENT_LOG = items.slice(0, 1000); // cap render to 1000 newest
     if (typeof renderEventLog === 'function') {
@@ -2708,6 +2697,11 @@ function toggleTimeline() {
   const icon   = document.getElementById('tl-toggle-icon');
   const isOpen = outer.classList.toggle('tl-open');
   if (legend) legend.classList.toggle('tl-open', isOpen);
+  // Op mobiel horen óók het 24u/12u-control en de legenda pas bij uitklappen
+  // zichtbaar te zijn (v2.6.65). De legenda had dat al via CSS, maar de inline
+  // display:flex op het element won van de media-query — vandaar !important.
+  const seg = document.getElementById('tl-window-seg');
+  if (seg) seg.classList.toggle('tl-open', isOpen);
   icon.textContent = isOpen ? '▲' : '▼';
   const lbl = document.getElementById('tl-toggle-label');
   if (lbl) lbl.textContent = isOpen ? 'Verberg tijdlijn' : 'Toon tijdlijn';
@@ -3964,8 +3958,39 @@ function pruneNotities() {
     .catch(() => { _pruneNotBusy = false; });
 }
 
+// AuditLog-opschoning (v2.6.63) — zelfde patroon als pruneLog/pruneNotities:
+// lees de echte Firebase-inhoud via fbGet, wis uitsluitend op leeftijd (ts),
+// busy-lock + jitter zodat sessies elkaar niet exact tegelijk in de weg zitten,
+// en NOOIT logEvent vanuit de opschoning zelf (zou de log weer laten groeien).
+// Entries zonder geldige ts worden nooit gewist.
+let _pruneAuditBusy = false;
+function pruneEventLog() {
+  if (window._appOutdated || _pruneAuditBusy) return;
+  if (!window.fbDb || !window.fbGet || !window.fbRemove) return;
+  const cutoff = Date.now() - EVENT_LOG_TTL_MS;
+  _pruneAuditBusy = true;
+  window.fbGet(window.fbRef(window.fbDb, 'dashboard/auditLog'))
+    .then(snap => {
+      const data = snap && snap.exists() ? snap.val() : null;
+      if (!data || typeof data !== 'object' || Array.isArray(data)) { _pruneAuditBusy = false; return; }
+      const staleKeys = [];
+      Object.entries(data).forEach(([k, v]) => {
+        if (!v || typeof v !== 'object') return;
+        const ts = typeof v.ts === 'number' ? v.ts : 0;
+        if (ts > 0 && ts < cutoff) staleKeys.push(k);
+      });
+      if (!staleKeys.length) { _pruneAuditBusy = false; return; }
+      const jitter = Math.floor(Math.random() * 5000);
+      setTimeout(() => {
+        Promise.allSettled(staleKeys.map(k => window.fbRemove(window.fbRef(window.fbDb, 'dashboard/auditLog/' + k))))
+          .then(() => { _pruneAuditBusy = false; });
+      }, jitter);
+    })
+    .catch(() => { _pruneAuditBusy = false; });
+}
+
 // Auto-prune every 30 minutes
-TIMERS.set('prune', () => { pruneLog(); pruneNotities(); }, 30 * 60 * 1000);
+TIMERS.set('prune', () => { pruneLog(); pruneNotities(); pruneEventLog(); }, 30 * 60 * 1000);
 
 // Cleanup van stale active entries — ronden die langer dan 12u actief zijn
 // zijn bijna altijd vergeten retours uit een vorige dienst. Die laten staan
@@ -5565,6 +5590,7 @@ function rondesSubView(which) {
   var actionBtn = document.getElementById('rondes-action-btn');
   if (subTitle) subTitle.textContent = which === 'rondes' ? 'Vaste looproutes in en om het gebouw' : 'Groeperingen voor de rondes';
   if (actionBtn) { actionBtn.textContent = which === 'rondes' ? '+ Ronde' : '+ Categorie'; }
+  updateCfgMobActionLabel();
 }
 
 function rondesActionBtn() {
@@ -5599,10 +5625,27 @@ function schemaSubView(which) {
   if (title)     title.textContent     = which === 'schema' ? 'Dagplanning' : 'Dagdelen';
   if (subTitle)  subTitle.textContent  = which === 'schema' ? 'Tijden en taken per dienst' : 'Diensten: naam, tijdvak en kleur';
   if (actionBtn) actionBtn.textContent = which === 'schema' ? '+ Item' : '+ Dagdeel';
+  updateCfgMobActionLabel();
 }
 
 function schemaActionBtn() {
   if (_schemaSubView === 'dagdelen') { openDagdeelModal(null); } else { openSchemaModal(null); }
+}
+
+// Mobiel: label van de detail-actieknop ("+ Ronde" / "+ Categorie" enz.)
+// bijwerken bij het wisselen van sub-tab. Werd voorheen alleen gezet bij het
+// openen van de sectie (cfgMobGoSection), waardoor de knop bleef hangen op het
+// label van de eerste sub-weergave (gefixt in v2.6.64).
+function updateCfgMobActionLabel() {
+  var btn = document.getElementById('cfg-mob-detail-action');
+  var detail = document.getElementById('cfg-mobile-detail');
+  if (!btn || !detail || !detail.classList.contains('open')) return;
+  var labelMap = {
+    rondes:      (_rondesSubView === 'cats'     ? '+ Categorie'     : '+ Ronde'),
+    medewerkers: (_medSubView    === 'rollen'   ? '+ Rol / Functie' : '+ Medewerker'),
+    schema:      (_schemaSubView === 'dagdelen' ? '+ Dagdeel'       : '+ Item')
+  };
+  if (labelMap[_cfgActiveSection]) btn.textContent = labelMap[_cfgActiveSection];
 }
 
 function medSubView(which) {
@@ -5627,6 +5670,7 @@ function medSubView(which) {
   var actionBtn = document.getElementById('med-action-btn');
   if (subTitle) subTitle.textContent = which === 'medewerkers' ? 'Actieve beveiligers in het systeem' : 'Functies en rollen voor medewerkers';
   if (actionBtn) actionBtn.textContent = which === 'medewerkers' ? '+ Medewerker' : '+ Rol / Functie';
+  updateCfgMobActionLabel();
 }
 
 function medActionBtn() {
@@ -6944,6 +6988,7 @@ function sluitMeldingen() {
 }
 
 pruneLog();
+pruneEventLog();
 // PIN wordt geladen via Firebase listener (fbListen) — geen lokale init nodig
 
 // ── Header: datum, dagdeel, klok ────────────────────────────────────────────
