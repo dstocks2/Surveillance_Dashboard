@@ -1214,7 +1214,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.60</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.61</span>
     </div>
   </nav>
 
@@ -1580,7 +1580,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.60';
+const APP_VERSION = '2.6.61';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -2256,16 +2256,19 @@ function fbListen() {
         LS.set('rn_routes', S.routes);
       }
     }
-    // routeCats heeft een niet-lege default: ontbrekend = null = standaardlijst.
-    // "Alle categorieën verwijderen" betekent dus: terugvallen op de standaard.
+    // routeCats heeft een niet-lege default én de invariant dat S.routeCats
+    // ALTIJD een array is (ROUTE_CATEGORIEEN-getter, .forEach/.push/.splice op
+    // meerdere plekken). Ontbrekend in Firebase = de standaardlijst, als kopie
+    // — NOOIT null: v2.6.60 zette hier null en dat liet renderCfg crashen op
+    // ROUTE_CATEGORIEEN.forEach, waardoor instellingen-wijzigingen pas na een
+    // reload zichtbaar werden (gefixt in v2.6.61).
     {
       const fbCats = (Array.isArray(d.routeCats) && d.routeCats.length)
         ? d.routeCats.map(c => decodeEntities(sanitizeFromFirebase(String(c)))).filter(Boolean)
-        : null;
-      const locCats = (S.routeCats && S.routeCats.length) ? S.routeCats : null;
-      if (JSON.stringify(fbCats) !== JSON.stringify(locCats)) {
+        : ROUTE_CATEGORIEEN_DEFAULT.slice();
+      if (JSON.stringify(fbCats) !== JSON.stringify(S.routeCats || [])) {
         S.routeCats = fbCats;
-        LS.set('rn_route_cats', S.routeCats || ROUTE_CATEGORIEEN_DEFAULT);
+        LS.set('rn_route_cats', S.routeCats);
       }
     }
     {
@@ -2406,7 +2409,8 @@ let S = {
 };
 
 // Dynamic — always reflects S.routeCats
-Object.defineProperty(window, 'ROUTE_CATEGORIEEN', { get: () => S.routeCats, configurable: true });
+// Vangnet: geeft altijd een array terug, ook als S.routeCats ooit null raakt.
+Object.defineProperty(window, 'ROUTE_CATEGORIEEN', { get: () => S.routeCats || ROUTE_CATEGORIEEN_DEFAULT, configurable: true });
 
 // ── In-flight write tracking ──────────────────────────────────────────────
 // When a write is in flight, fbListen could receive a snapshot from BEFORE
