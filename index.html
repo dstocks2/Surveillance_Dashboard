@@ -10,11 +10,59 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Surveillance Dashboard">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="Beveiligingsdashboard UMC Utrecht — surveillance rondes en dienstplanning.">
+<meta name="theme-color" content="#1e3a5c">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
 <title>Surveillance Dashboard</title>
 <style>
+/* ─── Design tokens ─── Centraal beheer van kleuren. Aanpassen hier = overal. */
+:root {
+  /* Brand */
+  --c-brand:        #1e3a5c;   /* navy header / primaire branding */
+  --c-brand-dark:   #163a5c;   /* iets donkerder accent */
+  /* Primair (action) */
+  --c-primary:      #2563eb;   /* blauwe action knoppen, links */
+  --c-primary-hover:#1d4ed8;   /* hover voor primary */
+  --c-primary-deep: #1e40af;   /* deepest blue accent */
+  --c-primary-tint: #eff6ff;   /* lichte blauwe achtergrond (selectie, hover) */
+  --c-primary-tint2:#dbeafe;   /* iets meer verzadigde blauwe achtergrond */
+  /* Tekst */
+  --c-text:         #1e293b;   /* body tekst (slate-800) */
+  --c-text-2:       #334155;   /* iets lichter (slate-700) */
+  --c-text-3:       #475569;   /* secundaire tekst (slate-600) */
+  --c-muted:        #64748b;   /* muted tekst (slate-500) */
+  --c-muted-2:      #5b6b7f;   /* WCAG-opgehoogde muted (desktop) */
+  --c-muted-ios:    #68686d;   /* iOS-stijl muted op mobiel */
+  --c-placeholder:  #94a3b8;   /* placeholder / hint tekst (slate-400) */
+  /* Borders & lijnen */
+  --c-border:       #e2e8f0;   /* lichte border (slate-200) */
+  --c-border-2:     #cbd5e1;   /* iets donkerdere border (slate-300) */
+  --c-border-3:     #c7c7cc;   /* iOS-stijl chevron grijs */
+  /* Achtergronden */
+  --c-bg:           #f1f5f9;   /* page background (slate-100) */
+  --c-bg-2:         #f8fafc;   /* iets lichter (slate-50) */
+  --c-bg-3:         #f5f5f7;   /* iOS-stijl licht grijs */
+  /* Statussen */
+  --c-danger:       #ef4444;   /* rood */
+  --c-danger-light: #fca5a5;   /* lichter rood */
+  --c-success:      #15803d;   /* groen */
+  /* Apple/iOS toon */
+  --c-ios-text:     #1d1d1f;
+  --c-ios-muted:    #6e6e73;
+}
+/* Respecteer voorkeur voor minder beweging (WCAG 2.3.3) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;min-height:100vh;color:#1e293b;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
-.header{background:#1e3a5c;padding:max(16px,env(safe-area-inset-top)) 24px 16px;display:flex;align-items:center;gap:14px;justify-content:space-between}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--c-bg);min-height:100vh;color:var(--c-text);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+.header{background:var(--c-brand);padding:max(16px,env(safe-area-inset-top)) 24px 16px;display:flex;align-items:center;gap:14px;justify-content:space-between}
 .topbar-sticky{position:sticky;top:0;z-index:7000}
 /* Vóór de eerste auth-check: app-chrome verbergen zodat noch dashboard noch
    inlogscherm flitst bij F5. Achtergrond blijft neutraal. */
@@ -39,16 +87,16 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 }
 .header h1{font-size:17px;font-weight:600;color:#fff}
 .header p{font-size:11px;color:rgba(255,255,255,.6);margin-top:2px}
-.tabs{background:#fff;border-bottom:1px solid #e2e8f0;display:flex;align-items:stretch;padding:0 12px;overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
+.tabs{background:#fff;border-bottom:1px solid var(--c-border);display:flex;align-items:stretch;padding:0 12px;overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
 .tab-cfg{min-width:44px;display:flex;align-items:center;justify-content:center;padding:0 14px !important;font-size:inherit !important;letter-spacing:0}
-.tab{padding:12px 14px;font-size:13px;cursor:pointer;color:#64748b;border-bottom:2px solid transparent;transition:all .14s;user-select:none;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;gap:6px}
-.tab:hover{color:#1e293b}
-.tab.on{color:#1e3a5c;font-weight:600;border-bottom-color:#2563eb}
+.tab{padding:12px 14px;font-size:13px;cursor:pointer;color:var(--c-muted);border-bottom:2px solid transparent;transition:all .14s;user-select:none;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;gap:6px}
+.tab:hover{color:var(--c-text)}
+.tab.on{color:var(--c-brand);font-weight:600;border-bottom-color:var(--c-primary)}
 .content{padding:20px 24px;max-width:960px;margin:0 auto}
 /* ── Mobile bottom tabbar ──────────────────────────────────────────────── */
-.mobile-tabbar{display:none;position:fixed;bottom:0;left:0;right:0;height:66px;background:#fff;border-top:0.5px solid #e2e8f0;z-index:8000;padding-bottom:env(safe-area-inset-bottom)}
-.mob-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;font-family:inherit;color:#68686d;font-size:10px;font-weight:500;padding:8px 2px 4px;-webkit-tap-highlight-color:transparent;transition:color .12s}
-.mob-tab.on{color:#1d4ed8}
+.mobile-tabbar{display:none;position:fixed;bottom:0;left:0;right:0;height:66px;background:#fff;border-top:0.5px solid var(--c-border);z-index:8000;padding-bottom:env(safe-area-inset-bottom)}
+.mob-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;font-family:inherit;color:var(--c-muted-ios);font-size:10px;font-weight:500;padding:8px 2px 4px;-webkit-tap-highlight-color:transparent;transition:color .12s}
+.mob-tab.on{color:var(--c-primary-hover)}
 .mob-tab svg{flex-shrink:0}
 /* ── Desktop sidebar cfg layout ───────────────────────────────────────── */
 .cfg-shell{padding:0 !important;max-width:none !important}
@@ -59,39 +107,39 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .content:has(#pane-plan.on),
 .content:has(#pane-dienst.on){max-width:1400px !important}
 .cfg-layout{display:flex;min-height:calc(100vh - var(--topbar-h, 110px))}
-.cfg-rail{width:220px;flex-shrink:0;background:#fff;border-right:1px solid #e2e8f0;display:flex;flex-direction:column;padding:20px 0 0;gap:2px;position:sticky;top:var(--topbar-h, 110px);align-self:flex-start;height:calc(100vh - var(--topbar-h, 110px));overflow-y:auto}
-.cfg-rail-title{font-size:10px;font-weight:700;letter-spacing:.1em;color:#5b6b7f;padding:0 18px 10px;text-transform:uppercase}
-.cfg-nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;font-size:13px;font-weight:500;color:#475569;background:none;border:none;cursor:pointer;font-family:inherit;text-align:left;border-radius:0;transition:background .12s,color .12s;width:100%}
-.cfg-nav-item:hover{background:#f1f5f9;color:#1e293b}
-.cfg-nav-item.active{background:#eff6ff;color:#1d4ed8;font-weight:600;border-right:3px solid #2563eb}
+.cfg-rail{width:220px;flex-shrink:0;background:#fff;border-right:1px solid var(--c-border);display:flex;flex-direction:column;padding:20px 0 0;gap:2px;position:sticky;top:var(--topbar-h, 110px);align-self:flex-start;height:calc(100vh - var(--topbar-h, 110px));overflow-y:auto}
+.cfg-rail-title{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--c-muted-2);padding:0 18px 10px;text-transform:uppercase}
+.cfg-nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;font-size:13px;font-weight:500;color:var(--c-text-3);background:none;border:none;cursor:pointer;font-family:inherit;text-align:left;border-radius:0;transition:background .12s,color .12s;width:100%}
+.cfg-nav-item:hover{background:var(--c-bg);color:var(--c-text)}
+.cfg-nav-item.active{background:var(--c-primary-tint);color:var(--c-primary-hover);font-weight:600;border-right:3px solid var(--c-primary)}
 .cfg-nav-item svg{flex-shrink:0;opacity:.75}
 .cfg-nav-item.active svg{opacity:1}
 .cfg-nav-sub{display:none;flex-direction:column;padding:2px 0 4px 34px;gap:0}
 .cfg-nav-sub.open{display:flex}
-.cfg-nav-sub-item{padding:6px 12px;font-size:12px;font-weight:500;color:#64748b;background:none;border:none;cursor:pointer;font-family:inherit;text-align:left;border-radius:6px;transition:background .1s,color .1s;width:100%}
-.cfg-nav-sub-item:hover{background:#f1f5f9;color:#1e293b}
-.cfg-nav-sub-item.active{color:#1d4ed8;font-weight:600;background:#eff6ff}
-.cfg-icon-btn{background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:13px;padding:0 2px;flex-shrink:0;line-height:1;font-family:inherit;transition:color .1s}
-.cfg-icon-btn:hover{color:#2563eb}
-.cfg-icon-btn-del:hover{color:#ef4444}
-.cfg-rail-footer{padding:16px 18px 20px;border-top:1px solid #f1f5f9;margin-top:auto}
+.cfg-nav-sub-item{padding:6px 12px;font-size:12px;font-weight:500;color:var(--c-muted);background:none;border:none;cursor:pointer;font-family:inherit;text-align:left;border-radius:6px;transition:background .1s,color .1s;width:100%}
+.cfg-nav-sub-item:hover{background:var(--c-bg);color:var(--c-text)}
+.cfg-nav-sub-item.active{color:var(--c-primary-hover);font-weight:600;background:var(--c-primary-tint)}
+.cfg-icon-btn{background:none;border:none;cursor:pointer;color:var(--c-border-2);font-size:13px;padding:0 2px;flex-shrink:0;line-height:1;font-family:inherit;transition:color .1s;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center}
+.cfg-icon-btn:hover{color:var(--c-primary)}
+.cfg-icon-btn-del:hover{color:var(--c-danger)}
+.cfg-rail-footer{padding:16px 18px 20px;border-top:1px solid var(--c-bg);margin-top:auto}
 .cfg-rail-lock-row{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#16a34a;margin-bottom:10px}
-.cfg-rail-btn{padding:5px 10px;border:1px solid #e2e8f0;border-radius:6px;background:#f8fafc;color:#64748b;font-size:11px;cursor:pointer;font-family:inherit;transition:all .12s;margin-right:4px}
-.cfg-rail-btn:hover{border-color:#cbd5e1;color:#1e293b}
-.cfg-detail{flex:1;padding:28px 32px;overflow-y:auto;background:#f8fafc;min-width:0}
-.cfg-section{background:#fff;border-radius:10px;border:1px solid #e2e8f0;padding:22px 24px;display:none}
+.cfg-rail-btn{padding:5px 10px;border:1px solid var(--c-border);border-radius:6px;background:var(--c-bg-2);color:var(--c-muted);font-size:11px;cursor:pointer;font-family:inherit;transition:all .12s;margin-right:4px}
+.cfg-rail-btn:hover{border-color:var(--c-border-2);color:var(--c-text)}
+.cfg-detail{flex:1;padding:28px 32px;overflow-y:auto;background:var(--c-bg-2);min-width:0}
+.cfg-section{background:#fff;border-radius:10px;border:1px solid var(--c-border);padding:22px 24px;display:none}
 .cfg-section.active{display:block}
 .cfg-sec-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
-.cfg-sec-title{font-size:16px;font-weight:700;color:#1e293b}
-.cfg-sec-sub{font-size:12px;color:#5b6b7f;margin-top:2px}
-.cfg-action-btn{padding:7px 14px;border-radius:7px;border:1.5px solid #2563eb;background:#2563eb;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;transition:opacity .12s}
+.cfg-sec-title{font-size:16px;font-weight:700;color:var(--c-text)}
+.cfg-sec-sub{font-size:12px;color:var(--c-muted-2);margin-top:2px}
+.cfg-action-btn{padding:7px 14px;border-radius:7px;border:1.5px solid var(--c-primary);background:var(--c-primary);color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;transition:opacity .12s}
 .cfg-action-btn:hover{opacity:.85}
-.cfg-action-btn-sec{background:#f1f5f9;border-color:#e2e8f0;color:#475569}
-.cfg-action-btn-sec:hover{background:#e2e8f0;opacity:1}
-.cfg-gedrag-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid #f1f5f9}
+.cfg-action-btn-sec{background:var(--c-bg);border-color:var(--c-border);color:var(--c-text-3)}
+.cfg-action-btn-sec:hover{background:var(--c-border);opacity:1}
+.cfg-gedrag-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--c-bg)}
 .cfg-gedrag-row:last-child{border-bottom:none}
-.cfg-gedrag-label{font-size:13px;font-weight:500;color:#1e293b}
-.cfg-gedrag-sub{font-size:11px;color:#5b6b7f;margin-top:2px}
+.cfg-gedrag-label{font-size:13px;font-weight:500;color:var(--c-text)}
+.cfg-gedrag-sub{font-size:11px;color:var(--c-muted-2);margin-top:2px}
 /* ── Mobile cfg layout ────────────────────────────────────────────────── */
 @media(max-width:700px){
   .tabs{display:none}
@@ -109,56 +157,56 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .cfg-mob-strip{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;background:#fff;border-bottom:0.5px solid #e5e5ea}
 .cfg-mob-strip-left{display:flex;align-items:center;gap:6px;min-width:0}
 #cfg-mob-lock-title{font-size:13px;font-weight:600;color:#1c1c1e;white-space:nowrap}
-.cfg-mob-strip-dot{color:#c7c7cc;font-size:12px}
-.cfg-mob-strip-sub{font-size:12px;color:#68686d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cfg-mob-strip-btn{flex-shrink:0;padding:5px 12px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;color:#475569;font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;white-space:nowrap}
+.cfg-mob-strip-dot{color:var(--c-border-3);font-size:12px}
+.cfg-mob-strip-sub{font-size:12px;color:var(--c-muted-ios);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cfg-mob-strip-btn{flex-shrink:0;padding:5px 12px;border:1px solid var(--c-border-2);border-radius:7px;background:#fff;color:var(--c-text-3);font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;white-space:nowrap}
 .cfg-mob-strip #cfg-mob-strip-icon{color:#16a34a}
-.cfg-mob-strip.locked #cfg-mob-strip-icon{color:#68686d}
+.cfg-mob-strip.locked #cfg-mob-strip-icon{color:var(--c-muted-ios)}
 .cfg-mob-page-title{font-size:22px;font-weight:700;color:#1c1c1e;padding:20px 16px 4px}
-.cfg-mob-section-label{font-size:11px;font-weight:600;color:#68686d;letter-spacing:.05em;text-transform:uppercase;padding:16px 16px 5px}
+.cfg-mob-section-label{font-size:11px;font-weight:600;color:var(--c-muted-ios);letter-spacing:.05em;text-transform:uppercase;padding:16px 16px 5px}
 .cfg-mob-list{margin:0 16px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 .cfg-mob-row{display:flex;align-items:center;gap:12px;padding:13px 14px 13px 16px;border-bottom:0.5px solid #f0f0f0;cursor:pointer;background:#fff;width:100%;border-left:none;border-right:none;border-top:none;font-family:inherit;text-align:left;-webkit-tap-highlight-color:transparent;transition:background .1s}
 .cfg-mob-row:active{background:#f5f5f5}
 .cfg-mob-row:last-child{border-bottom:none}
 .cfg-mob-row-icon{width:34px;height:34px;border-radius:9px;background:#eef2ff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.cfg-mob-row-icon-slate{background:#f1f5f9 !important}
+.cfg-mob-row-icon-slate{background:var(--c-bg) !important}
 .cfg-mob-row-text{flex:1;min-width:0}
 .cfg-mob-row-title{font-size:15px;font-weight:500;color:#1c1c1e}
-.cfg-mob-row-sub{font-size:12px;color:#68686d;margin-top:1px}
-.cfg-mob-badge{font-size:12px;color:#68686d;margin-right:4px;flex-shrink:0}
+.cfg-mob-row-sub{font-size:12px;color:var(--c-muted-ios);margin-top:1px}
+.cfg-mob-badge{font-size:12px;color:var(--c-muted-ios);margin-right:4px;flex-shrink:0}
 .cfg-mob-chevron{flex-shrink:0}
-.cfg-mob-detail-header{background:#1e3a5c;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0}
+.cfg-mob-detail-header{background:var(--c-brand);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0}
 .cfg-mob-back{display:flex;align-items:center;gap:4px;background:none;border:none;color:#93c5fd;font-size:15px;font-family:inherit;cursor:pointer;padding:4px 0;-webkit-tap-highlight-color:transparent}
 .cfg-mob-detail-title{font-size:16px;font-weight:700;color:#fff;flex:1;text-align:center}
-.cfg-mob-detail-action{background:#2563eb;color:#fff;border:none;border-radius:7px;padding:7px 13px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap}
+.cfg-mob-detail-action{background:var(--c-primary);color:#fff;border:none;border-radius:7px;padding:7px 13px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap}
 .cfg-mob-detail-body{flex:1;overflow-y:auto;padding:16px}
-.cfg-mob-footer{text-align:center;font-size:11px;color:#68686d;padding:24px 16px 8px}
+.cfg-mob-footer{text-align:center;font-size:11px;color:var(--c-muted-ios);padding:24px 16px 8px}
 .pane{display:none}.pane.on{display:block}
-.lbl{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#64748b;margin-bottom:8px}
+.lbl{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--c-muted);margin-bottom:8px}
 .btn-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
-.pin-key{padding:14px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff;font-size:20px;font-weight:500;color:#1e293b;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .1s,transform .08s;user-select:none}
-.pin-key:active{background:#f1f5f9;transform:scale(.94)}
-.pin-key-del{color:#64748b}
-.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid #cbd5e1;background:#fff;transition:background .15s,border-color .15s}
-.pin-dot.filled{background:#1e40af;border-color:#1e40af}
-.nbtn{padding:9px 15px;border-radius:8px;border:1.5px solid #cbd5e1;background:#fff;color:#334155;font-size:13px;cursor:pointer;transition:all .13s;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.pin-key{padding:14px;border:1.5px solid var(--c-border);border-radius:10px;background:#fff;font-size:20px;font-weight:500;color:var(--c-text);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .1s,transform .08s;user-select:none}
+.pin-key:active{background:var(--c-bg);transform:scale(.94)}
+.pin-key-del{color:var(--c-muted)}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--c-border-2);background:#fff;transition:background .15s,border-color .15s}
+.pin-dot.filled{background:var(--c-primary-deep);border-color:var(--c-primary-deep)}
+.nbtn{padding:9px 15px;border-radius:8px;border:1.5px solid var(--c-border-2);background:#fff;color:var(--c-text-2);font-size:13px;cursor:pointer;transition:all .13s;font-family:inherit;-webkit-tap-highlight-color:transparent}
 .nbtn:focus,.nbtn:focus-visible{outline:none;box-shadow:none}
-@media(hover:hover) and (pointer:fine){.nbtn:hover{border-color:#2563eb;color:#1e3a5c;background:#eff6ff}}
-.nbtn.sel{background:#1e3a5c;border-color:#1e3a5c;color:#fff;font-weight:600}
+@media(hover:hover) and (pointer:fine){.nbtn:hover{border-color:var(--c-primary);color:var(--c-brand);background:var(--c-primary-tint)}}
+.nbtn.sel{background:var(--c-brand);border-color:var(--c-brand);color:#fff;font-weight:600}
 .nbtn-av{display:inline-flex;align-items:center;gap:7px}
 .nbtn-avatar{width:22px;height:22px;border-radius:50%;background:#cdd6e2;color:#445;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;letter-spacing:.02em;line-height:1}
-.nbtn-av.sel .nbtn-avatar{background:#fff;color:#1e3a5c}
+.nbtn-av.sel .nbtn-avatar{background:#fff;color:var(--c-brand)}
 
 .act-row{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:20px}
 .abtn{padding:11px 22px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:7px;transition:all .13s}
 .abtn:not(:disabled):hover{opacity:.88;transform:translateY(-1px)}
 .abtn:not(:disabled):active{transform:scale(0.97)}
 .abtn:disabled{opacity:.35;cursor:not-allowed;transform:none;pointer-events:none}
-.abtn-s{background:#1d4ed8;color:#fff}
-.abtn-r{background:#15803d;color:#fff}
-.abtn-w{background:#f1f5f9;color:#64748b;border:1px solid #cbd5e1}
-.abtn-w:not(:disabled):hover{background:#e2e8f0}
-.hr{border:none;border-top:1px solid #e2e8f0;margin:16px 0}
+.abtn-s{background:var(--c-primary-hover);color:#fff}
+.abtn-r{background:var(--c-success);color:#fff}
+.abtn-w{background:var(--c-bg);color:var(--c-muted);border:1px solid var(--c-border-2)}
+.abtn-w:not(:disabled):hover{background:var(--c-border)}
+.hr{border:none;border-top:1px solid var(--c-border);margin:16px 0}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
 #all-active-cards,#live-cards-active{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;align-items:start}
 .cards-done{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
@@ -168,7 +216,7 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .live-split:has(.live-col-done[style*="display: none"]){grid-template-columns:1fr}
 .live-split:has(.live-col-done[style*="display:none"]) .live-col-onderweg #live-cards-active,
 .live-split:has(.live-col-done[style*="display: none"]) .live-col-onderweg #live-cards-active{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
-.live-col-done .done-panel{background:#fff;border:1px solid #e2e8f0;border-radius:11px;padding:8px 16px 6px}
+.live-col-done .done-panel{background:#fff;border:1px solid var(--c-border);border-radius:11px;padding:8px 16px 6px}
 .done-panel .done-list{border-top:none}
 .done-panel .dl-item:last-child{border-bottom:none}
 @media(max-width:600px){
@@ -176,105 +224,105 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
   .live-col-done{margin-top:16px}
   .done-panel{padding:6px 11px 4px}
 }
-.done-list{display:flex;flex-direction:column;border-top:1px solid #e2e8f0}
-.dl-item{padding:9px 2px;border-bottom:1px solid #e2e8f0}
+.done-list{display:flex;flex-direction:column;border-top:1px solid var(--c-border)}
+.dl-item{padding:9px 2px;border-bottom:1px solid var(--c-border)}
 .dl-row{display:grid;grid-template-columns:auto 1fr auto auto;align-items:baseline;column-gap:10px}
-.dl-dot{width:6px;height:6px;border-radius:50%;background:#cbd5e1;transform:translateY(-1px)}
+.dl-dot{width:6px;height:6px;border-radius:50%;background:var(--c-border-2);transform:translateY(-1px)}
 .dl-main{min-width:0;display:flex;align-items:baseline;gap:8px;overflow:hidden}
-.dl-route{font-size:13px;font-weight:500;color:#334155;white-space:nowrap;flex-shrink:0}
-.dl-name{font-size:12px;color:#64748b;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dl-time{font-size:12px;color:#64748b;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
-.dl-dur{font-size:12px;font-weight:600;color:#334155;font-variant-numeric:tabular-nums;width:54px;text-align:right}
-.dl-note{font-size:11.5px;font-style:italic;color:#64748b;line-height:1.45;margin:5px 0 1px 16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dl-note-ic{color:#94a3b8;font-style:normal}
-.dl-more{margin-top:10px;padding:0;border:none;background:none;color:#1d4ed8;font-size:12px;font-family:inherit;cursor:pointer}
+.dl-route{font-size:13px;font-weight:500;color:var(--c-text-2);white-space:nowrap;flex-shrink:0}
+.dl-name{font-size:12px;color:var(--c-muted);font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dl-time{font-size:12px;color:var(--c-muted);font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+.dl-dur{font-size:12px;font-weight:600;color:var(--c-text-2);font-variant-numeric:tabular-nums;width:54px;text-align:right}
+.dl-note{font-size:11.5px;font-style:italic;color:var(--c-muted);line-height:1.45;margin:5px 0 1px 16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dl-note-ic{color:var(--c-placeholder);font-style:normal}
+.dl-more{margin-top:10px;padding:0;border:none;background:none;color:var(--c-primary-hover);font-size:12px;font-family:inherit;cursor:pointer}
 @media(max-width:600px){
   .dl-row{column-gap:8px}
   .dl-time,.dl-dur{font-size:11.5px}
   .dl-dur{width:46px}
 }
-.card{border-radius:10px;padding:14px 16px;border:1px solid #e2e8f0;background:#fff}
-.card.ca{border-color:#ef4444;border-width:1.5px;background:#fef2f2}
+.card{border-radius:10px;padding:14px 16px;border:1px solid var(--c-border);background:#fff}
+.card.ca{border-color:var(--c-danger);border-width:1.5px;background:#fef2f2}
 .card.cd{border-color:#16a34a;background:#f0fdf4}
 .cst{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;gap:5px}
 .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.dot-r{background:#ef4444;animation:pulse 1.4s infinite}
+.dot-r{background:var(--c-danger);animation:pulse 1.4s infinite}
 .dot-g{background:#22c55e}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
-.cn{font-size:15px;font-weight:700;color:#1e293b;margin-bottom:2px}
+.cn{font-size:15px;font-weight:700;color:var(--c-text);margin-bottom:2px}
 .card.ca .cn{color:#991b1b}
 .card.cd .cn{color:#14532d}
-.cr{font-size:15px;font-weight:600;color:#334155;margin-bottom:8px}
+.cr{font-size:15px;font-weight:600;color:var(--c-text-2);margin-bottom:8px}
 .card.ca .cr{color:#991b1b}
 .card.cd .cr{color:#166534}
 .cel{font-size:11px;font-weight:400;color:#b0b8c8;font-variant-numeric:tabular-nums}
-.ct{font-size:11px;color:#5b6b7f;margin-top:4px;font-weight:400;display:flex;align-items:center;gap:4px}
+.ct{font-size:11px;color:var(--c-muted-2);margin-top:4px;font-weight:400;display:flex;align-items:center;gap:4px}
 .card.ca .ct{color:#c9a0a0}
 .card.cd .ct{color:#86a88e}
-.rbtn{width:100%;margin-top:10px;padding:7px;border-radius:6px;border:1.5px solid #15803d;background:transparent;color:#15803d;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .13s;-webkit-tap-highlight-color:transparent}
-@media(hover:hover) and (pointer:fine){.rbtn:hover{background:#15803d;color:#fff}}
+.rbtn{width:100%;margin-top:10px;padding:7px;border-radius:6px;border:1.5px solid var(--c-success);background:transparent;color:var(--c-success);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .13s;-webkit-tap-highlight-color:transparent}
+@media(hover:hover) and (pointer:fine){.rbtn:hover{background:var(--c-success);color:#fff}}
 /* ── Actieve 'onderweg'-kaart: nieuwe look ─────────────────────────────────── */
-.card.ca{position:relative;border-color:#e2e8f0;border-width:1px;background:#fff;border-left:2px solid #ef4444;display:flex;flex-direction:column}
+.card.ca{position:relative;border-color:var(--c-border);border-width:1px;background:#fff;border-left:2px solid var(--c-danger);display:flex;flex-direction:column}
 .lc-rij{display:flex;align-items:center;gap:8px}
-.lc-ronde{font-size:15px;font-weight:700;color:#1e293b;line-height:1.2}
-.lc-mw{margin-top:5px;font-size:14px;font-weight:500;color:#334155}
-.lc-meta{margin-top:4px;font-size:11px;color:#94a3b8;font-variant-numeric:tabular-nums}
-.lc-over{color:#ef4444;font-weight:600}
+.lc-ronde{font-size:15px;font-weight:700;color:var(--c-text);line-height:1.2}
+.lc-mw{margin-top:5px;font-size:14px;font-weight:500;color:var(--c-text-2)}
+.lc-meta{margin-top:4px;font-size:11px;color:var(--c-placeholder);font-variant-numeric:tabular-nums}
+.lc-over{color:var(--c-danger);font-weight:600}
 /* Notitie-blok */
-.lc-note{margin-top:11px;padding-top:11px;border-top:1px solid #e2e8f0}
-.lc-note-add{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#64748b;background:none;border:none;padding:0;cursor:pointer;font-family:inherit;white-space:nowrap}
-.lc-note-add:hover{color:#1d4ed8}
+.lc-note{margin-top:11px;padding-top:11px;border-top:1px solid var(--c-border)}
+.lc-note-add{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--c-muted);background:none;border:none;padding:0;cursor:pointer;font-family:inherit;white-space:nowrap}
+.lc-note-add:hover{color:var(--c-primary-hover)}
 .lc-note-add svg{width:13px;height:13px;flex-shrink:0}
-.lc-note-show{display:flex;align-items:flex-start;gap:6px;font-size:12.5px;font-style:italic;color:#334155;line-height:1.35}
-.lc-note-show svg{width:13px;height:13px;flex-shrink:0;margin-top:2px;color:#94a3b8;font-style:normal}
-.lc-note-edit{margin-left:auto;font-size:11.5px;color:#1d4ed8;background:none;border:none;cursor:pointer;font-family:inherit;font-style:normal;white-space:nowrap;flex-shrink:0}
+.lc-note-show{display:flex;align-items:flex-start;gap:6px;font-size:12.5px;font-style:italic;color:var(--c-text-2);line-height:1.35}
+.lc-note-show svg{width:13px;height:13px;flex-shrink:0;margin-top:2px;color:var(--c-placeholder);font-style:normal}
+.lc-note-edit{margin-left:auto;font-size:11.5px;color:var(--c-primary-hover);background:none;border:none;cursor:pointer;font-family:inherit;font-style:normal;white-space:nowrap;flex-shrink:0}
 .lc-note-edit:hover{text-decoration:underline}
-.lc-note-area{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:8px;padding:9px 11px;font-size:12.5px;font-family:inherit;resize:vertical;min-height:48px;color:#1e293b}
-.lc-note-area:focus{outline:none;border-color:#1d4ed8}
+.lc-note-area{width:100%;box-sizing:border-box;border:1px solid var(--c-border-2);border-radius:8px;padding:9px 11px;font-size:12.5px;font-family:inherit;resize:vertical;min-height:48px;color:var(--c-text)}
+.lc-note-area:focus{outline:none;border-color:var(--c-primary-hover)}
 .lc-note-row{display:flex;align-items:center;justify-content:space-between;margin-top:6px;gap:8px}
-.lc-note-hint{font-size:10.5px;color:#94a3b8}
-.lc-note-save{font-size:12px;font-weight:600;color:#fff;background:#1d4ed8;border:none;border-radius:6px;padding:6px 12px;cursor:pointer;font-family:inherit;white-space:nowrap}
-.lc-note-save:hover:not(:disabled){background:#1e40af}
-.lc-note-save:disabled{background:#cbd5e1;color:#94a3b8;cursor:not-allowed}
+.lc-note-hint{font-size:10.5px;color:var(--c-placeholder)}
+.lc-note-save{font-size:12px;font-weight:600;color:#fff;background:var(--c-primary-hover);border:none;border-radius:6px;padding:6px 12px;cursor:pointer;font-family:inherit;white-space:nowrap}
+.lc-note-save:hover:not(:disabled){background:var(--c-primary-deep)}
+.lc-note-save:disabled{background:var(--c-border-2);color:var(--c-placeholder);cursor:not-allowed}
 /* Retour-rij onderaan */
-.lc-retour{margin-top:12px;padding-top:12px;border-top:1px solid #e2e8f0;display:flex;gap:7px;flex-wrap:wrap}
+.lc-retour{margin-top:12px;padding-top:12px;border-top:1px solid var(--c-border);display:flex;gap:7px;flex-wrap:wrap}
 .lc-add{position:absolute;top:8px;right:8px;margin:0}
-.lc-add-btn{display:flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;background:#eff6ff;color:#1d4ed8;border:1px solid #93c5fd;border-radius:6px;cursor:pointer}
-.lc-add-btn:hover{background:#dbeafe;border-color:#3b82f6}
+.lc-add-btn{display:flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;background:var(--c-primary-tint);color:var(--c-primary-hover);border:1px solid #93c5fd;border-radius:6px;cursor:pointer}
+.lc-add-btn:hover{background:var(--c-primary-tint2);border-color:#3b82f6}
 .lc-add-btn svg{width:16px;height:16px;flex-shrink:0}
 .lc-add-btn span{display:none}
 .card.ca .rbtn{margin-top:0}
-.empty{text-align:center;padding:3rem;color:#5b6b7f;font-size:13px}
+.empty{text-align:center;padding:3rem;color:var(--c-muted-2);font-size:13px}
 /* Lege 'onderweg'-melding spant beide grid-kolommen en krijgt dezelfde
    omkaderde kaart-look als 'Recent afgerond' ernaast, i.p.v. links zweven. */
-#live-cards-active .empty{grid-column:1/-1;background:#fff;border:1px solid #e2e8f0;border-radius:11px;padding:2.4rem 1rem;color:#94a3b8}
+#live-cards-active .empty{grid-column:1/-1;background:#fff;border:1px solid var(--c-border);border-radius:11px;padding:2.4rem 1rem;color:var(--c-placeholder)}
 table{width:100%;border-collapse:collapse;font-size:12px}
-th{text-align:left;padding:9px 12px;font-size:11px;font-weight:600;color:#64748b;background:#f8fafc;border-bottom:1px solid #e2e8f0;white-space:nowrap}
-td{padding:9px 12px;border-bottom:1px solid #f1f5f9;color:#334155;vertical-align:middle}
-tbody tr:hover td{background:#f8fafc}
-.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;background:#dcfce7;color:#15803d}
+th{text-align:left;padding:9px 12px;font-size:11px;font-weight:600;color:var(--c-muted);background:var(--c-bg-2);border-bottom:1px solid var(--c-border);white-space:nowrap}
+td{padding:9px 12px;border-bottom:1px solid var(--c-bg);color:var(--c-text-2);vertical-align:middle}
+tbody tr:hover td{background:var(--c-bg-2)}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;background:#dcfce7;color:var(--c-success)}
 .tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
-.tag{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:6px;background:#f1f5f9;border:1px solid #e2e8f0;font-size:12px;color:#334155}
-.tag button{background:none;border:none;color:#5b6b7f;cursor:pointer;font-size:13px;line-height:1;padding:0;margin-left:2px}
-.tag button:hover{color:#ef4444}
+.tag{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:6px;background:var(--c-bg);border:1px solid var(--c-border);font-size:12px;color:var(--c-text-2)}
+.tag button{background:none;border:none;color:var(--c-muted-2);cursor:pointer;font-size:13px;line-height:1;padding:0;margin-left:2px}
+.tag button:hover{color:var(--c-danger)}
 .inp-row{display:flex;gap:8px;margin-top:8px}
-input[type=text]{flex:1;padding:8px 12px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;color:#1e293b;font-size:13px;font-family:inherit}
-input[type=text]:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px #dbeafe}
-.sm{padding:8px 14px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;color:#64748b;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .12s}
-.sm:hover{border-color:#2563eb;color:#1e3a5c}
-.sm.del{border-color:#fca5a5}
+input[type=text]{flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--c-border-2);background:#fff;color:var(--c-text);font-size:13px;font-family:inherit}
+input[type=text]:focus{outline:none;border-color:var(--c-primary);box-shadow:0 0 0 3px var(--c-primary-tint2)}
+.sm{padding:8px 14px;border-radius:8px;border:1px solid var(--c-border-2);background:#fff;color:var(--c-muted);font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .12s}
+.sm:hover{border-color:var(--c-primary);color:var(--c-brand)}
+.sm.del{border-color:var(--c-danger-light)}
 .sm.del:hover{background:#fee2e2;color:#dc2626}
-.toast{position:fixed;bottom:max(20px,calc(env(safe-area-inset-bottom) + 12px));left:50%;transform:translateX(-50%) translateY(120px);background:#1e293b;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-family:inherit;transition:transform .25s ease;z-index:999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+.toast{position:fixed;bottom:max(20px,calc(env(safe-area-inset-bottom) + 12px));left:50%;transform:translateX(-50%) translateY(120px);background:var(--c-text);color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-family:inherit;transition:transform .25s ease;z-index:999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.2)}
 .toast.show{transform:translateX(-50%) translateY(0)}
 /* ── Op dienst-tab (v2.3.13) ───────────────────────────────────────── */
 #dienst-selectiebalk{position:sticky;top:0;z-index:5;background:#fff;border:1px solid #dce3ec;border-radius:11px;box-shadow:0 1px 2px rgba(17,42,68,.04),0 4px 16px rgba(17,42,68,.05);padding:13px 15px;margin-bottom:18px}
 #dienst-selectiebalk-top{display:flex;align-items:center;gap:9px}
-#dienst-teller{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 7px;border-radius:7px;background:#163a5c;color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
+#dienst-teller{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 7px;border-radius:7px;background:var(--c-brand-dark);color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
 #dienst-teller-label{font-size:13px;font-weight:600;color:#18283a}
 #dienst-wis{margin-left:auto;border:none;background:none;color:#5d6e80;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;padding:4px 6px;border-radius:6px}
-#dienst-wis:hover{color:#163a5c;background:#eaf0f7}
+#dienst-wis:hover{color:var(--c-brand-dark);background:#eaf0f7}
 #dienst-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
-.dienst-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 9px 4px 4px;border-radius:999px;background:#eaf0f7;border:1px solid #cdd9e8;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;color:#163a5c;flex-shrink:0;transition:background .12s}
+.dienst-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 9px 4px 4px;border-radius:999px;background:#eaf0f7;border:1px solid #cdd9e8;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;color:var(--c-brand-dark);flex-shrink:0;transition:background .12s}
 .dienst-chip:hover{background:#dde7f3}
 .dienst-chip .dienst-av{width:22px;height:22px;font-size:9px}
 .dienst-chip .x{font-size:14px;line-height:1;color:#5d6e80;margin-left:1px}
@@ -284,14 +332,14 @@ input[type=text]:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px #d
 .dienst-rij{display:grid;grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:6px;flex:1}
 .dienst-kaart{display:flex;align-items:center;gap:7px;padding:5px 9px;border-radius:8px;border:1px solid #dce3ec;background:#fff;cursor:pointer;font-family:inherit;text-align:left;min-height:36px;transition:background .12s,border-color .12s;width:100%}
 .dienst-kaart:hover{border-color:#b9c6d8}
-.dienst-kaart.on{background:#eaf0f7;border-color:#163a5c}
+.dienst-kaart.on{background:#eaf0f7;border-color:var(--c-brand-dark)}
 .dienst-av{width:23px;height:23px;border-radius:50%;background:#cdd6e2;color:#445;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;letter-spacing:.02em}
-.dienst-kaart.on .dienst-av{background:#163a5c;color:#fff}
+.dienst-kaart.on .dienst-av{background:var(--c-brand-dark);color:#fff}
 .dienst-naam{flex:1;font-size:12.5px;color:#18283a;font-weight:500;line-height:1.2}
-.dienst-kaart.on .dienst-naam{color:#163a5c;font-weight:600}
-.dienst-check{width:17px;height:17px;border-radius:50%;border:1.5px solid #cbd5e1;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:opacity .12s,background .12s,border-color .12s;opacity:0}
+.dienst-kaart.on .dienst-naam{color:var(--c-brand-dark);font-weight:600}
+.dienst-check{width:17px;height:17px;border-radius:50%;border:1.5px solid var(--c-border-2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:opacity .12s,background .12s,border-color .12s;opacity:0}
 .dienst-kaart:hover .dienst-check{opacity:1}
-.dienst-kaart.on .dienst-check{opacity:1;border-color:#163a5c;background:#163a5c}
+.dienst-kaart.on .dienst-check{opacity:1;border-color:var(--c-brand-dark);background:var(--c-brand-dark)}
 .dienst-check svg{display:none}
 .dienst-kaart.on .dienst-check svg{display:block}
 .dienst-kaart:focus,.dienst-kaart:focus-visible{outline:none;box-shadow:none}
@@ -336,17 +384,19 @@ input[type=text]:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px #d
   .tl-toggle-btn{display:flex !important}
   #timeline-outer{display:none}
   #timeline-outer.tl-open{display:block}
-  #timeline-legend{display:none}
+  #timeline-legend{display:none !important}
   #timeline-legend.tl-open{display:flex !important}
+  #tl-window-seg{display:none !important}
+  #tl-window-seg.tl-open{display:inline-flex !important}
   .lbl{font-size:11px}
   .toast{font-size:12px;padding:10px 16px;max-width:90vw;white-space:normal;text-align:center;bottom:calc(66px + env(safe-area-inset-bottom) + 12px)}
 }
 
 /* Segmented 24u/12u-schakelaar (tijdlijn-venster) */
-#tl-window-seg{display:inline-flex;border:1px solid #cbd5e1;border-radius:8px;overflow:hidden;background:#f1f5f9}
-.tl-seg{padding:6px 14px;font-size:12px;font-family:inherit;border:0;background:transparent;color:#64748b;cursor:pointer;font-weight:600;transition:background .12s,color .12s;min-width:44px}
-.tl-seg + .tl-seg{border-left:1px solid #cbd5e1}
-.tl-seg.on{background:#fff;color:#1e293b;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+#tl-window-seg{display:inline-flex;border:1px solid var(--c-border-2);border-radius:8px;overflow:hidden;background:var(--c-bg)}
+.tl-seg{padding:6px 14px;font-size:12px;font-family:inherit;border:0;background:transparent;color:var(--c-muted);cursor:pointer;font-weight:600;transition:background .12s,color .12s;min-width:44px}
+.tl-seg + .tl-seg{border-left:1px solid var(--c-border-2)}
+.tl-seg.on{background:#fff;color:var(--c-text);box-shadow:0 1px 2px rgba(0,0,0,.08)}
 
 /* ── Touch / iPad optimisations ── */
 @media (max-width: 1024px) {
@@ -392,7 +442,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   .tag button { padding: 4px 8px; min-width: 28px; min-height: 28px; }
   .nbtn:active { transform: scale(0.97); }
   .abtn:active { transform: scale(0.97); }
-  .rbtn:active { background: #15803d; color: #fff; }
+  .rbtn:active { background: var(--c-success); color: #fff; }
 }
 
 #timeline-outer { margin-top: 8px; }
@@ -402,38 +452,38 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 #timeline-canvas { display: block; }
 
 /* Meldingen overlay */
-.bel-wrap{position:relative;cursor:pointer;padding:0 14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:none;border:none;border-bottom:2px solid transparent;transition:all .13s;color:#64748b}
-.bel-wrap:hover{color:#1e293b;background:rgba(0,0,0,.04)}
-.bel-badge{position:absolute;top:6px;right:4px;background:#ef4444;color:#fff;font-size:9px;font-weight:700;border-radius:8px;min-width:15px;height:15px;display:none;align-items:center;justify-content:center;padding:0 3px;border:1.5px solid #fff}
+.bel-wrap{position:relative;cursor:pointer;padding:0 14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:none;border:none;border-bottom:2px solid transparent;transition:all .13s;color:var(--c-muted)}
+.bel-wrap:hover{color:var(--c-text);background:rgba(0,0,0,.04)}
+.bel-badge{position:absolute;top:6px;right:4px;background:var(--c-danger);color:#fff;font-size:9px;font-weight:700;border-radius:8px;min-width:15px;height:15px;display:none;align-items:center;justify-content:center;padding:0 3px;border:1.5px solid #fff}
 .meld-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:8000;pointer-events:none}
 .meld-overlay.open{pointer-events:auto}
 .meld-backdrop{position:absolute;inset:0;display:none}
 .meld-overlay.open .meld-backdrop{display:block}
-.meld-panel{position:fixed;top:56px;right:12px;width:310px;max-width:calc(100vw - 24px);background:#fff;border-radius:10px;border:1px solid #e2e8f0;box-shadow:0 8px 28px rgba(0,0,0,.14);z-index:8001;display:none;flex-direction:column;max-height:420px;overflow:hidden}
+.meld-panel{position:fixed;top:56px;right:12px;width:310px;max-width:calc(100vw - 24px);background:#fff;border-radius:10px;border:1px solid var(--c-border);box-shadow:0 8px 28px rgba(0,0,0,.14);z-index:8001;display:none;flex-direction:column;max-height:420px;overflow:hidden}
 .meld-overlay.open .meld-panel{display:flex}
-.meld-header{display:flex;align-items:center;justify-content:space-between;padding:11px 14px 8px;border-bottom:1px solid #f1f5f9;flex-shrink:0}
-.meld-title{font-size:13px;font-weight:600;color:#1e293b}
-.meld-wis{font-size:11px;color:#5b6b7f;cursor:pointer;background:none;border:none;font-family:inherit;text-decoration:underline;padding:0}
-.meld-wis:hover{color:#64748b}
+.meld-header{display:flex;align-items:center;justify-content:space-between;padding:11px 14px 8px;border-bottom:1px solid var(--c-bg);flex-shrink:0}
+.meld-title{font-size:13px;font-weight:600;color:var(--c-text)}
+.meld-wis{font-size:11px;color:var(--c-muted-2);cursor:pointer;background:none;border:none;font-family:inherit;text-decoration:underline;padding:0}
+.meld-wis:hover{color:var(--c-muted)}
 .meld-body{overflow-y:auto;flex:1}
-.meld-item{display:flex;gap:10px;padding:10px 14px;border-bottom:1px solid #f8fafc;align-items:flex-start}
+.meld-item{display:flex;gap:10px;padding:10px 14px;border-bottom:1px solid var(--c-bg-2);align-items:flex-start}
 .meld-item:last-child{border-bottom:none}
-.meld-x{flex-shrink:0;background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:16px;line-height:1;padding:2px 2px;margin:-2px -4px 0 0;font-family:inherit}
-.meld-x:hover{color:#64748b}
+.meld-x{flex-shrink:0;background:none;border:none;cursor:pointer;color:var(--c-border-2);font-size:16px;line-height:1;padding:2px 2px;margin:-2px -4px 0 0;font-family:inherit}
+.meld-x:hover{color:var(--c-muted)}
 .meld-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
-.meld-dot.rood{background:#ef4444}
+.meld-dot.rood{background:var(--c-danger)}
 .meld-dot.oranje{background:#f97316}
-.meld-dot.grijs{background:#cbd5e1}
+.meld-dot.grijs{background:var(--c-border-2)}
 .meld-tekst{flex:1;min-width:0}
-.meld-naam{font-size:12px;font-weight:600;color:#1e293b;margin-bottom:1px}
-.meld-sub{font-size:11px;color:#64748b;line-height:1.4;word-break:break-word}
-.meld-tijd{font-size:10px;color:#5b6b7f;margin-top:2px}
-.meld-actie{font-size:11px;font-weight:600;cursor:pointer;margin-top:3px;display:inline-block;background:none;border:none;padding:0;font-family:inherit;color:#1d4ed8}
+.meld-naam{font-size:12px;font-weight:600;color:var(--c-text);margin-bottom:1px}
+.meld-sub{font-size:11px;color:var(--c-muted);line-height:1.4;word-break:break-word}
+.meld-tijd{font-size:10px;color:var(--c-muted-2);margin-top:2px}
+.meld-actie{font-size:11px;font-weight:600;cursor:pointer;margin-top:3px;display:inline-block;background:none;border:none;padding:0;font-family:inherit;color:var(--c-primary-hover)}
 .meld-actie.rood{color:#dc2626}
-.meld-leeg{padding:28px 14px;text-align:center;font-size:12px;color:#5b6b7f}
-.meld-footer{padding:9px 14px;border-top:1px solid #f1f5f9;text-align:center;flex-shrink:0}
-.meld-sluiten{font-size:11px;color:#5b6b7f;cursor:pointer;background:none;border:none;font-family:inherit}
-.meld-sluiten:hover{color:#64748b}
+.meld-leeg{padding:28px 14px;text-align:center;font-size:12px;color:var(--c-muted-2)}
+.meld-footer{padding:9px 14px;border-top:1px solid var(--c-bg);text-align:center;flex-shrink:0}
+.meld-sluiten{font-size:11px;color:var(--c-muted-2);cursor:pointer;background:none;border:none;font-family:inherit}
+.meld-sluiten:hover{color:var(--c-muted)}
 
 /* Custom confirm dialog — Apple-stijl */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.38);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
@@ -460,8 +510,8 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   box-shadow:0 0 0 1px rgba(255,59,48,.16),0 8px 18px -8px rgba(255,59,48,.45);
   flex-shrink:0;
 }
-.modal-title{font-size:19px;font-weight:650;letter-spacing:-.025em;line-height:1.2;color:#1d1d1f;margin:0 0 7px}
-.modal-msg{font-size:13.5px;color:#6e6e73;line-height:1.5;max-width:28ch;margin:0 auto;white-space:pre-wrap;font-family:inherit}
+.modal-title{font-size:19px;font-weight:650;letter-spacing:-.025em;line-height:1.2;color:var(--c-ios-text);margin:0 0 7px}
+.modal-msg{font-size:13.5px;color:var(--c-ios-muted);line-height:1.5;max-width:28ch;margin:0 auto;white-space:pre-wrap;font-family:inherit}
 .modal-target{
   display:inline-flex;align-items:center;gap:8px;margin-top:14px;
   padding:6px 12px 6px 8px;border-radius:980px;
@@ -472,7 +522,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
   box-shadow:0 0 0 .5px rgba(0,0,0,.07);color:#234268;
 }
-.modal-target-nm{font-size:12.5px;font-weight:600;color:#1d1d1f;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.modal-target-nm{font-size:12.5px;font-weight:600;color:var(--c-ios-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .modal-btns{display:flex;gap:9px;padding:22px 20px 20px}
 .modal-btn{
   flex:1;height:46px;border:none;border-radius:13px;
@@ -482,7 +532,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 }
 .modal-btn:active{transform:scale(.965)}
 .modal-btn:focus-visible{outline:none;box-shadow:0 0 0 4px rgba(0,122,255,.22)}
-.modal-btn-nee{background:#ececed;color:#1d1d1f}
+.modal-btn-nee{background:#ececed;color:var(--c-ios-text)}
 .modal-btn-nee:hover{background:#e2e2e4}
 .modal-btn-ja{
   background:linear-gradient(180deg,#ff5147,#ff3b30);color:#fff;
@@ -494,13 +544,13 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 @media(prefers-color-scheme:dark){
   .modal-box{background:rgba(38,38,42,.82)}
   .modal-box::after{box-shadow:inset 0 1px 0 rgba(255,255,255,.1),inset 0 0 0 .5px rgba(255,255,255,.08)}
-  .modal-title{color:#f5f5f7}
+  .modal-title{color:var(--c-bg-3)}
   .modal-msg{color:#a1a1a6}
   .modal-glyph{background:linear-gradient(180deg,#3a2422,#42201d)}
   .modal-target{background:rgba(255,255,255,.1)}
   .modal-target-ic{background:#48484c;color:#dfe6f0;box-shadow:none}
-  .modal-target-nm{color:#f5f5f7}
-  .modal-btn-nee{background:#39393d;color:#f5f5f7}
+  .modal-target-nm{color:var(--c-bg-3)}
+  .modal-btn-nee{background:#39393d;color:var(--c-bg-3)}
   .modal-btn-nee:hover{background:#444448}
 }
 /* Edit modals — Apple-glasstijl (zelfde basis als confirm modal) */
@@ -521,30 +571,30 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   box-shadow:inset 0 1px 0 rgba(255,255,255,.85),inset 0 0 0 .5px rgba(255,255,255,.4);
 }
 .edit-modal-hdr{padding:22px 22px 0;display:flex;align-items:center;justify-content:space-between;gap:8px}
-.edit-modal-title{font-size:17px;font-weight:650;letter-spacing:-.025em;color:#1d1d1f;margin:0}
+.edit-modal-title{font-size:17px;font-weight:650;letter-spacing:-.025em;color:var(--c-ios-text);margin:0}
 .edit-modal-close{background:rgba(118,118,128,.12);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#3c3c43;flex-shrink:0;transition:background .15s}
 .edit-modal-close:hover{background:rgba(118,118,128,.22)}
 .edit-modal-close svg{display:block}
 .edit-modal-body{padding:16px 22px 0;display:flex;flex-direction:column;gap:12px}
 .edit-modal-field{display:flex;flex-direction:column;gap:5px}
-.edit-modal-field label{font-size:11.5px;font-weight:500;color:#6e6e73;letter-spacing:.01em}
+.edit-modal-field label{font-size:11.5px;font-weight:500;color:var(--c-ios-muted);letter-spacing:.01em}
 .edit-modal-field input[type=text],.edit-modal-field input[type=time],.edit-modal-field select,.edit-modal-field textarea{
   padding:9px 11px;border:1px solid rgba(0,0,0,.12);border-radius:10px;
   font-size:13.5px;font-family:inherit;background:rgba(118,118,128,.06);
-  color:#1d1d1f;width:100%;box-sizing:border-box;transition:border-color .15s,box-shadow .15s;
+  color:var(--c-ios-text);width:100%;box-sizing:border-box;transition:border-color .15s,box-shadow .15s;
 }
 .edit-modal-field input[type=text]:focus,.edit-modal-field input[type=time]:focus,.edit-modal-field select:focus,.edit-modal-field textarea:focus{
   outline:none;border-color:rgba(0,122,255,.55);box-shadow:0 0 0 3px rgba(0,122,255,.12);background:#fff;
 }
 .edit-modal-field input[type=color]{padding:2px;border:1px solid rgba(0,0,0,.12);border-radius:10px;width:48px;height:36px;cursor:pointer;background:#fff}
 .edit-modal-field-row{display:flex;gap:10px;flex-wrap:wrap}
-.edit-modal-check{display:flex;align-items:flex-start;gap:9px;cursor:pointer;font-size:13px;color:#1d1d1f;padding:2px 0}
+.edit-modal-check{display:flex;align-items:flex-start;gap:9px;cursor:pointer;font-size:13px;color:var(--c-ios-text);padding:2px 0}
 .edit-modal-check input[type=checkbox]{margin-top:2px;flex-shrink:0;accent-color:#3478f6}
-.edit-modal-check-sub{display:block;font-size:11px;color:#6e6e73;font-weight:400;margin-top:2px}
+.edit-modal-check-sub{display:block;font-size:11px;color:var(--c-ios-muted);font-weight:400;margin-top:2px}
 .edit-modal-foot{display:flex;gap:9px;padding:18px 22px 20px;justify-content:flex-end}
 .edit-modal-btn{height:38px;padding:0 16px;border:none;border-radius:10px;font-size:14px;font-weight:590;letter-spacing:-.01em;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;transition:transform .12s cubic-bezier(.2,.8,.3,1),filter .15s}
 .edit-modal-btn:active{transform:scale(.97)}
-.edit-modal-btn-cancel{background:rgba(118,118,128,.12);color:#1d1d1f}
+.edit-modal-btn-cancel{background:rgba(118,118,128,.12);color:var(--c-ios-text)}
 .edit-modal-btn-cancel:hover{background:rgba(118,118,128,.2)}
 .edit-modal-btn-save{background:#3478f6;color:#fff;box-shadow:0 2px 8px -2px rgba(52,120,246,.45)}
 .edit-modal-btn-save:hover{filter:brightness(1.07)}
@@ -554,24 +604,24 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 @media(prefers-color-scheme:dark){
   .edit-modal-box{background:rgba(38,38,42,.88)}
   .edit-modal-box::after{box-shadow:inset 0 1px 0 rgba(255,255,255,.1),inset 0 0 0 .5px rgba(255,255,255,.08)}
-  .edit-modal-title{color:#f5f5f7}
+  .edit-modal-title{color:var(--c-bg-3)}
   .edit-modal-close{background:rgba(255,255,255,.1);color:#ebebf5}
   .edit-modal-field label{color:#a1a1a6}
-  .edit-modal-field input[type=text],.edit-modal-field input[type=time],.edit-modal-field select{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.12);color:#f5f5f7}
+  .edit-modal-field input[type=text],.edit-modal-field input[type=time],.edit-modal-field select{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.12);color:var(--c-bg-3)}
   .edit-modal-field input[type=text]:focus,.edit-modal-field input[type=time]:focus,.edit-modal-field select:focus{background:rgba(255,255,255,.12);border-color:rgba(0,122,255,.7)}
-  .edit-modal-check{color:#f5f5f7}
+  .edit-modal-check{color:var(--c-bg-3)}
   .edit-modal-check-sub{color:#a1a1a6}
-  .edit-modal-btn-cancel{background:rgba(255,255,255,.1);color:#f5f5f7}
+  .edit-modal-btn-cancel{background:rgba(255,255,255,.1);color:var(--c-bg-3)}
   .edit-modal-btn-cancel:hover{background:rgba(255,255,255,.16)}
   .edit-modal-daglabel{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);color:#ebebf5}
 }
 .logout-box{text-align:center;max-width:380px}
-.logout-icon{width:46px;height:46px;margin:2px auto 14px;border-radius:12px;background:#eff6ff;display:flex;align-items:center;justify-content:center}
-.logout-title{font-size:17px;font-weight:700;color:#1e293b;margin-bottom:8px}
-.logout-sub{font-size:13px;color:#5b6b7f;line-height:1.5;margin-bottom:20px}
+.logout-icon{width:46px;height:46px;margin:2px auto 14px;border-radius:12px;background:var(--c-primary-tint);display:flex;align-items:center;justify-content:center}
+.logout-title{font-size:17px;font-weight:700;color:var(--c-text);margin-bottom:8px}
+.logout-sub{font-size:13px;color:var(--c-muted-2);line-height:1.5;margin-bottom:20px}
 .logout-btns{justify-content:center}
 .logout-btns .modal-btn{flex:1;max-width:160px}
-.logout-btn-ja{background:#2563eb;color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.logout-btn-ja{background:var(--c-primary);color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:7px}
 /* iOS Safari zoomt automatisch in op velden met font-size < 16px. Op mobiel
    forceren we daarom 16px op alle invoervelden. !important is nodig omdat veel
    velden een inline font-size hebben die anders wint van deze regel. */
@@ -636,6 +686,13 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </script>
 </head>
 <body class="pre-auth">
+
+<noscript>
+  <div style="padding:40px 20px;text-align:center;font-family:'Segoe UI',system-ui,sans-serif;color:#1e293b;max-width:560px;margin:60px auto;background:#fff;border:1px solid #e2e8f0;border-radius:12px">
+    <h1 style="font-size:18px;margin-bottom:10px">JavaScript vereist</h1>
+    <p style="font-size:14px;color:#475569;line-height:1.5">Het Surveillance Dashboard heeft JavaScript nodig om te werken. Schakel JavaScript in via je browserinstellingen en ververs de pagina.</p>
+  </div>
+</noscript>
 
 <!-- Login gate. Covers the entire app (opaque) until a real user is signed in.
      Initially hidden: a short grace timer reveals it only if the auth check has
@@ -718,28 +775,28 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <style>
 @keyframes login-spin{to{transform:rotate(360deg)}}
 #login-overlay{position:fixed;inset:0;z-index:99999;display:flex;background:#fff;font-family:'Segoe UI',system-ui,sans-serif}
-.login-brand{position:relative;flex:0 0 44%;background:linear-gradient(160deg,#2c557f 0%,#1e3a5c 55%,#15293f 100%);color:#fff;display:flex;flex-direction:column;justify-content:space-between;padding:40px;overflow:hidden}
+.login-brand{position:relative;flex:0 0 44%;background:linear-gradient(160deg,#2c557f 0%,var(--c-brand) 55%,#15293f 100%);color:#fff;display:flex;flex-direction:column;justify-content:space-between;padding:40px;overflow:hidden}
 .login-radar{position:absolute;inset:0;width:100%;height:100%;opacity:.06;pointer-events:none}
 .login-brand-top,.login-brand-mid,.login-brand-foot{position:relative;z-index:1}
 .login-brand-top{display:flex;align-items:center;gap:12px}
 .login-logo-tile{width:46px;height:46px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;padding:4px;box-shadow:0 1px 3px rgba(0,0,0,.15)}
 .login-logo-tile img{width:100%;height:100%;object-fit:contain;border-radius:8px}
-.login-logo-tile.login-logo-fallback::after{content:"SD";color:#1e3a5c;font-weight:800;font-size:16px;letter-spacing:-.5px}
+.login-logo-tile.login-logo-fallback::after{content:"SD";color:var(--c-brand);font-weight:800;font-size:16px;letter-spacing:-.5px}
 .login-brand-name{font-size:15px;font-weight:600;letter-spacing:.01em}
 .login-brand-head{font-size:32px;font-weight:700;line-height:1.15;margin:0 0 14px}
 .login-brand-body{font-size:14px;line-height:1.55;color:rgba(255,255,255,.78);max-width:340px;margin:0}
 .login-brand-foot{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.6)}
 .login-pane{flex:1;display:flex;align-items:center;justify-content:center;padding:32px 24px;overflow-y:auto}
 .login-card{width:100%;max-width:348px}
-.login-eyebrow{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#1d4ed8;margin-bottom:10px}
-.login-h1{font-size:26px;font-weight:700;color:#1e293b;margin-bottom:6px}
-.login-subtitle{font-size:13px;color:#64748b;margin-bottom:22px}
-.login-label{display:block;font-size:12px;font-weight:600;color:#475569;margin-bottom:6px}
-.login-field{display:flex;align-items:center;border:1px solid #cbd5e1;border-radius:10px;background:#fff;padding:0 12px;margin-bottom:16px;transition:border-color .13s,box-shadow .13s}
-.login-field:focus-within{border-color:#1d4ed8;box-shadow:0 0 0 3px rgba(29,78,216,.12)}
-.login-field-icon{color:#94a3b8;flex-shrink:0}
-.login-field input{flex:1;border:none;outline:none;background:none;padding:12px 10px;font-size:14px;font-family:inherit;color:#1e293b;min-width:0}
-.login-field input::placeholder{color:#94a3b8}
+.login-eyebrow{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--c-primary-hover);margin-bottom:10px}
+.login-h1{font-size:26px;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.login-subtitle{font-size:13px;color:var(--c-muted);margin-bottom:22px}
+.login-label{display:block;font-size:12px;font-weight:600;color:var(--c-text-3);margin-bottom:6px}
+.login-field{display:flex;align-items:center;border:1px solid var(--c-border-2);border-radius:10px;background:#fff;padding:0 12px;margin-bottom:16px;transition:border-color .13s,box-shadow .13s}
+.login-field:focus-within{border-color:var(--c-primary-hover);box-shadow:0 0 0 3px rgba(29,78,216,.12)}
+.login-field-icon{color:var(--c-placeholder);flex-shrink:0}
+.login-field input{flex:1;border:none;outline:none;background:none;padding:12px 10px;font-size:14px;font-family:inherit;color:var(--c-text);min-width:0}
+.login-field input::placeholder{color:var(--c-placeholder)}
 /* Browser-autofill kleurt het veld normaal lichtblauw/geel. Een witte inset
    box-shadow overdekt die achtergrond zodat de balk in stijl (wit) blijft. */
 .login-field input:-webkit-autofill,
@@ -748,17 +805,17 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 .login-field input:-webkit-autofill:active{
   -webkit-box-shadow:0 0 0 60px #fff inset !important;
   box-shadow:0 0 0 60px #fff inset !important;
-  -webkit-text-fill-color:#1e293b !important;
-  caret-color:#1e293b;
+  -webkit-text-fill-color:var(--c-text) !important;
+  caret-color:var(--c-text);
   transition:background-color 9999s ease-in-out 0s;
 }
-.login-eye{border:none;background:none;color:#94a3b8;cursor:pointer;padding:4px;display:flex;align-items:center;flex-shrink:0}
-.login-eye:hover{color:#475569}
+.login-eye{border:none;background:none;color:var(--c-placeholder);cursor:pointer;padding:4px;display:flex;align-items:center;flex-shrink:0}
+.login-eye:hover{color:var(--c-text-3)}
 .login-pw-labelrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-.login-submit{width:100%;height:48px;border:none;border-radius:10px;background:#1d4ed8;color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .13s}
-.login-submit:hover{background:#1e40af}
+.login-submit{width:100%;height:48px;border:none;border-radius:10px;background:var(--c-primary-hover);color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .13s}
+.login-submit:hover{background:var(--c-primary-deep)}
 .login-submit:disabled{opacity:.6;cursor:default}
-.login-help{font-size:12px;color:#64748b;line-height:1.5;text-align:center;margin:18px 0 0}
+.login-help{font-size:12px;color:var(--c-muted);line-height:1.5;text-align:center;margin:18px 0 0}
 .login-error-banner{display:flex;gap:8px;align-items:flex-start;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:11px 13px;margin-bottom:18px;font-size:13px;color:#b91c1c;line-height:1.45}
 .login-field.login-field-err{border-color:#dc2626}
 .login-field.login-field-err:focus-within{box-shadow:0 0 0 3px #fef2f2}
@@ -773,7 +830,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </style>
 
 <div class="topbar-sticky">
-<div class="header">
+<header class="header">
   <img src="logo.png" alt="Logo" style="height:36px;width:auto;object-fit:contain;flex-shrink:0;border-radius:6px" onerror="this.style.display='none';var d=document.getElementById('header-logo-divider');if(d)d.style.display='none'">
   <div id="header-logo-divider" style="width:1px;height:36px;background:rgba(255,255,255,.2);flex-shrink:0"></div>
   <div id="header-left" style="flex:1;min-width:0">
@@ -786,7 +843,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     <span id="header-dienst" style="font-size:12px;color:rgba(255,255,255,.85);background:rgba(255,255,255,.12);padding:3px 9px;border-radius:20px;white-space:nowrap"></span>
     <span id="header-clock" style="font-size:16px;font-weight:600;color:#fff;font-variant-numeric:tabular-nums;min-width:42px;text-align:right"></span>
   </div>
-</div>
+</header>
 
 <nav class="tabs" role="tablist" aria-label="Hoofdnavigatie">
   <button type="button" class="tab on" role="tab" aria-selected="true" aria-controls="pane-reg" onclick="goTab('reg')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Registratie</button>
@@ -1156,7 +1213,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.54</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.65</span>
     </div>
   </nav>
 
@@ -1522,7 +1579,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.54';
+const APP_VERSION = '2.6.65';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -1595,8 +1652,6 @@ const EVENT_LOG_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 let EVENT_LOG = []; // local cache for rendering, populated from Firebase
 // Audit-keys waarvoor we al een TTL-verwijdering hebben afgevuurd — voorkomt dat
 // elke volgende snapshot opnieuw fbRemove doet voor dezelfde entry.
-const _deletingAuditKeys = new Set();
-
 // ==============================================================================
 // SECTIE: LOGGING & EVENT LOG  — logEvent, fbListenEventLog, EVENT_LOG
 // ==============================================================================
@@ -1632,26 +1687,17 @@ function fbListenEventLog() {
   if (!window.fbDb) return;
   window.fbOnValue(window.fbRef(window.fbDb, 'dashboard/auditLog'), snap => {
     const data = snap.val();
-    if (!data) { EVENT_LOG = []; _deletingAuditKeys.clear(); return; }
+    if (!data) { EVENT_LOG = []; return; }
+    // GEEN deletes vanuit deze listener (v2.6.63). Deze callback vuurt op elke
+    // auditLog-write op elk apparaat; opschonen hiervandaan liet alle sessies
+    // tegelijk dezelfde deletes afvuren, en elke delete triggerde weer nieuwe
+    // snapshots. Opschonen gebeurt nu uitsluitend in pruneEventLog() (interval
+    // + na init), volgens hetzelfde principe als pruneLog. Verlopen entries
+    // worden hier alleen uit de WEERGAVE gefilterd.
     const cutoff = Date.now() - EVENT_LOG_TTL_MS;
     const items = [];
-    const liveKeys = new Set();
     Object.entries(data).forEach(([key, e]) => {
-      liveKeys.add(key);
-      // Auto-prune entries older than 7 days.
-      // Guard: vuur de delete maar ÉÉN keer per key af (meerdere snapshots kunnen
-      // binnenkomen voordat de verwijdering propageert). En log de prune NIET als
-      // auditLog-event — dat zou zelf weer een entry aanmaken en de log laten
-      // groeien terwijl hij hoort te krimpen (oorzaak van log-explosie).
-      if (e && e.ts && e.ts < cutoff) {
-        if (!_deletingAuditKeys.has(key)) {
-          _deletingAuditKeys.add(key);
-          window.fbRemove(window.fbRef(window.fbDb, 'dashboard/auditLog/' + key))
-            .catch(() => { _deletingAuditKeys.delete(key); });
-        }
-        return;
-      }
-      if (!e || !e.ts) return;
+      if (!e || !e.ts || e.ts < cutoff) return;
       items.push({
         _key: key,
         ts: e.ts,
@@ -1662,8 +1708,6 @@ function fbListenEventLog() {
         appVersion: decodeEntities(sanitizeFromFirebase(e.appVersion || ''))
       });
     });
-    // Opruimen van keys die echt weg zijn, zodat de guard-set niet onbeperkt groeit
-    for (const k of [..._deletingAuditKeys]) if (!liveKeys.has(k)) _deletingAuditKeys.delete(k);
     items.sort((a, b) => b.ts - a.ts);
     EVENT_LOG = items.slice(0, 1000); // cap render to 1000 newest
     if (typeof renderEventLog === 'function') {
@@ -1681,6 +1725,15 @@ function fbListenEventLog() {
 function fbSave() {
   if (!window.fbDb) return;
   if (window._appOutdated) { showUpdateBanner(); return; } // guard: never write with stale state
+  // Vangnet: geen settings-write vóór de eerste verwerkte snapshot. Een verse
+  // sessie heeft lege lijsten tot de sync binnen is; omdat ontbrekend=leeg nu
+  // wél gesynchroniseerd wordt (v2.6.60), zou een premature write die lege
+  // staat naar ALLE sessies verspreiden. Lokaal is de wijziging al bewaard.
+  if (!window._fbSynced) {
+    showToast('Nog niet gesynchroniseerd \u2014 probeer het zo opnieuw');
+    logEvent('error', 'Instellingen-write geblokkeerd: nog geen eerste snapshot ontvangen');
+    return;
+  }
   // Only save settings — active/log only written via fbSaveActive()
   const updates = {};
   updates['/dashboard/dienst']  = [...S.dienst];
@@ -1689,8 +1742,12 @@ function fbSave() {
   updates['/dashboard/routes']    = S.routes;
   updates['/dashboard/routeCats'] = S.routeCats || ROUTE_CATEGORIEEN_DEFAULT;
   updates['/dashboard/rollen'] = S.rollen || [];
-  if (S.schema) updates['/dashboard/schema'] = S.schema;
-  if (S.dagdelen) updates['/dashboard/dagdelen'] = S.dagdelen;
+  // Schema/dagdelen: ALTIJD schrijven, met null als "leeg/standaard". Een update
+  // met null verwijdert de node. Voorheen werd het pad overgeslagen bij null,
+  // waardoor "laatste dagdeel verwijderd" (S.dagdelen=null) nooit in Firebase
+  // landde en de echo de oude lijst direct terugzette — ook lokaal.
+  updates['/dashboard/schema']   = (S.schema && S.schema.length) ? S.schema : null;
+  updates['/dashboard/dagdelen'] = (S.dagdelen && S.dagdelen.length) ? S.dagdelen : null;
   updates['/dashboard/gedrag'] = { timeoutWarn: S.timeoutWarn, meldingTTL: S.meldingTTL, pinCacheDur: S.pinCacheDur, logRetention: S.logRetention };
   // PIN: alleen schrijven als er een geldige hash in localStorage staat
   const storedPin = LS.get('rn_cfg_pin');
@@ -1775,6 +1832,15 @@ function isNewerVersion(remote, local) {
   return false;
 }
 
+// Herlaad met cache-buster. GitHub Pages cachet index.html tot ~10 minuten,
+// waardoor een gewone reload de OUDE versie opnieuw kan serveren. Een verse
+// query-param omzeilt de HTTP-cache (Pages negeert query strings bij het
+// serveren van het bestand zelf).
+function forceReloadFresh() {
+  try { location.replace(location.pathname + '?v=' + Date.now()); }
+  catch (e) { location.reload(); }
+}
+
 function showUpdateBanner() {
   if (window._appOutdated) return; // already handled — no duplicate logs or reloads
   window._appOutdated = true;
@@ -1783,12 +1849,21 @@ function showUpdateBanner() {
   const el = document.getElementById('fb-status');
   if (el) { el.textContent = '⚠ verouderde versie'; el.style.color = '#fca5a5'; }
 
-  // Silent reload if nobody is mid-action
+  // Silent reload if nobody is mid-action.
+  // Reload-lus-grendel: als deze tab < 3 min geleden al stil herlaadde en nóg
+  // steeds verouderd blijkt (bv. omdat de cache de oude versie serveerde), dan
+  // NIET opnieuw stil herladen maar doorvallen naar de banner — anders ontstaat
+  // een reload-oorlog tegen de cache, met auditlog-spam en login-flitsen.
   const hasActive = Object.keys(S.active || {}).length > 0;
   const hasSel = S.sns && S.sns.size > 0;
   if (!hasActive && !hasSel) {
-    location.reload(true);
-    return;
+    let lastSilent = 0;
+    try { lastSilent = Number(sessionStorage.getItem('sd_silent_reload_ts') || 0); } catch (e) {}
+    if (Date.now() - lastSilent > 3 * 60 * 1000) {
+      try { sessionStorage.setItem('sd_silent_reload_ts', String(Date.now())); } catch (e) {}
+      forceReloadFresh();
+      return;
+    }
   }
 
   // Someone is busy — show banner so they can finish first
@@ -1801,7 +1876,7 @@ function showUpdateBanner() {
       <div style="font-size:32px;margin-bottom:12px">🔄</div>
       <div style="font-size:16px;font-weight:600;color:#1e293b;margin-bottom:8px">Nieuwe versie beschikbaar</div>
       <div style="font-size:13px;color:#64748b;margin-bottom:20px;line-height:1.5">De versie van de webapplicatie is gewijzigd. Vernieuw de pagina om door te gaan.</div>
-      <button type="button" onclick="location.reload(true)"
+      <button type="button" onclick="forceReloadFresh()"
         style="width:100%;padding:13px;border-radius:8px;border:none;background:#1d4ed8;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
         Pagina vernieuwen
       </button>
@@ -2031,6 +2106,9 @@ function fbListen() {
   if (!window.fbDb) return;
   window.fbOnValue(window.fbRef(window.fbDb, 'dashboard'), snap => {
     const d = snap.val();
+    // Eerste snapshot ontvangen — óók als de root leeg is (null is dan de echte
+    // serverstaat). Vanaf nu kennen we de waarheid en zijn settings-writes veilig.
+    window._fbSynced = true;
     if (!d) return;
 
     // Version check — bij elk versieverschil (upgrade én rollback) schrijfacties blokkeren en reload forceren
@@ -2144,55 +2222,66 @@ function fbListen() {
       // centraal in reconcileState() afgedwongen, aangeroepen aan het eind van
       // deze snapshot. Hier alleen de Firebase→lokaal dienst-merge.
     }
-    // medewerkers is de enige bron — names is een computed getter, nooit apart geladen
-    if (d.medewerkers !== undefined && Array.isArray(d.medewerkers) && d.medewerkers.length) {
-      const fbMed = sanitizeMedewerkers(d.medewerkers);
-      const fbMedStr = JSON.stringify(fbMed);
-      const locMedStr = JSON.stringify(S.medewerkers || []);
-      if (fbMedStr !== locMedStr) {
+    // medewerkers is de enige bron — names is een computed getter, nooit apart geladen.
+    // RTDB slaat een lege array niet op: zodra de root-snapshot bestaat betekent
+    // een ontbrekende key dat de lijst LEEG is. Zonder die interpretatie zou het
+    // verwijderen van het laatste item (medewerker/route/rol/schema-item) nooit
+    // naar andere sessies synchroniseren (v2.6.60). Het vangnet tegen premature
+    // lege writes zit in fbSave (_fbSynced-grendel), niet meer hier.
+    {
+      const fbMed = Array.isArray(d.medewerkers) ? sanitizeMedewerkers(d.medewerkers) : [];
+      if (JSON.stringify(fbMed) !== JSON.stringify(S.medewerkers || [])) {
         S.medewerkers = fbMed;
         LS.set('rn_medewerkers', S.medewerkers);
       }
     }
-    if (d.routes !== undefined && Array.isArray(d.routes) && d.routes.length) {
-      const fbRoutes = sanitizeRoutes(d.routes);
-      const fbStr  = JSON.stringify(fbRoutes);
-      const locStr = JSON.stringify(S.routes);
-      if (fbStr !== locStr) {
+    {
+      const fbRoutes = Array.isArray(d.routes) ? sanitizeRoutes(d.routes) : [];
+      if (JSON.stringify(fbRoutes) !== JSON.stringify(S.routes)) {
         S.routes = fbRoutes;
         LS.set('rn_routes', S.routes);
       }
     }
-    if (d.routeCats !== undefined && Array.isArray(d.routeCats) && d.routeCats.length) {
-      const fbCats = d.routeCats.map(c => decodeEntities(sanitizeFromFirebase(String(c)))).filter(Boolean);
+    // routeCats heeft een niet-lege default én de invariant dat S.routeCats
+    // ALTIJD een array is (ROUTE_CATEGORIEEN-getter, .forEach/.push/.splice op
+    // meerdere plekken). Ontbrekend in Firebase = de standaardlijst, als kopie
+    // — NOOIT null: v2.6.60 zette hier null en dat liet renderCfg crashen op
+    // ROUTE_CATEGORIEEN.forEach, waardoor instellingen-wijzigingen pas na een
+    // reload zichtbaar werden (gefixt in v2.6.61).
+    {
+      const fbCats = (Array.isArray(d.routeCats) && d.routeCats.length)
+        ? d.routeCats.map(c => decodeEntities(sanitizeFromFirebase(String(c)))).filter(Boolean)
+        : ROUTE_CATEGORIEEN_DEFAULT.slice();
       if (JSON.stringify(fbCats) !== JSON.stringify(S.routeCats || [])) {
         S.routeCats = fbCats;
         LS.set('rn_route_cats', S.routeCats);
       }
     }
-    if (d.rollen !== undefined && Array.isArray(d.rollen)) {
-      const fbRollen = d.rollen.map(r => decodeEntities(sanitizeFromFirebase(String(r)))).filter(Boolean);
+    {
+      const fbRollen = Array.isArray(d.rollen)
+        ? d.rollen.map(r => decodeEntities(sanitizeFromFirebase(String(r)))).filter(Boolean)
+        : [];
       if (JSON.stringify(fbRollen) !== JSON.stringify(S.rollen || [])) {
         S.rollen = fbRollen;
         LS.set('rn_rollen', S.rollen);
       }
     }
-    // Sync schema from Firebase — only accept valid arrays
-    if (d.schema !== undefined && Array.isArray(d.schema) && d.schema.length) {
-      const fbSchema = sanitizeSchema(d.schema);
-      const fbSchemaStr = JSON.stringify(fbSchema);
-      const localSchemaStr = JSON.stringify(S.schema || SCHEMA);
-      if (fbSchemaStr !== localSchemaStr) {
+    // Sync schema — ontbrekend/leeg = null (default SCHEMA is leeg, dus
+    // gelijkwaardig). Genormaliseerd vergelijken zodat null en [] niet flappen.
+    {
+      const fbSchema = (Array.isArray(d.schema) && d.schema.length) ? sanitizeSchema(d.schema) : null;
+      const locSchema = (S.schema && S.schema.length) ? S.schema : null;
+      if (JSON.stringify(fbSchema) !== JSON.stringify(locSchema)) {
         S.schema = fbSchema;
         LS.set('rn_schema', S.schema);
       }
     }
-    // Sync dagdelen from Firebase — only accept valid arrays
-    if (d.dagdelen !== undefined && Array.isArray(d.dagdelen) && d.dagdelen.length) {
-      const fbDagdelen = sanitizeDagdelen(d.dagdelen);
-      const fbDagdelenStr = JSON.stringify(fbDagdelen);
-      const localDagdelenStr = JSON.stringify(S.dagdelen || DAGDELEN_DEFAULT);
-      if (fbDagdelenStr !== localDagdelenStr) {
+    // Sync dagdelen — ontbrekend = null = DAGDELEN_DEFAULT. Hiermee propageert
+    // "laatste dagdeel verwijderd" (= terug naar standaard) naar alle sessies.
+    {
+      const fbDagdelen = (Array.isArray(d.dagdelen) && d.dagdelen.length) ? sanitizeDagdelen(d.dagdelen) : null;
+      const locDagdelen = (S.dagdelen && S.dagdelen.length) ? S.dagdelen : null;
+      if (JSON.stringify(fbDagdelen) !== JSON.stringify(locDagdelen)) {
         S.dagdelen = fbDagdelen;
         LS.set('rn_dagdelen', S.dagdelen);
       }
@@ -2306,7 +2395,8 @@ let S = {
 };
 
 // Dynamic — always reflects S.routeCats
-Object.defineProperty(window, 'ROUTE_CATEGORIEEN', { get: () => S.routeCats, configurable: true });
+// Vangnet: geeft altijd een array terug, ook als S.routeCats ooit null raakt.
+Object.defineProperty(window, 'ROUTE_CATEGORIEEN', { get: () => S.routeCats || ROUTE_CATEGORIEEN_DEFAULT, configurable: true });
 
 // ── In-flight write tracking ──────────────────────────────────────────────
 // When a write is in flight, fbListen could receive a snapshot from BEFORE
@@ -2604,6 +2694,11 @@ function toggleTimeline() {
   const icon   = document.getElementById('tl-toggle-icon');
   const isOpen = outer.classList.toggle('tl-open');
   if (legend) legend.classList.toggle('tl-open', isOpen);
+  // Op mobiel horen óók het 24u/12u-control en de legenda pas bij uitklappen
+  // zichtbaar te zijn (v2.6.65). De legenda had dat al via CSS, maar de inline
+  // display:flex op het element won van de media-query — vandaar !important.
+  const seg = document.getElementById('tl-window-seg');
+  if (seg) seg.classList.toggle('tl-open', isOpen);
   icon.textContent = isOpen ? '▲' : '▼';
   const lbl = document.getElementById('tl-toggle-label');
   if (lbl) lbl.textContent = isOpen ? 'Verberg tijdlijn' : 'Toon tijdlijn';
@@ -2818,7 +2913,10 @@ async function doRetour(name, _opts) {
       clearActivePending(n);
       _pendingLog.delete(logEntry.id);
       S.active[n] = a;
-      S.log.shift();
+      // Verwijder exact ónze optimistische entry — niet shift(): fbListen kan
+      // S.log tijdens de await hebben vervangen (merge), waardoor index 0 niet
+      // gegarandeerd meer onze entry is.
+      S.log = S.log.filter(r => r.id !== logEntry.id);
       setFbStatus('error');
       renderAllActive();
       updBtn();
@@ -3857,8 +3955,39 @@ function pruneNotities() {
     .catch(() => { _pruneNotBusy = false; });
 }
 
+// AuditLog-opschoning (v2.6.63) — zelfde patroon als pruneLog/pruneNotities:
+// lees de echte Firebase-inhoud via fbGet, wis uitsluitend op leeftijd (ts),
+// busy-lock + jitter zodat sessies elkaar niet exact tegelijk in de weg zitten,
+// en NOOIT logEvent vanuit de opschoning zelf (zou de log weer laten groeien).
+// Entries zonder geldige ts worden nooit gewist.
+let _pruneAuditBusy = false;
+function pruneEventLog() {
+  if (window._appOutdated || _pruneAuditBusy) return;
+  if (!window.fbDb || !window.fbGet || !window.fbRemove) return;
+  const cutoff = Date.now() - EVENT_LOG_TTL_MS;
+  _pruneAuditBusy = true;
+  window.fbGet(window.fbRef(window.fbDb, 'dashboard/auditLog'))
+    .then(snap => {
+      const data = snap && snap.exists() ? snap.val() : null;
+      if (!data || typeof data !== 'object' || Array.isArray(data)) { _pruneAuditBusy = false; return; }
+      const staleKeys = [];
+      Object.entries(data).forEach(([k, v]) => {
+        if (!v || typeof v !== 'object') return;
+        const ts = typeof v.ts === 'number' ? v.ts : 0;
+        if (ts > 0 && ts < cutoff) staleKeys.push(k);
+      });
+      if (!staleKeys.length) { _pruneAuditBusy = false; return; }
+      const jitter = Math.floor(Math.random() * 5000);
+      setTimeout(() => {
+        Promise.allSettled(staleKeys.map(k => window.fbRemove(window.fbRef(window.fbDb, 'dashboard/auditLog/' + k))))
+          .then(() => { _pruneAuditBusy = false; });
+      }, jitter);
+    })
+    .catch(() => { _pruneAuditBusy = false; });
+}
+
 // Auto-prune every 30 minutes
-TIMERS.set('prune', () => { pruneLog(); pruneNotities(); }, 30 * 60 * 1000);
+TIMERS.set('prune', () => { pruneLog(); pruneNotities(); pruneEventLog(); }, 30 * 60 * 1000);
 
 // Cleanup van stale active entries — ronden die langer dan 12u actief zijn
 // zijn bijna altijd vergeten retours uit een vorige dienst. Die laten staan
@@ -4627,9 +4756,11 @@ function _buildRolRows(geselecteerd) {
     div.style.cssText = 'display:flex;align-items:center;gap:6px';
     var sel = document.createElement('select');
     sel.style.cssText = 'flex:1';
-    // Lege optie + alle rollen
+    // Rollen die al in een ANDERE rij staan, niet opnieuw aanbieden (geen duplicaten)
+    var alGekozen = geselecteerd.filter(function(r) { return r !== waarde; });
+    var beschikbaar = rollen.filter(function(r) { return alGekozen.indexOf(r) === -1; });
     sel.innerHTML = '<option value="">— geen rol —</option>' +
-      rollen.map(function(r) {
+      beschikbaar.map(function(r) {
         return '<option value="' + escHtml(r) + '"' + (r === waarde ? ' selected' : '') + '>' + escHtml(r) + '</option>';
       }).join('');
     // Bij selectie: herbouw rijen zodat nieuwe lege rij verschijnt
@@ -4644,17 +4775,23 @@ function _buildRolRows(geselecteerd) {
   el.innerHTML = '';
   // Toon één rij per geselecteerde rol
   geselecteerd.forEach(function(r) { maakRij(r); });
-  // Altijd één lege rij onderaan (tenzij laatste rij al leeg is)
+  // Lege rij onderaan alleen tonen als er nog rollen over zijn om te kiezen
   var last = geselecteerd[geselecteerd.length - 1];
-  if (!geselecteerd.length || last) maakRij('');
+  if ((!geselecteerd.length || last) && geselecteerd.length < rollen.length) maakRij('');
 }
 
 function _leesRolRijen() {
   var el = document.getElementById('inp-medewerker-edit-rol-checks');
   if (!el) return [];
+  var seen = {};
   return Array.from(el.querySelectorAll('select'))
     .map(function(s) { return s.value; })
-    .filter(Boolean);
+    .filter(function(v) {
+      // Filter lege waarden én duplicaten (dezelfde rol mag niet 2x)
+      if (!v || seen[v]) return false;
+      seen[v] = true;
+      return true;
+    });
 }
 
 // Helper: rol-string (kommalijst) → array van niet-lege strings
@@ -4785,6 +4922,19 @@ function clearMedFilters() {
 // SECTIE: INSTELLINGEN (cfg)  — renderCfg, cfg-navigatie, rail-lock
 // ==============================================================================
 function renderCfg() {
+  // MOBIEL (≤700px): de detail-view is een innerHTML-KOPIE van de actieve
+  // sectie, met dezelfde element-ID's, en staat eerder in de DOM dan de
+  // secties. getElementById pakt dan de KOPIE: verse lijsten belandden in de
+  // kopie, waarna de re-sync onderaan deze functie ze weer overschreef met de
+  // verouderde sectie-HTML — wijzigingen (toevoegen/verwijderen) leken daardoor
+  // op de telefoon pas na een reload zichtbaar (gefixt in v2.6.62). Leeg de
+  // kopie daarom vóór het renderen, zodat alle renders het ORIGINEEL raken;
+  // de re-sync onderaan vult de kopie direct weer met de verse HTML.
+  var _mobDetailPre = document.getElementById('cfg-mobile-detail');
+  if (_mobDetailPre && _mobDetailPre.classList.contains('open')) {
+    var _mobBodyPre = document.getElementById('cfg-mob-detail-body');
+    if (_mobBodyPre) _mobBodyPre.innerHTML = '';
+  }
   // Vul gedrag-inputs in met huidige waarden
   const inpTW = document.getElementById('inp-timeout-warn');
   const inpMT = document.getElementById('inp-melding-ttl');
@@ -4969,7 +5119,7 @@ function renderCfg() {
       groups.filter(g => g.items.length).forEach(g => {
         const dd = g.dagdeel;
         const bg = safeColor(dd.kleur);
-        const tx = dd.naam ? autoTekstKleur(bg) : '#475569';
+        const tx = dd.naam ? autoTekstKleur(bg) : 'var(--c-text-3)';
         html += `<div style="background:${bg};border-radius:8px;margin-bottom:8px;overflow:hidden;border:1px solid rgba(148,163,184,.2)">
           <div style="padding:6px 10px;font-size:11px;font-weight:700;color:${tx};text-transform:uppercase;letter-spacing:.06em;display:flex;justify-content:space-between;align-items:center">
             <span>${escHtml(dd.naam) || '—'}</span>
@@ -5015,6 +5165,25 @@ function renderCfg() {
           <button type="button" onclick="rmDagdeel(${origIdx})" style="background:none;border:none;cursor:pointer;color:${tx};opacity:.7;font-size:14px;padding:0 4px;flex-shrink:0" title="Verwijderen" aria-label="Verwijderen">✕</button>
         </div>`;
       }).join('');
+    }
+  }
+
+  // Mobiele detail-view re-syncen: de mobiele weergave is een innerHTML-kopie van de
+  // desktop-sectie. Na een mutatie (renderCfg) is die kopie verouderd. Als de mobiele
+  // detail open staat, kopieer de zojuist bijgewerkte sectie opnieuw.
+  var mobDetail = document.getElementById('cfg-mobile-detail');
+  if (mobDetail && mobDetail.classList.contains('open') && _cfgActiveSection) {
+    var srcSec = document.getElementById('cfg-sec-' + _cfgActiveSection);
+    var body = document.getElementById('cfg-mob-detail-body');
+    if (srcSec && body) {
+      body.innerHTML = srcSec.innerHTML;
+      var hdr = body.querySelector('.cfg-sec-header');
+      if (hdr) hdr.remove();
+      if (_cfgActiveSection === 'gedrag')   _rewireGedragInputs(body);
+      if (_cfgActiveSection === 'auditlog') _rewireAuditlog(body);
+      if (_cfgActiveSection === 'rondes')   { var s1 = body.querySelector('#rondes-seg-ctrl'); if (s1) s1.style.display = 'flex'; rondesSubView(_rondesSubView); }
+      if (_cfgActiveSection === 'medewerkers') { var s2 = body.querySelector('#med-seg-ctrl'); if (s2) s2.style.display = 'flex'; medSubView(_medSubView); }
+      if (_cfgActiveSection === 'schema')   { var s3 = body.querySelector('#schema-seg-ctrl'); if (s3) s3.style.display = 'flex'; schemaSubView(_schemaSubView); }
     }
   }
 }
@@ -5371,10 +5540,7 @@ function rmDagdeel(i) {
   const list = S.dagdelen ? [...S.dagdelen] : [...DAGDELEN_DEFAULT];
   const d = list[i];
   if (!d) return;
-  customConfirm(`Dagdeel wordt verwijderd. Dit kan niet ongedaan worden gemaakt.`, {
-    title: `Dagdeel verwijderen?`, targetName: d.naam, targetIcon: 'dagdeel',
-    confirmLabel: 'Verwijderen', cancelLabel: 'Annuleren'
-  }).then(ok => {
+  confirmDelete('Dagdeel', 'dagdeel', d.naam).then(ok => {
     if (!ok) return;
     // Remove item, then let a neighbour fill the gap.
     const remaining = list.filter((_, idx) => idx !== i);
@@ -5409,8 +5575,8 @@ function rondesSubView(which) {
   // Mobiel segmented control
   var segR = document.getElementById('rondes-seg-rondes');
   var segC = document.getElementById('rondes-seg-cats');
-  if (segR) { segR.style.background = which === 'rondes' ? '#1e3a5c' : 'transparent'; segR.style.color = which === 'rondes' ? '#fff' : '#475569'; segR.style.fontWeight = which === 'rondes' ? '600' : '500'; }
-  if (segC) { segC.style.background = which === 'cats'   ? '#1e3a5c' : 'transparent'; segC.style.color = which === 'cats'   ? '#fff' : '#475569'; segC.style.fontWeight = which === 'cats'   ? '600' : '500'; }
+  if (segR) { segR.style.background = which === 'rondes' ? 'var(--c-brand)' : 'transparent'; segR.style.color = which === 'rondes' ? '#fff' : 'var(--c-text-3)'; segR.style.fontWeight = which === 'rondes' ? '600' : '500'; }
+  if (segC) { segC.style.background = which === 'cats'   ? 'var(--c-brand)' : 'transparent'; segC.style.color = which === 'cats'   ? '#fff' : 'var(--c-text-3)'; segC.style.fontWeight = which === 'cats'   ? '600' : '500'; }
   // Views
   var vR = document.getElementById('rondes-view-rondes');
   var vC = document.getElementById('rondes-view-cats');
@@ -5421,6 +5587,7 @@ function rondesSubView(which) {
   var actionBtn = document.getElementById('rondes-action-btn');
   if (subTitle) subTitle.textContent = which === 'rondes' ? 'Vaste looproutes in en om het gebouw' : 'Groeperingen voor de rondes';
   if (actionBtn) { actionBtn.textContent = which === 'rondes' ? '+ Ronde' : '+ Categorie'; }
+  updateCfgMobActionLabel();
 }
 
 function rondesActionBtn() {
@@ -5441,8 +5608,8 @@ function schemaSubView(which) {
   // Mobiel segmented control
   var segS = document.getElementById('schema-seg-schema');
   var segD = document.getElementById('schema-seg-dagdelen');
-  if (segS) { segS.style.background = which === 'schema'   ? '#1e3a5c' : 'transparent'; segS.style.color = which === 'schema'   ? '#fff' : '#475569'; segS.style.fontWeight = which === 'schema'   ? '600' : '500'; }
-  if (segD) { segD.style.background = which === 'dagdelen' ? '#1e3a5c' : 'transparent'; segD.style.color = which === 'dagdelen' ? '#fff' : '#475569'; segD.style.fontWeight = which === 'dagdelen' ? '600' : '500'; }
+  if (segS) { segS.style.background = which === 'schema'   ? 'var(--c-brand)' : 'transparent'; segS.style.color = which === 'schema'   ? '#fff' : 'var(--c-text-3)'; segS.style.fontWeight = which === 'schema'   ? '600' : '500'; }
+  if (segD) { segD.style.background = which === 'dagdelen' ? 'var(--c-brand)' : 'transparent'; segD.style.color = which === 'dagdelen' ? '#fff' : 'var(--c-text-3)'; segD.style.fontWeight = which === 'dagdelen' ? '600' : '500'; }
   // Views
   var vS = document.getElementById('schema-view-schema');
   var vD = document.getElementById('schema-view-dagdelen');
@@ -5455,10 +5622,27 @@ function schemaSubView(which) {
   if (title)     title.textContent     = which === 'schema' ? 'Dagplanning' : 'Dagdelen';
   if (subTitle)  subTitle.textContent  = which === 'schema' ? 'Tijden en taken per dienst' : 'Diensten: naam, tijdvak en kleur';
   if (actionBtn) actionBtn.textContent = which === 'schema' ? '+ Item' : '+ Dagdeel';
+  updateCfgMobActionLabel();
 }
 
 function schemaActionBtn() {
   if (_schemaSubView === 'dagdelen') { openDagdeelModal(null); } else { openSchemaModal(null); }
+}
+
+// Mobiel: label van de detail-actieknop ("+ Ronde" / "+ Categorie" enz.)
+// bijwerken bij het wisselen van sub-tab. Werd voorheen alleen gezet bij het
+// openen van de sectie (cfgMobGoSection), waardoor de knop bleef hangen op het
+// label van de eerste sub-weergave (gefixt in v2.6.64).
+function updateCfgMobActionLabel() {
+  var btn = document.getElementById('cfg-mob-detail-action');
+  var detail = document.getElementById('cfg-mobile-detail');
+  if (!btn || !detail || !detail.classList.contains('open')) return;
+  var labelMap = {
+    rondes:      (_rondesSubView === 'cats'     ? '+ Categorie'     : '+ Ronde'),
+    medewerkers: (_medSubView    === 'rollen'   ? '+ Rol / Functie' : '+ Medewerker'),
+    schema:      (_schemaSubView === 'dagdelen' ? '+ Dagdeel'       : '+ Item')
+  };
+  if (labelMap[_cfgActiveSection]) btn.textContent = labelMap[_cfgActiveSection];
 }
 
 function medSubView(which) {
@@ -5471,8 +5655,8 @@ function medSubView(which) {
   // Mobiel segmented control
   var segM = document.getElementById('med-seg-medewerkers');
   var segR = document.getElementById('med-seg-rollen');
-  if (segM) { segM.style.background = which === 'medewerkers' ? '#1e3a5c' : 'transparent'; segM.style.color = which === 'medewerkers' ? '#fff' : '#475569'; segM.style.fontWeight = which === 'medewerkers' ? '600' : '500'; }
-  if (segR) { segR.style.background = which === 'rollen'      ? '#1e3a5c' : 'transparent'; segR.style.color = which === 'rollen'      ? '#fff' : '#475569'; segR.style.fontWeight = which === 'rollen'      ? '600' : '500'; }
+  if (segM) { segM.style.background = which === 'medewerkers' ? 'var(--c-brand)' : 'transparent'; segM.style.color = which === 'medewerkers' ? '#fff' : 'var(--c-text-3)'; segM.style.fontWeight = which === 'medewerkers' ? '600' : '500'; }
+  if (segR) { segR.style.background = which === 'rollen'      ? 'var(--c-brand)' : 'transparent'; segR.style.color = which === 'rollen'      ? '#fff' : 'var(--c-text-3)'; segR.style.fontWeight = which === 'rollen'      ? '600' : '500'; }
   // Views
   var vM = document.getElementById('med-view-medewerkers');
   var vR = document.getElementById('med-view-rollen');
@@ -5483,6 +5667,7 @@ function medSubView(which) {
   var actionBtn = document.getElementById('med-action-btn');
   if (subTitle) subTitle.textContent = which === 'medewerkers' ? 'Actieve beveiligers in het systeem' : 'Functies en rollen voor medewerkers';
   if (actionBtn) actionBtn.textContent = which === 'medewerkers' ? '+ Medewerker' : '+ Rol / Functie';
+  updateCfgMobActionLabel();
 }
 
 function medActionBtn() {
@@ -5555,7 +5740,7 @@ function saveRolEdit() {
 function rmRol(idx) {
   var naam = S.rollen[idx];
   if (!naam) return;
-  customConfirm('Rol “' + naam + '” verwijderen?', { destructive: true }).then(function(ok) {
+  confirmDelete('Rol / Functie', 'medewerker', naam).then(function(ok) {
     if (!ok) return;
     S.rollen.splice(idx, 1);
     (S.medewerkers || []).forEach(function(m) { var arr = rolArray(m.rol).filter(function(r) { return r !== naam; }); m.rol = arr.join(','); });
@@ -6035,10 +6220,7 @@ async function rmSchemaItem(i) {
   const item = activeSchema[i];
   const hDisp = item.h % 24;
   const tijdStr = String(hDisp).padStart(2,'0') + ':' + String(item.m).padStart(2,'0');
-  if (!await customConfirm('Dit schema-item wordt permanent verwijderd.', {
-    title: 'Schema-item verwijderen?', targetName: tijdStr + ' — ' + item.taak, targetIcon: 'schema',
-    confirmLabel: 'Verwijderen', cancelLabel: 'Annuleren'
-  })) return;
+  if (!await confirmDelete('Schema-item', 'schema', tijdStr + ' — ' + item.taak, 'Dit schema-item wordt permanent verwijderd.')) return;
   const _rem = activeSchema[i];
   activeSchema.splice(i, 1);
   S.schema = activeSchema;
@@ -6077,10 +6259,7 @@ function sanitizeForStorage(str) {
 async function rmName(i) {
   if (!S.medewerkers || !S.medewerkers[i]) return;
   const naam = S.medewerkers[i].naam;
-  if (!await customConfirm('Deze medewerker wordt permanent verwijderd.', {
-    title: 'Medewerker verwijderen?', targetName: naam, targetIcon: 'medewerker',
-    confirmLabel: 'Verwijderen', cancelLabel: 'Annuleren'
-  })) return;
+  if (!await confirmDelete('Medewerker', 'medewerker', naam)) return;
   S.medewerkers.splice(i, 1);
   if (S.dienst.has(naam)) markDienstPending(naam, 'remove');
   S.dienst.delete(naam);
@@ -6092,10 +6271,7 @@ async function rmName(i) {
 
 async function rmRoute(i) {
   const ronde = S.routes[i].naam;
-  if (!await customConfirm('Deze ronde wordt permanent verwijderd. Dit kan niet ongedaan worden gemaakt.', {
-    title: 'Ronde verwijderen?', targetName: ronde, targetIcon: 'ronde',
-    confirmLabel: 'Verwijderen', cancelLabel: 'Annuleren'
-  })) return;
+  if (!await confirmDelete('Ronde', 'ronde', ronde)) return;
   S.routes.splice(i, 1);
   // Verwijder ronde-koppeling uit schema-items
   if (S.schema && S.schema.length) {
@@ -6187,10 +6363,7 @@ async function rmCat(i) {
   const desc = count > 0
     ? `${count} ronde${count !== 1 ? 's' : ''} verlies${count !== 1 ? 'n' : 't'} hierdoor de categorie-koppeling.`
     : 'Deze categorie wordt permanent verwijderd.';
-  if (!await customConfirm(desc, {
-    title: `Categorie verwijderen?`, targetName: cat, targetIcon: 'categorie',
-    confirmLabel: 'Verwijderen', cancelLabel: 'Annuleren'
-  })) return;
+  if (!await confirmDelete('Categorie', 'categorie', cat, desc)) return;
   S.routeCats.splice(i, 1);
   // Rondes met deze categorie krijgen lege categorie
   S.routes.forEach(r => { if (r.categorie === cat) r.categorie = ''; });
@@ -6423,8 +6596,31 @@ let _confirmOpen = false;
 // ==============================================================================
 // SECTIE: CONFIRM-MODAL & TOPBAR  — customConfirm, updateTopbarHeight
 // ==============================================================================
+
+// Helper voor het meest voorkomende patroon: destructieve bevestiging met naam + icoon.
+// Voorbeeld: confirmDelete('Medewerker', 'medewerker', 'Jan Jansen')
+// Returns: Promise<boolean> — true als gebruiker bevestigt.
+function confirmDelete(itemType, iconKey, naam, extraMsg) {
+  return customConfirm(
+    extraMsg || (itemType + ' wordt permanent verwijderd. Dit kan niet ongedaan worden gemaakt.'),
+    {
+      title: itemType + ' verwijderen?',
+      targetName: naam,
+      targetIcon: iconKey,
+      confirmLabel: 'Verwijderen',
+      cancelLabel: 'Annuleren'
+    }
+  );
+}
+
 function customConfirm(msg, opts) {
-  // opts: { title, confirmLabel, cancelLabel, targetName, destructive }
+  // opts: { title, confirmLabel, cancelLabel, targetName, targetIcon, destructive }
+  // Vangnet: als opts een functie is, geeft iemand een callback i.p.v. een options-object.
+  // customConfirm is Promise-based — gebruik .then(ok => ...) of `await`.
+  if (typeof opts === 'function') {
+    logEvent('error', 'customConfirm aangeroepen met callback i.p.v. options — gebruik .then() of await', { msg: String(msg).slice(0, 100) });
+    return Promise.resolve(false);
+  }
   if (_confirmOpen) return Promise.resolve(false); // prevent stacking
   _confirmOpen = true;
   opts = opts || {};
@@ -6789,6 +6985,7 @@ function sluitMeldingen() {
 }
 
 pruneLog();
+pruneEventLog();
 // PIN wordt geladen via Firebase listener (fbListen) — geen lokale init nodig
 
 // ── Header: datum, dagdeel, klok ────────────────────────────────────────────
@@ -7084,7 +7281,7 @@ function schrijfGedeeldeMelding(type, naam, sub) {
   const nu = new Date();
   const tijdStr = String(nu.getHours()).padStart(2,'0') + ':' + String(nu.getMinutes()).padStart(2,'0');
   const ref = window.fbPush(window.fbRef(window.fbDb, 'dashboard/meldingen'));
-  window.fbSet(ref, { type, naam, sub, tijdStr, ts: Date.now() }).catch(e => logEvent('error', 'Melding schrijven MISLUKT', { error: String(e) })); // rijf fout:', e));
+  window.fbSet(ref, { type, naam, sub, tijdStr, ts: Date.now() }).catch(e => logEvent('error', 'Melding schrijven MISLUKT', { error: String(e) }));
 }
 
 // Clear any stale active/log from localStorage on startup
