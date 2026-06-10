@@ -1179,24 +1179,24 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <span class="cfg-nav-arrow">▼</span>
     </button>
     <div class="cfg-nav-sub open" id="cfg-nav-sub-medewerkers">
-      <button type="button" class="cfg-nav-sub-item active" id="cfg-nav-sub-med-medewerkers" onclick="medSubView('medewerkers')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>Medewerkers</button>
-      <button type="button" class="cfg-nav-sub-item" id="cfg-nav-sub-med-rollen" onclick="medSubView('rollen')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Rollen / Functies</button>
+      <button type="button" class="cfg-nav-sub-item active" id="cfg-nav-sub-med-medewerkers" onclick="medSubView('medewerkers')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg><span class="cfg-sub-lbl">Medewerkers</span></button>
+      <button type="button" class="cfg-nav-sub-item" id="cfg-nav-sub-med-rollen" onclick="medSubView('rollen')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><span class="cfg-sub-lbl">Rollen / Functies</span></button>
     </div>
     <button type="button" class="cfg-nav-item has-sub" id="cfg-nav-rondes" onclick="cfgNavToggle('rondes')">
       <span style="display:flex;align-items:center;gap:10px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Rondes</span>
       <span class="cfg-nav-arrow">▼</span>
     </button>
     <div class="cfg-nav-sub" id="cfg-nav-sub-rondes">
-      <button type="button" class="cfg-nav-sub-item active" id="cfg-nav-sub-rondes-rondes" onclick="rondesSubView('rondes')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Rondes</button>
-      <button type="button" class="cfg-nav-sub-item" id="cfg-nav-sub-rondes-cats" onclick="rondesSubView('cats')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Categorieën</button>
+      <button type="button" class="cfg-nav-sub-item active" id="cfg-nav-sub-rondes-rondes" onclick="rondesSubView('rondes')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg><span class="cfg-sub-lbl">Rondes</span></button>
+      <button type="button" class="cfg-nav-sub-item" id="cfg-nav-sub-rondes-cats" onclick="rondesSubView('cats')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span class="cfg-sub-lbl">Categorieën</span></button>
     </div>
     <button type="button" class="cfg-nav-item has-sub" id="cfg-nav-schema" onclick="cfgNavToggle('schema')">
       <span style="display:flex;align-items:center;gap:10px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Dagplanning</span>
       <span class="cfg-nav-arrow">▼</span>
     </button>
     <div class="cfg-nav-sub" id="cfg-nav-sub-schema">
-      <button type="button" class="cfg-nav-sub-item active" id="cfg-nav-sub-schema-schema" onclick="schemaSubView('schema')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Dagplanning</button>
-      <button type="button" class="cfg-nav-sub-item" id="cfg-nav-sub-schema-dagdelen" onclick="schemaSubView('dagdelen')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Dagdelen</button>
+      <button type="button" class="cfg-nav-sub-item active" id="cfg-nav-sub-schema-schema" onclick="schemaSubView('schema')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span class="cfg-sub-lbl">Dagplanning</span></button>
+      <button type="button" class="cfg-nav-sub-item" id="cfg-nav-sub-schema-dagdelen" onclick="schemaSubView('dagdelen')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span class="cfg-sub-lbl">Dagdelen</span></button>
     </div>
     <div style="margin:10px 0 6px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:10px;font-weight:700;color:#5b6b7f;letter-spacing:.07em;text-transform:uppercase;padding-left:10px">Systeembeheer</div>
     <button type="button" class="cfg-nav-item" id="cfg-nav-gedrag" onclick="cfgGoSection('gedrag')">
@@ -1218,7 +1218,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.68</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.69</span>
     </div>
   </nav>
 
@@ -1584,7 +1584,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.68';
+const APP_VERSION = '2.6.69';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -5017,18 +5017,18 @@ function renderCfg() {
   // Teller in rail sub-items bijwerken
   var subRondes = document.getElementById('cfg-nav-sub-rondes-rondes');
   var subCats   = document.getElementById('cfg-nav-sub-rondes-cats');
-  if (subRondes) subRondes.textContent = 'Rondes' + (S.routes && S.routes.length ? ' (' + S.routes.length + ')' : '');
-  if (subCats)   subCats.textContent   = 'Categorieën' + (S.routeCats && S.routeCats.length ? ' (' + S.routeCats.length + ')' : '');
+  if (subRondes) { var _lbl=subRondes.querySelector('.cfg-sub-lbl'); if(_lbl) _lbl.textContent='Rondes'+(S.routes&&S.routes.length?' ('+S.routes.length+')':''); else subRondes.textContent='Rondes'+(S.routes&&S.routes.length?' ('+S.routes.length+')':''); }
+  if (subCats)   { var _lbl=subCats.querySelector('.cfg-sub-lbl');   if(_lbl) _lbl.textContent='Categorieën'+(S.routeCats&&S.routeCats.length?' ('+S.routeCats.length+')':''); else subCats.textContent='Categorieën'+(S.routeCats&&S.routeCats.length?' ('+S.routeCats.length+')':''); }
   var subMed = document.getElementById('cfg-nav-sub-med-medewerkers');
   var subRol = document.getElementById('cfg-nav-sub-med-rollen');
-  if (subMed) subMed.textContent = 'Medewerkers' + (S.medewerkers && S.medewerkers.length ? ' (' + S.medewerkers.length + ')' : '');
-  if (subRol) subRol.textContent = 'Rollen / Functies' + (S.rollen && S.rollen.length ? ' (' + S.rollen.length + ')' : '');
+  if (subMed) { var _lbl=subMed.querySelector('.cfg-sub-lbl'); if(_lbl) _lbl.textContent='Medewerkers'+(S.medewerkers&&S.medewerkers.length?' ('+S.medewerkers.length+')':''); else subMed.textContent='Medewerkers'+(S.medewerkers&&S.medewerkers.length?' ('+S.medewerkers.length+')':''); }
+  if (subRol) { var _lbl=subRol.querySelector('.cfg-sub-lbl'); if(_lbl) _lbl.textContent='Rollen / Functies'+(S.rollen&&S.rollen.length?' ('+S.rollen.length+')':''); else subRol.textContent='Rollen / Functies'+(S.rollen&&S.rollen.length?' ('+S.rollen.length+')':''); }
   var subSchemaSchema = document.getElementById('cfg-nav-sub-schema-schema');
   var subSchemaDagdelen = document.getElementById('cfg-nav-sub-schema-dagdelen');
   var _schemaSrc = S.schema || SCHEMA;
   var _dagdSrc = S.dagdelen || DAGDELEN_DEFAULT;
-  if (subSchemaSchema)   subSchemaSchema.textContent   = 'Dagplanning' + (_schemaSrc && _schemaSrc.length ? ' (' + _schemaSrc.length + ')' : '');
-  if (subSchemaDagdelen) subSchemaDagdelen.textContent = 'Dagdelen'    + (_dagdSrc   && _dagdSrc.length   ? ' (' + _dagdSrc.length   + ')' : '');
+  if (subSchemaSchema)   { var _lbl=subSchemaSchema.querySelector('.cfg-sub-lbl');   if(_lbl) _lbl.textContent='Dagplanning'+(_schemaSrc&&_schemaSrc.length?' ('+_schemaSrc.length+')':''); else subSchemaSchema.textContent='Dagplanning'+(_schemaSrc&&_schemaSrc.length?' ('+_schemaSrc.length+')':''); }
+  if (subSchemaDagdelen) { var _lbl=subSchemaDagdelen.querySelector('.cfg-sub-lbl'); if(_lbl) _lbl.textContent='Dagdelen'+(_dagdSrc&&_dagdSrc.length?' ('+_dagdSrc.length+')':'');    else subSchemaDagdelen.textContent='Dagdelen'+(_dagdSrc&&_dagdSrc.length?' ('+_dagdSrc.length+')':''); }
   // Rollen-lijst renderen
   renderRollenList();
 
