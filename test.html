@@ -1214,7 +1214,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.61</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.62</span>
     </div>
   </nav>
 
@@ -1580,7 +1580,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.61';
+const APP_VERSION = '2.6.62';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -4900,6 +4900,19 @@ function clearMedFilters() {
 // SECTIE: INSTELLINGEN (cfg)  — renderCfg, cfg-navigatie, rail-lock
 // ==============================================================================
 function renderCfg() {
+  // MOBIEL (≤700px): de detail-view is een innerHTML-KOPIE van de actieve
+  // sectie, met dezelfde element-ID's, en staat eerder in de DOM dan de
+  // secties. getElementById pakt dan de KOPIE: verse lijsten belandden in de
+  // kopie, waarna de re-sync onderaan deze functie ze weer overschreef met de
+  // verouderde sectie-HTML — wijzigingen (toevoegen/verwijderen) leken daardoor
+  // op de telefoon pas na een reload zichtbaar (gefixt in v2.6.62). Leeg de
+  // kopie daarom vóór het renderen, zodat alle renders het ORIGINEEL raken;
+  // de re-sync onderaan vult de kopie direct weer met de verse HTML.
+  var _mobDetailPre = document.getElementById('cfg-mobile-detail');
+  if (_mobDetailPre && _mobDetailPre.classList.contains('open')) {
+    var _mobBodyPre = document.getElementById('cfg-mob-detail-body');
+    if (_mobBodyPre) _mobBodyPre.innerHTML = '';
+  }
   // Vul gedrag-inputs in met huidige waarden
   const inpTW = document.getElementById('inp-timeout-warn');
   const inpMT = document.getElementById('inp-melding-ttl');
