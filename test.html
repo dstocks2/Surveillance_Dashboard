@@ -114,11 +114,16 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .cfg-nav-item.active{background:var(--c-primary-tint);color:var(--c-primary-hover);font-weight:600;border-right:3px solid var(--c-primary)}
 .cfg-nav-item svg{flex-shrink:0;opacity:.75}
 .cfg-nav-item.active svg{opacity:1}
-.cfg-nav-sub{display:none;flex-direction:column;padding:2px 0 4px 34px;gap:0}
+.cfg-nav-sub{display:none;flex-direction:column;padding:2px 0 4px 18px;gap:0;border-left:2px solid var(--c-border);margin-left:18px}
 .cfg-nav-sub.open{display:flex}
-.cfg-nav-sub-item{padding:6px 12px;font-size:12px;font-weight:500;color:var(--c-muted);background:none;border:none;cursor:pointer;font-family:inherit;text-align:left;border-radius:6px;transition:background .1s,color .1s;width:100%}
+.cfg-nav-sub-item{padding:6px 10px;font-size:12px;font-weight:500;color:var(--c-muted);background:none;border:none;cursor:pointer;font-family:inherit;text-align:left;border-radius:6px;transition:background .1s,color .1s;width:100%;display:flex;align-items:center;gap:8px}
+.cfg-nav-sub-item svg{flex-shrink:0;opacity:.65}
 .cfg-nav-sub-item:hover{background:var(--c-bg);color:var(--c-text)}
 .cfg-nav-sub-item.active{color:var(--c-primary-hover);font-weight:600;background:var(--c-primary-tint)}
+.cfg-nav-sub-item.active svg{opacity:1}
+.cfg-nav-item.has-sub{justify-content:space-between}
+.cfg-nav-item.has-sub .cfg-nav-arrow{font-size:10px;opacity:.55;transition:transform .18s;display:inline-block;transform:rotate(-90deg)}
+.cfg-nav-item.has-sub.sub-open .cfg-nav-arrow{transform:rotate(0deg)}
 .cfg-icon-btn{background:none;border:none;cursor:pointer;color:var(--c-border-2);font-size:13px;padding:0 2px;flex-shrink:0;line-height:1;font-family:inherit;transition:color .1s;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center}
 .cfg-icon-btn:hover{color:var(--c-primary)}
 .cfg-icon-btn-del:hover{color:var(--c-danger)}
@@ -637,8 +642,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   import { getDatabase, ref, set, get, onValue, update, remove, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-  // ⚠️ TEST-OMGEVING — surveillance-dashboard-test. NOOIT deze config naar
-  // productie (index.html) kopiëren; productie gebruikt bab07.
+  // ⚠️ TEST-OMGEVING — surveillance-dashboard-test. NOOIT naar productie.
   const firebaseConfig = {
     apiKey: "AIzaSyB-hz0MZyWEwwlsb3h6Ccamjo2lNwV2Z3Y",
     authDomain: "surveillance-dashboard-test.firebaseapp.com",
@@ -851,14 +855,14 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <nav class="tabs" role="tablist" aria-label="Hoofdnavigatie">
   <button type="button" class="tab on" role="tab" aria-selected="true" aria-controls="pane-reg" onclick="goTab('reg')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Registratie</button>
   <button type="button" class="tab" role="tab" aria-selected="false" aria-controls="pane-live" onclick="goTab('live')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Overzicht</button>
-  <button type="button" class="tab" role="tab" aria-selected="false" aria-controls="pane-plan" onclick="goTab('plan')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>Voorgestelde ronde</button>
+  <button type="button" class="tab" role="tab" aria-selected="false" aria-controls="pane-plan" onclick="goTab('plan')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M9 19h6a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h3"/></svg>Voorgestelde ronde</button>
   <button type="button" class="tab" role="tab" aria-selected="false" aria-controls="pane-dienst" onclick="goTab('dienst')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Op dienst</button>
   <div style="flex:1"></div>
   <button type="button" class="bel-wrap" id="bel-btn" onclick="toggleMeldingen()" title="Meldingen" aria-label="Meldingen">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
     <span class="bel-badge" id="bel-badge"></span>
   </button>
-  <button type="button" class="tab tab-cfg" onclick="goTab('cfg')" title="Instellingen" aria-label="Instellingen">
+  <button type="button" class="tab tab-cfg" onclick="goTab('cfg')" title="Instellingen" aria-label="Instellingen" style="display:none">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
   </button>
 </nav>
@@ -875,14 +879,14 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     Overzicht
   </button>
   <button type="button" class="mob-tab" id="mob-tab-plan" onclick="goTab('plan')">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M9 19h6a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h3"/></svg>
     Voorstel
   </button>
   <button type="button" class="mob-tab" id="mob-tab-dienst" onclick="goTab('dienst')">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
     Op dienst
   </button>
-  <button type="button" class="mob-tab" id="mob-tab-cfg" onclick="goTab('cfg')">
+  <button type="button" class="mob-tab" id="mob-tab-cfg" onclick="goTab('cfg')" style="display:none">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     Instellingen
   </button>
@@ -1038,6 +1042,25 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       </div>
     </div>
 
+    <!-- Beheerder-modal -->
+    <div id="beheerder-modal-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9400;display:none;align-items:center;justify-content:center;padding:20px">
+      <div style="background:#fff;border-radius:16px;padding:28px 24px 24px;max-width:400px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.22);position:relative">
+        <button type="button" onclick="closeBeheerderModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:22px;color:#5b6b7f;cursor:pointer">&times;</button>
+        <div style="font-size:17px;font-weight:700;color:#1e293b;margin-bottom:4px">Beheerder toevoegen</div>
+        <div style="font-size:13px;color:#64748b;margin-bottom:20px">De persoon moet al een Firebase-account hebben. De UID vind je in de Firebase Console onder Authentication → Users.</div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div><label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">Naam</label>
+            <input type="text" id="inp-beheerder-naam" placeholder="Volledige naam" maxlength="80" style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:inherit;box-sizing:border-box"></div>
+          <div><label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">E-mailadres</label>
+            <input type="email" id="inp-beheerder-email" placeholder="naam@umcutrecht.nl" maxlength="120" style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:inherit;box-sizing:border-box"></div>
+          <div><label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">Firebase UID <span style="font-weight:400;color:#94a3b8">(uit Authentication Console)</span></label>
+            <input type="text" id="inp-beheerder-uid" placeholder="bijv. piP98DQu..." maxlength="128" style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-family:monospace;box-sizing:border-box"></div>
+          <div id="beheerder-modal-error" style="font-size:12px;color:#ef4444;display:none"></div>
+          <button type="button" onclick="saveBeheerderModal()" style="padding:11px;border:none;border-radius:8px;background:#1e40af;color:#fff;font-size:14px;font-weight:600;cursor:pointer;width:100%">Opslaan</button>
+        </div>
+      </div>
+    </div>
+
     <!-- PIN keypad modal (setup + wijzigen, gedeeld) -->
     <div id="pin-keypad-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9600;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px">
       <div style="background:#fff;border-radius:16px;padding:28px 24px 24px;max-width:340px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.22);display:flex;flex-direction:column;align-items:center;position:relative">
@@ -1109,7 +1132,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
     <button type="button" class="cfg-mob-row" onclick="cfgMobGoSection('rondes')">
-      <div class="cfg-mob-row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3b5fc0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></div>
+      <div class="cfg-mob-row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3b5fc0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M9 19h6a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h3"/></svg></div>
       <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Rondes</div><div class="cfg-mob-row-sub">Vaste looproutes</div></div>
       <span class="cfg-mob-badge" id="cfg-mob-badge-rondes"></span>
       <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
@@ -1133,6 +1156,11 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div class="cfg-mob-row-icon cfg-mob-row-icon-slate"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
       <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Audit log</div><div class="cfg-mob-row-sub">Auto-wis na 7 dagen</div></div>
       <span class="cfg-mob-badge" id="cfg-mob-badge-auditlog"></span>
+      <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <button type="button" class="cfg-mob-row" id="cfg-mob-row-beheerders" onclick="cfgMobGoSection('beheerders')" style="display:none">
+      <div class="cfg-mob-row-icon cfg-mob-row-icon-slate"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.85"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Beheerders</div><div class="cfg-mob-row-sub">Accounts met instellingen-toegang</div></div>
       <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
     <button type="button" class="cfg-mob-row" onclick="changePinDialog()">
@@ -1172,29 +1200,29 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   <nav class="cfg-rail">
     <div class="cfg-rail-title">Instellingen</div>
 
-    <button type="button" class="cfg-nav-item active" id="cfg-nav-medewerkers" onclick="cfgGoSection('medewerkers')">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/></svg>
-      Medewerkers
+    <button type="button" class="cfg-nav-item has-sub sub-open active" id="cfg-nav-medewerkers" onclick="cfgNavToggle('medewerkers')">
+      <span style="display:flex;align-items:center;gap:10px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/></svg>Medewerkers</span>
+      <span class="cfg-nav-arrow">▼</span>
     </button>
     <div class="cfg-nav-sub open" id="cfg-nav-sub-medewerkers">
-      <button type="button" class="cfg-nav-sub-item active" id="cfg-nav-sub-med-medewerkers" onclick="medSubView('medewerkers')">Medewerkers</button>
-      <button type="button" class="cfg-nav-sub-item" id="cfg-nav-sub-med-rollen" onclick="medSubView('rollen')">Rollen / Functies</button>
+      <button type="button" class="cfg-nav-sub-item active" id="cfg-nav-sub-med-medewerkers" onclick="medSubView('medewerkers')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg><span class="cfg-sub-lbl">Medewerkers</span></button>
+      <button type="button" class="cfg-nav-sub-item" id="cfg-nav-sub-med-rollen" onclick="medSubView('rollen')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><span class="cfg-sub-lbl">Rollen / Functies</span></button>
     </div>
-    <button type="button" class="cfg-nav-item" id="cfg-nav-rondes" onclick="cfgGoSection('rondes')">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-      Rondes
+    <button type="button" class="cfg-nav-item has-sub" id="cfg-nav-rondes" onclick="cfgNavToggle('rondes')">
+      <span style="display:flex;align-items:center;gap:10px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M9 19h6a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h3"/></svg>Rondes</span>
+      <span class="cfg-nav-arrow">▼</span>
     </button>
     <div class="cfg-nav-sub" id="cfg-nav-sub-rondes">
-      <button type="button" class="cfg-nav-sub-item active" id="cfg-nav-sub-rondes-rondes" onclick="rondesSubView('rondes')">Rondes</button>
-      <button type="button" class="cfg-nav-sub-item" id="cfg-nav-sub-rondes-cats" onclick="rondesSubView('cats')">Categorieën</button>
+      <button type="button" class="cfg-nav-sub-item active" id="cfg-nav-sub-rondes-rondes" onclick="rondesSubView('rondes')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M9 19h6a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h3"/></svg><span class="cfg-sub-lbl">Rondes</span></button>
+      <button type="button" class="cfg-nav-sub-item" id="cfg-nav-sub-rondes-cats" onclick="rondesSubView('cats')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span class="cfg-sub-lbl">Categorieën</span></button>
     </div>
-    <button type="button" class="cfg-nav-item" id="cfg-nav-schema" onclick="cfgGoSection('schema')">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      Dagplanning
+    <button type="button" class="cfg-nav-item has-sub" id="cfg-nav-schema" onclick="cfgNavToggle('schema')">
+      <span style="display:flex;align-items:center;gap:10px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Dagplanning</span>
+      <span class="cfg-nav-arrow">▼</span>
     </button>
     <div class="cfg-nav-sub" id="cfg-nav-sub-schema">
-      <button type="button" class="cfg-nav-sub-item active" id="cfg-nav-sub-schema-schema" onclick="schemaSubView('schema')">Dagplanning</button>
-      <button type="button" class="cfg-nav-sub-item" id="cfg-nav-sub-schema-dagdelen" onclick="schemaSubView('dagdelen')">Dagdelen</button>
+      <button type="button" class="cfg-nav-sub-item active" id="cfg-nav-sub-schema-schema" onclick="schemaSubView('schema')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span class="cfg-sub-lbl">Dagplanning</span></button>
+      <button type="button" class="cfg-nav-sub-item" id="cfg-nav-sub-schema-dagdelen" onclick="schemaSubView('dagdelen')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span class="cfg-sub-lbl">Dagdelen</span></button>
     </div>
     <div style="margin:10px 0 6px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:10px;font-weight:700;color:#5b6b7f;letter-spacing:.07em;text-transform:uppercase;padding-left:10px">Systeembeheer</div>
     <button type="button" class="cfg-nav-item" id="cfg-nav-gedrag" onclick="cfgGoSection('gedrag')">
@@ -1204,6 +1232,11 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     <button type="button" class="cfg-nav-item" id="cfg-nav-auditlog" onclick="cfgGoSection('auditlog')">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
       Audit log
+    </button>
+
+    <button type="button" class="cfg-nav-item" id="cfg-nav-beheerders" onclick="cfgGoSection('beheerders')" style="display:none">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.85"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Beheerders
     </button>
 
     <div class="cfg-rail-footer">
@@ -1216,7 +1249,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.65</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.71</span>
     </div>
   </nav>
 
@@ -1375,6 +1408,15 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       </div>
       <div id="event-log-list" style="max-height:500px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;background:#fafafa;font-family:ui-monospace,Menlo,monospace;font-size:11px"></div>
     </div>
+
+  <!-- Beheerders -->
+  <div class="cfg-section" id="cfg-sec-beheerders">
+    <div class="cfg-sec-header">
+      <div><div class="cfg-sec-title">Beheerders</div><div class="cfg-sec-sub">Accounts met toegang tot instellingen</div></div>
+      <button type="button" class="cfg-action-btn" onclick="openBeheerderModal()">+ Beheerder</button>
+    </div>
+    <div id="beheerders-list" style="display:flex;flex-direction:column;gap:8px;margin-top:8px"></div>
+  </div>
 
   </div><!-- /cfg-detail -->
 </div><!-- /cfg-layout -->
@@ -1582,7 +1624,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.65';
+const APP_VERSION = '2.6.71';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -5015,18 +5057,18 @@ function renderCfg() {
   // Teller in rail sub-items bijwerken
   var subRondes = document.getElementById('cfg-nav-sub-rondes-rondes');
   var subCats   = document.getElementById('cfg-nav-sub-rondes-cats');
-  if (subRondes) subRondes.textContent = 'Rondes' + (S.routes && S.routes.length ? ' (' + S.routes.length + ')' : '');
-  if (subCats)   subCats.textContent   = 'Categorieën' + (S.routeCats && S.routeCats.length ? ' (' + S.routeCats.length + ')' : '');
+  if (subRondes) { var _lbl=subRondes.querySelector('.cfg-sub-lbl'); if(_lbl) _lbl.textContent='Rondes'+(S.routes&&S.routes.length?' ('+S.routes.length+')':''); else subRondes.textContent='Rondes'+(S.routes&&S.routes.length?' ('+S.routes.length+')':''); }
+  if (subCats)   { var _lbl=subCats.querySelector('.cfg-sub-lbl');   if(_lbl) _lbl.textContent='Categorieën'+(S.routeCats&&S.routeCats.length?' ('+S.routeCats.length+')':''); else subCats.textContent='Categorieën'+(S.routeCats&&S.routeCats.length?' ('+S.routeCats.length+')':''); }
   var subMed = document.getElementById('cfg-nav-sub-med-medewerkers');
   var subRol = document.getElementById('cfg-nav-sub-med-rollen');
-  if (subMed) subMed.textContent = 'Medewerkers' + (S.medewerkers && S.medewerkers.length ? ' (' + S.medewerkers.length + ')' : '');
-  if (subRol) subRol.textContent = 'Rollen / Functies' + (S.rollen && S.rollen.length ? ' (' + S.rollen.length + ')' : '');
+  if (subMed) { var _lbl=subMed.querySelector('.cfg-sub-lbl'); if(_lbl) _lbl.textContent='Medewerkers'+(S.medewerkers&&S.medewerkers.length?' ('+S.medewerkers.length+')':''); else subMed.textContent='Medewerkers'+(S.medewerkers&&S.medewerkers.length?' ('+S.medewerkers.length+')':''); }
+  if (subRol) { var _lbl=subRol.querySelector('.cfg-sub-lbl'); if(_lbl) _lbl.textContent='Rollen / Functies'+(S.rollen&&S.rollen.length?' ('+S.rollen.length+')':''); else subRol.textContent='Rollen / Functies'+(S.rollen&&S.rollen.length?' ('+S.rollen.length+')':''); }
   var subSchemaSchema = document.getElementById('cfg-nav-sub-schema-schema');
   var subSchemaDagdelen = document.getElementById('cfg-nav-sub-schema-dagdelen');
   var _schemaSrc = S.schema || SCHEMA;
   var _dagdSrc = S.dagdelen || DAGDELEN_DEFAULT;
-  if (subSchemaSchema)   subSchemaSchema.textContent   = 'Dagplanning' + (_schemaSrc && _schemaSrc.length ? ' (' + _schemaSrc.length + ')' : '');
-  if (subSchemaDagdelen) subSchemaDagdelen.textContent = 'Dagdelen'    + (_dagdSrc   && _dagdSrc.length   ? ' (' + _dagdSrc.length   + ')' : '');
+  if (subSchemaSchema)   { var _lbl=subSchemaSchema.querySelector('.cfg-sub-lbl');   if(_lbl) _lbl.textContent='Dagplanning'+(_schemaSrc&&_schemaSrc.length?' ('+_schemaSrc.length+')':''); else subSchemaSchema.textContent='Dagplanning'+(_schemaSrc&&_schemaSrc.length?' ('+_schemaSrc.length+')':''); }
+  if (subSchemaDagdelen) { var _lbl=subSchemaDagdelen.querySelector('.cfg-sub-lbl'); if(_lbl) _lbl.textContent='Dagdelen'+(_dagdSrc&&_dagdSrc.length?' ('+_dagdSrc.length+')':'');    else subSchemaDagdelen.textContent='Dagdelen'+(_dagdSrc&&_dagdSrc.length?' ('+_dagdSrc.length+')':''); }
   // Rollen-lijst renderen
   renderRollenList();
 
@@ -5782,6 +5824,7 @@ function cfgMobGoSection(id) {
   else { btn.style.display = 'none'; }
   renderCfg();
   if (id === 'auditlog') renderEventLog();
+  if (id === 'beheerders') renderBeheerders();
   var srcSec = document.getElementById('cfg-sec-' + id);
   var body = document.getElementById('cfg-mob-detail-body');
   if (srcSec && body) {
@@ -5875,9 +5918,27 @@ function cfgShowMobile() {
   if (vb) vb.textContent = 'v' + APP_VERSION;
 }
 
+// cfgNavToggle: klik op een nav-item met subnav.
+// Al actief + open → subnav inklappen (maar sectie actief houden).
+// Niet actief, of actief maar ingeklapt → activeren + subnav uitklappen.
+function cfgNavToggle(id) {
+  var btn = document.getElementById('cfg-nav-' + id);
+  var sub = document.getElementById('cfg-nav-sub-' + id);
+  if (!btn || !sub) { cfgGoSection(id); return; }
+  var alreadyActiveAndOpen = btn.classList.contains('active') && btn.classList.contains('sub-open');
+  if (alreadyActiveAndOpen) {
+    // Inklappen: subnav verbergen, pijl omhoog → neer
+    sub.classList.remove('open');
+    btn.classList.remove('sub-open');
+  } else {
+    // Uitklappen + sectie activeren
+    cfgGoSection(id);
+  }
+}
+
 function cfgGoSection(id) {
   _cfgActiveSection = id;
-  ['medewerkers','rondes','schema','gedrag','auditlog'].forEach(function(s) {
+  ['medewerkers','rondes','schema','gedrag','auditlog','beheerders'].forEach(function(s) {
     var el = document.getElementById('cfg-sec-' + s);
     if (el) el.classList.remove('active');
     var nav = document.getElementById('cfg-nav-' + s);
@@ -5887,19 +5948,21 @@ function cfgGoSection(id) {
   if (target) target.classList.add('active');
   var navTarget = document.getElementById('cfg-nav-' + id);
   if (navTarget) navTarget.classList.add('active');
-  // Open/sluit sub-navs
-  var sub = document.getElementById('cfg-nav-sub-rondes');
-  if (sub) sub.classList.toggle('open', id === 'rondes');
-  var subMed = document.getElementById('cfg-nav-sub-medewerkers');
-  if (subMed) subMed.classList.toggle('open', id === 'medewerkers');
-  var subSchema = document.getElementById('cfg-nav-sub-schema');
-  if (subSchema) subSchema.classList.toggle('open', id === 'schema');
+  // Sub-navs: uitklappen voor het actieve item, inklappen voor de rest
+  ['medewerkers','rondes','schema'].forEach(function(s) {
+    var sub = document.getElementById('cfg-nav-sub-' + s);
+    var nav = document.getElementById('cfg-nav-' + s);
+    var open = (s === id);
+    if (sub) sub.classList.toggle('open', open);
+    if (nav) nav.classList.toggle('sub-open', open);
+  });
   // Bij intrede schema: zorg dat juiste sub-view en actieknop staan
   if (id === 'schema') {
     setTimeout(function() { schemaSubView(_schemaSubView); }, 0);
   }
   renderCfg();
   if (id === 'auditlog') renderEventLog();
+  if (id === 'beheerders') renderBeheerders();
 }
 
 function _updateRailLockLabel(unlocked) {
@@ -6178,7 +6241,8 @@ async function commitLogRetention() {
 }
 
 function checkCfgLock() {
-  // Check if unlocked within configured window
+  // Beheerders zijn ingelogd via Firebase Auth — geen PIN-gate nodig
+  if (_isBeheerder) { hideCfgLock(); return; }
   const unlocked = LS.get('rn_cfg_unlocked');
   if (unlocked && Date.now() - unlocked < S.pinCacheDur * 60 * 1000) {
     hideCfgLock();
@@ -6663,7 +6727,7 @@ function customConfirm(msg, opts) {
     // Icoon: gebruik opts.targetIcon SVG of val terug op klokje
     const IC = {
       medewerker: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="3.5"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.5a3.5 3.5 0 0 1 0 7"/><path d="M21 21v-2a4 4 0 0 0-3-3.5"/></svg>`,
-      ronde:      `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`,
+      ronde:      `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M9 19h6a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h3"/></svg>`,
       dagdeel:    `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg>`,
       schema:     `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
       categorie:  `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>`,
@@ -7315,6 +7379,8 @@ window.addEventListener('scroll', () => {
 // The app boots exactly once, only after a real user is signed in. Driven by
 // onAuthStateChanged in the module script via window.onAuthChanged.
 let _appStarted = false;
+let _isBeheerder = false;
+let _beheerderChecked = false;
 
 // ==============================================================================
 // SECTIE: AUTH (login/logout)  — login-overlay, onAuthChanged, doLogin, doLogout
@@ -7345,6 +7411,7 @@ function onAuthChanged(user) {
       window.firebaseReady = true;
       initFirebase();
     }
+    _checkBeheerder(user.uid);
   } else {
     // No session — reveal the form, replacing the loading state.
     const loading = document.getElementById('login-loading');
@@ -7359,6 +7426,118 @@ function onAuthChanged(user) {
   }
 }
 window.onAuthChanged = onAuthChanged;
+
+// ── Beheerder-check & UI ──────────────────────────────────────────────────
+function _checkBeheerder(uid) {
+  if (!window.fbDb || !window.fbGet || !window.fbRef) {
+    setTimeout(function() { _checkBeheerder(uid); }, 300);
+    return;
+  }
+  window.fbGet(window.fbRef(window.fbDb, 'dashboard/beheerders/' + uid))
+    .then(function(snap) {
+      _isBeheerder = !!(snap && snap.exists());
+      _beheerderChecked = true;
+      applyBeheerderUI();
+      if (_isBeheerder) fbListenBeheerders();
+    })
+    .catch(function() {
+      _isBeheerder = false;
+      _beheerderChecked = true;
+      applyBeheerderUI();
+    });
+}
+
+function applyBeheerderUI() {
+  var tabCfg    = document.querySelector('.tab-cfg');
+  var mobTabCfg = document.getElementById('mob-tab-cfg');
+  var d = _isBeheerder ? '' : 'none';
+  if (tabCfg)    tabCfg.style.display    = d;
+  if (mobTabCfg) mobTabCfg.style.display = d;
+  if (!_isBeheerder) {
+    var cfgPane = document.getElementById('pane-cfg');
+    if (cfgPane && cfgPane.classList.contains('on')) goTab('reg');
+  }
+  var navBeh = document.getElementById('cfg-nav-beheerders');
+  var mobBeh = document.getElementById('cfg-mob-row-beheerders');
+  if (navBeh) navBeh.style.display = _isBeheerder ? '' : 'none';
+  if (mobBeh) mobBeh.style.display = _isBeheerder ? '' : 'none';
+}
+
+var _beheerders = {};
+function fbListenBeheerders() {
+  if (!window.fbDb) return;
+  window.fbOnValue(window.fbRef(window.fbDb, 'dashboard/beheerders'), function(snap) {
+    _beheerders = snap.val() || {};
+    renderBeheerders();
+  });
+}
+
+function renderBeheerders() {
+  var el = document.getElementById('beheerders-list');
+  if (!el) return;
+  var uids = Object.keys(_beheerders);
+  if (!uids.length) {
+    el.innerHTML = '<div style="color:#94a3b8;font-size:13px;padding:16px 0">Geen beheerders gevonden.</div>';
+    return;
+  }
+  var currentUid = window.fbAuth && window.fbAuth.currentUser ? window.fbAuth.currentUser.uid : '';
+  el.innerHTML = uids.map(function(uid) {
+    var b = _beheerders[uid];
+    var isZelf = uid === currentUid;
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;gap:12px">' +
+      '<div style="min-width:0">' +
+        '<div style="font-size:14px;font-weight:600;color:#1e293b">' + escHtml(b.naam || '') + (isZelf ? ' <span style="font-size:11px;color:#64748b;font-weight:400">(jij)</span>' : '') + '</div>' +
+        '<div style="font-size:12px;color:#64748b;margin-top:2px">' + escHtml(b.email || '') + '</div>' +
+        '<div style="font-size:11px;color:#94a3b8;margin-top:2px;font-family:monospace;word-break:break-all">' + escHtml(uid) + '</div>' +
+      '</div>' +
+      (!isZelf ? '<button type="button" onclick="verwijderBeheerder(\'' + uid + '\')" style="flex-shrink:0;padding:6px 12px;border:1.5px solid #fca5a5;border-radius:6px;background:#fff;color:#ef4444;font-size:12px;font-weight:600;cursor:pointer">Verwijder</button>' : '<div style="flex-shrink:0;width:70px"></div>') +
+    '</div>';
+  }).join('');
+}
+
+function openBeheerderModal() {
+  document.getElementById('inp-beheerder-naam').value = '';
+  document.getElementById('inp-beheerder-email').value = '';
+  document.getElementById('inp-beheerder-uid').value = '';
+  document.getElementById('beheerder-modal-error').style.display = 'none';
+  document.getElementById('beheerder-modal-overlay').style.display = 'flex';
+  setTimeout(function() { document.getElementById('inp-beheerder-naam').focus(); }, 50);
+}
+
+function closeBeheerderModal() {
+  document.getElementById('beheerder-modal-overlay').style.display = 'none';
+}
+
+function saveBeheerderModal() {
+  var naam  = document.getElementById('inp-beheerder-naam').value.trim();
+  var email = document.getElementById('inp-beheerder-email').value.trim();
+  var uid   = document.getElementById('inp-beheerder-uid').value.trim();
+  var err   = document.getElementById('beheerder-modal-error');
+  err.style.display = 'none';
+  if (!naam)  { err.textContent = 'Naam is verplicht.'; err.style.display = 'block'; return; }
+  if (!email) { err.textContent = 'E-mail is verplicht.'; err.style.display = 'block'; return; }
+  if (!uid || uid.length < 10) { err.textContent = 'Voer een geldige Firebase UID in (minimaal 10 tekens).'; err.style.display = 'block'; return; }
+  if (_beheerders[uid]) { err.textContent = 'Deze UID staat al in de lijst.'; err.style.display = 'block'; return; }
+  window.fbSet(window.fbRef(window.fbDb, 'dashboard/beheerders/' + uid), { naam: naam, email: email, toegevoegdOp: Date.now() })
+    .then(function() {
+      closeBeheerderModal();
+      logEvent('settings', 'Beheerder toegevoegd: ' + naam + ' (' + email + ')');
+    })
+    .catch(function(e) {
+      err.textContent = 'Opslaan mislukt: ' + String(e);
+      err.style.display = 'block';
+    });
+}
+
+function verwijderBeheerder(uid) {
+  var b = _beheerders[uid];
+  if (!b) return;
+  customConfirm(escHtml(b.naam) + ' verwijderen als beheerder? Die persoon verliest toegang tot instellingen.', function() {
+    window.fbRemove(window.fbRef(window.fbDb, 'dashboard/beheerders/' + uid))
+      .then(function() { logEvent('settings', 'Beheerder verwijderd: ' + b.naam); })
+      .catch(function(e) { showToast('Verwijderen mislukt: ' + String(e)); });
+  });
+}
 
 // Toont/verbergt de foutbanner en zet rode veldranden bij een fout.
 function setLoginError(msg) {
