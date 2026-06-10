@@ -119,6 +119,9 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .cfg-nav-sub-item{padding:6px 12px;font-size:12px;font-weight:500;color:var(--c-muted);background:none;border:none;cursor:pointer;font-family:inherit;text-align:left;border-radius:6px;transition:background .1s,color .1s;width:100%}
 .cfg-nav-sub-item:hover{background:var(--c-bg);color:var(--c-text)}
 .cfg-nav-sub-item.active{color:var(--c-primary-hover);font-weight:600;background:var(--c-primary-tint)}
+.cfg-nav-item.has-sub{justify-content:space-between}
+.cfg-nav-item.has-sub .cfg-nav-arrow{font-size:10px;opacity:.55;transition:transform .18s;display:inline-block}
+.cfg-nav-item.has-sub.sub-open .cfg-nav-arrow{transform:rotate(180deg)}
 .cfg-icon-btn{background:none;border:none;cursor:pointer;color:var(--c-border-2);font-size:13px;padding:0 2px;flex-shrink:0;line-height:1;font-family:inherit;transition:color .1s;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center}
 .cfg-icon-btn:hover{color:var(--c-primary)}
 .cfg-icon-btn-del:hover{color:var(--c-danger)}
@@ -1169,25 +1172,25 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   <nav class="cfg-rail">
     <div class="cfg-rail-title">Instellingen</div>
 
-    <button type="button" class="cfg-nav-item active" id="cfg-nav-medewerkers" onclick="cfgGoSection('medewerkers')">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/></svg>
-      Medewerkers
+    <button type="button" class="cfg-nav-item has-sub sub-open active" id="cfg-nav-medewerkers" onclick="cfgNavToggle('medewerkers')">
+      <span style="display:flex;align-items:center;gap:10px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/></svg>Medewerkers</span>
+      <span class="cfg-nav-arrow">▼</span>
     </button>
     <div class="cfg-nav-sub open" id="cfg-nav-sub-medewerkers">
       <button type="button" class="cfg-nav-sub-item active" id="cfg-nav-sub-med-medewerkers" onclick="medSubView('medewerkers')">Medewerkers</button>
       <button type="button" class="cfg-nav-sub-item" id="cfg-nav-sub-med-rollen" onclick="medSubView('rollen')">Rollen / Functies</button>
     </div>
-    <button type="button" class="cfg-nav-item" id="cfg-nav-rondes" onclick="cfgGoSection('rondes')">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-      Rondes
+    <button type="button" class="cfg-nav-item has-sub" id="cfg-nav-rondes" onclick="cfgNavToggle('rondes')">
+      <span style="display:flex;align-items:center;gap:10px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Rondes</span>
+      <span class="cfg-nav-arrow">▼</span>
     </button>
     <div class="cfg-nav-sub" id="cfg-nav-sub-rondes">
       <button type="button" class="cfg-nav-sub-item active" id="cfg-nav-sub-rondes-rondes" onclick="rondesSubView('rondes')">Rondes</button>
       <button type="button" class="cfg-nav-sub-item" id="cfg-nav-sub-rondes-cats" onclick="rondesSubView('cats')">Categorieën</button>
     </div>
-    <button type="button" class="cfg-nav-item" id="cfg-nav-schema" onclick="cfgGoSection('schema')">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      Dagplanning
+    <button type="button" class="cfg-nav-item has-sub" id="cfg-nav-schema" onclick="cfgNavToggle('schema')">
+      <span style="display:flex;align-items:center;gap:10px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Dagplanning</span>
+      <span class="cfg-nav-arrow">▼</span>
     </button>
     <div class="cfg-nav-sub" id="cfg-nav-sub-schema">
       <button type="button" class="cfg-nav-sub-item active" id="cfg-nav-sub-schema-schema" onclick="schemaSubView('schema')">Dagplanning</button>
@@ -1213,7 +1216,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.65</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.66</span>
     </div>
   </nav>
 
@@ -1579,7 +1582,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.65';
+const APP_VERSION = '2.6.66';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -5872,6 +5875,24 @@ function cfgShowMobile() {
   if (vb) vb.textContent = 'v' + APP_VERSION;
 }
 
+// cfgNavToggle: klik op een nav-item met subnav.
+// Al actief + open → subnav inklappen (maar sectie actief houden).
+// Niet actief, of actief maar ingeklapt → activeren + subnav uitklappen.
+function cfgNavToggle(id) {
+  var btn = document.getElementById('cfg-nav-' + id);
+  var sub = document.getElementById('cfg-nav-sub-' + id);
+  if (!btn || !sub) { cfgGoSection(id); return; }
+  var alreadyActiveAndOpen = btn.classList.contains('active') && btn.classList.contains('sub-open');
+  if (alreadyActiveAndOpen) {
+    // Inklappen: subnav verbergen, pijl omhoog → neer
+    sub.classList.remove('open');
+    btn.classList.remove('sub-open');
+  } else {
+    // Uitklappen + sectie activeren
+    cfgGoSection(id);
+  }
+}
+
 function cfgGoSection(id) {
   _cfgActiveSection = id;
   ['medewerkers','rondes','schema','gedrag','auditlog'].forEach(function(s) {
@@ -5884,13 +5905,14 @@ function cfgGoSection(id) {
   if (target) target.classList.add('active');
   var navTarget = document.getElementById('cfg-nav-' + id);
   if (navTarget) navTarget.classList.add('active');
-  // Open/sluit sub-navs
-  var sub = document.getElementById('cfg-nav-sub-rondes');
-  if (sub) sub.classList.toggle('open', id === 'rondes');
-  var subMed = document.getElementById('cfg-nav-sub-medewerkers');
-  if (subMed) subMed.classList.toggle('open', id === 'medewerkers');
-  var subSchema = document.getElementById('cfg-nav-sub-schema');
-  if (subSchema) subSchema.classList.toggle('open', id === 'schema');
+  // Sub-navs: uitklappen voor het actieve item, inklappen voor de rest
+  ['medewerkers','rondes','schema'].forEach(function(s) {
+    var sub = document.getElementById('cfg-nav-sub-' + s);
+    var nav = document.getElementById('cfg-nav-' + s);
+    var open = (s === id);
+    if (sub) sub.classList.toggle('open', open);
+    if (nav) nav.classList.toggle('sub-open', open);
+  });
   // Bij intrede schema: zorg dat juiste sub-view en actieknop staan
   if (id === 'schema') {
     setTimeout(function() { schemaSubView(_schemaSubView); }, 0);
