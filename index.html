@@ -1154,7 +1154,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.76</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.77</span>
     </div>
   </nav>
 
@@ -1522,7 +1522,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.76';
+const APP_VERSION = '2.6.77';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -1598,7 +1598,7 @@ let EVENT_LOG = []; // local cache for rendering, populated from Firebase
 // SECTIE: LOGGING & EVENT LOG  — logEvent, fbListenEventLog, EVENT_LOG
 // ==============================================================================
 function logEvent(type, msg, detail) {
-  // type: 'start'|'retour'|'dienst'|'settings'|'sync'|'auto'|'system'|'melding'|'pin'|'error'
+  // type: 'start'|'retour'|'dienst'|'settings'|'sync'|'auto'|'system'|'melding'|'error'
   const evt = {
     ts: Date.now(),
     type: String(type || 'system'),
@@ -6142,7 +6142,7 @@ function dienstToggle(n, srcEl) {
     markDienstPending(n, 'remove');
     S.dienst.delete(n);
     lockDienstUi(n);
-    save();
+    fbSaveDienst();
     renderDienst();
     renderNameBtns();
     logEvent('dienst', n + ' einde dienst');
@@ -6151,7 +6151,7 @@ function dienstToggle(n, srcEl) {
     markDienstPending(n, 'add');
     S.dienst.add(n);
     lockDienstUi(n);
-    save();
+    fbSaveDienst();
     renderDienst();
     renderNameBtns();
     logEvent('dienst', n + ' op dienst');
@@ -6262,7 +6262,7 @@ function dienstLeeg() {
       changed = true;
     }
   }
-  if (changed) { save(); renderDienst(); renderNameBtns(); }
+  if (changed) { fbSaveDienst(); renderDienst(); renderNameBtns(); }
   if (geblokkeerd.length) {
     const hebben = geblokkeerd.length === 1 ? 'heeft' : 'hebben';
     showToast('⚠ ' + geblokkeerd.join(', ') + ' ' + hebben + ' nog een actieve ronde. Meld eerst retour.', 4000);
@@ -6516,7 +6516,6 @@ function _eventTypeColor(type) {
     case 'dienst':   return '#0891b2';
     case 'settings': return '#64748b';
     case 'melding':  return '#7c3aed';
-    case 'pin':      return '#475569';
     case 'system':   return '#334155';
     default:         return '#475569';
   }
@@ -6667,7 +6666,6 @@ function sluitMeldingen() {
 
 pruneLog();
 pruneEventLog();
-// PIN wordt geladen via Firebase listener (fbListen) — geen lokale init nodig
 
 // ── Header: datum, dagdeel, klok ────────────────────────────────────────────
 function updateHeader() {
