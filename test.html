@@ -8,13 +8,13 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="TEST V3 Dashboard">
+<meta name="apple-mobile-web-app-title" content="Surveillance Dashboard">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="description" content="Beveiligingsdashboard UMC Utrecht — surveillance rondes en dienstplanning.">
 <meta name="theme-color" content="#1e3a5c">
 <meta name="color-scheme" content="light">
 <meta name="format-detection" content="telephone=no">
-<title>[TEST·V3] Surveillance Dashboard</title>
+<title>Surveillance Dashboard — TEST</title>
 <style>
 /* ─── Design tokens ─── Centraal beheer van kleuren. Aanpassen hier = overal. */
 :root {
@@ -143,7 +143,7 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .cfg-gedrag-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--c-bg)}
 .cfg-gedrag-row:last-child{border-bottom:none}
 .cfg-gedrag-label{font-size:13px;font-weight:500;color:var(--c-text)}
-.cfg-gedrag-sub{font-size:11px;color:var(--c-muted-2);margin-top:2px}
+.cfg-gedrag-sub{font-size:11px;color:var(--c-muted-2);margin-top:2px}.cfg-gedrag-subhead{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--c-muted-2);padding:16px 0 6px;border-bottom:1px solid var(--c-bg)}
 /* ── Mobile cfg layout ────────────────────────────────────────────────── */
 @media(max-width:700px){
   .tabs{display:none}
@@ -614,7 +614,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   .edit-modal-daglabel{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);color:#ebebf5}
 }
 .logout-box{text-align:center;max-width:380px}
-.logout-icon{width:46px;height:46px;margin:2px auto 14px;border-radius:12px;background:var(--c-primary-tint);display:flex;align-items:center;justify-content:center}
+.logout-icon{width:46px;height:46px;margin:14px auto 14px;border-radius:12px;background:var(--c-primary-tint);display:flex;align-items:center;justify-content:center}
 .logout-title{font-size:17px;font-weight:700;color:var(--c-text);margin-bottom:8px}
 .logout-sub{font-size:13px;color:var(--c-muted-2);line-height:1.5;margin-bottom:20px}
 .logout-btns{justify-content:center}
@@ -650,6 +650,10 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   // De app blijft arrays/namen gebruiken; deze laag beheert de ID's, doet
   // per-item diff-writes en splitst de root-listener (audit/meldingen raken
   // de app-verwerking nooit meer).
+  // ════════════════════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════════════════
+  //  ⚠️  TEST / SANDBOX CONFIG — wijst naar 'surveillance-dashboard-test'
+  //      NOOIT als productie deployen. Gebruik hiervoor index.html (bab07).
   // ════════════════════════════════════════════════════════════════════════
   const firebaseConfig = {
     apiKey: "AIzaSyB-hz0MZyWEwwlsb3h6Ccamjo2lNwV2Z3Y",
@@ -934,10 +938,9 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         <img src="data:image/jpeg;base64,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" alt="Surveillance Dashboard logo">
       </div>
       <span class="login-brand-name">Surveillance Dashboard</span>
-      <span style="background:#fde047;color:#713f12;font-size:10px;font-weight:800;letter-spacing:.08em;padding:2px 7px;border-radius:5px;margin-left:8px;align-self:center">TEST</span>
-      <span style="background:#c4b5fd;color:#3b0764;font-size:10px;font-weight:800;letter-spacing:.08em;padding:2px 7px;border-radius:5px;margin-left:4px;align-self:center">V3</span>
     </div>
     <div class="login-brand-mid">
+      <div style="display:inline-block;background:#fef08a;border:1px solid #eab308;border-radius:6px;padding:3px 12px;font-size:12px;font-weight:700;color:#854d0e;margin-bottom:10px">TEST-OMGEVING</div>
       <h2 class="login-brand-head">Grip op elke ronde.</h2>
       <p class="login-brand-body">Registratie, planning, live voortgang en volledig overzicht op één beveiligd dashboard.</p>
     </div>
@@ -1056,7 +1059,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   <img src="logo.png" alt="Logo" style="height:36px;width:auto;object-fit:contain;flex-shrink:0;border-radius:6px" onerror="this.style.display='none';var d=document.getElementById('header-logo-divider');if(d)d.style.display='none'">
   <div id="header-logo-divider" style="width:1px;height:36px;background:rgba(255,255,255,.2);flex-shrink:0"></div>
   <div id="header-left" style="flex:1;min-width:0">
-    <h1 style="display:flex;align-items:center;gap:8px">Surveillance Dashboard <span style="background:#fde047;color:#713f12;font-size:11px;font-weight:800;letter-spacing:.08em;padding:2px 8px;border-radius:5px;flex-shrink:0">TEST</span><span style="background:#c4b5fd;color:#3b0764;font-size:11px;font-weight:800;letter-spacing:.08em;padding:2px 8px;border-radius:5px;flex-shrink:0">V3</span></h1>
+    <h1>Surveillance Dashboard</h1>
     <p id="header-sub" style="margin-top:2px">&nbsp;</p>
   </div>
   <div id="header-right" style="display:flex;align-items:center;gap:10px;flex-shrink:0;margin-left:auto">
@@ -1178,8 +1181,9 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <p class="lbl" style="margin-bottom:0" id="tl-header-label">Tijdslijn afgelopen 24 uur</p>
       <div style="display:flex;align-items:center;gap:8px">
         <div id="tl-window-seg" role="group" aria-label="Tijdlijn-venster">
-          <button type="button" class="tl-seg on" id="tl-seg-24" onclick="zetTlVenster(false)">24u</button>
-          <button type="button" class="tl-seg" id="tl-seg-12" onclick="zetTlVenster(true)">12u</button>
+          <button type="button" class="tl-seg on" id="tl-seg-24" onclick="zetTlVenster('24')">24u</button>
+          <button type="button" class="tl-seg" id="tl-seg-12" onclick="zetTlVenster('12')">12u</button>
+          <button type="button" class="tl-seg" id="tl-seg-dienst" onclick="zetTlVenster('dienst')">Dienst</button>
         </div>
         <button type="button" class="tl-toggle-btn" onclick="toggleTimeline()" style="display:none;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;color:#64748b;font-size:12px;cursor:pointer;font-family:inherit" id="tl-toggle-btn">
           <span id="tl-toggle-icon">▼</span> <span id="tl-toggle-label">Toon tijdlijn</span>
@@ -1378,7 +1382,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.0.0</span>
+      <span style="background:#fef08a;border:1px solid #eab308;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;color:#854d0e">TEST</span> <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.0.3</span>
     </div>
   </nav>
 
@@ -1475,6 +1479,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         <div><div class="cfg-sec-title">Gedrag</div><div class="cfg-sec-sub">Tijdslimieten en vergrendelingsgedrag</div></div>
       </div>
       <div style="display:flex;flex-direction:column">
+        <div class="cfg-gedrag-subhead">Meldingen &amp; waarschuwingen</div>
         <div class="cfg-gedrag-row">
           <div><div class="cfg-gedrag-label">Lange-ronde waarschuwing</div><div class="cfg-gedrag-sub">Oranje melding als een ronde langer duurt dan dit aantal uur</div></div>
           <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
@@ -1489,7 +1494,8 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
             <span style="font-size:12px;color:#64748b">uur</span>
           </div>
         </div>
-                <div class="cfg-gedrag-row">
+        <div class="cfg-gedrag-subhead" style="margin-top:8px">Ronde-log</div>
+        <div class="cfg-gedrag-row">
           <div><div class="cfg-gedrag-label">Ronde-log bewaar-duur</div><div class="cfg-gedrag-sub">Hoe lang gelopen rondes bewaard blijven (auto-opruiming elke 30 min). Minimaal 25 uur wordt altijd bewaard voor de 24u-tijdlijn.</div></div>
           <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
             <input type="number" id="inp-log-retention" min="1" max="30" step="1" style="width:60px;padding:5px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;text-align:center;font-family:inherit" oninput="saveGedrag()">
@@ -1746,7 +1752,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '3.0.0';
+const APP_VERSION = '3.0.3';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -2539,7 +2545,7 @@ let S = {
   tick: null, tickL: null, tickTL: null,
   _dienstPendingTimers: {}, // clearTimeout refs per naam
   _tlTimer: null,           // debounce ref for drawTimeline
-  _tl12: LS.get('rn_tl_12') === true,  // tijdlijn-venster: true=12u, false=24u (default)
+  _tlMode: LS.get('rn_tl_mode') || (LS.get('rn_tl_12') === true ? '12' : '24'),  // tijdlijn-venster: '24'|'12'|'dienst'
   _headerTimer: null,       // setTimeout ref for scheduleHeader
   _headerInterval: null,    // setInterval ref for updateHeader
   // Gedrag-instellingen (beheersbaar via instellingen-tab)
@@ -2859,13 +2865,13 @@ function toggleTimeline() {
   if (isOpen) { clearTimeout(S._tlTimer); S._tlTimer = setTimeout(() => { const _c = Date.now() - tlWindowMs(); drawTimeline(logInWindow(_c), Object.entries(S.active), _c, Date.now()); }, 50); }
 }
 
-// Zet het tijdlijn-venster expliciet op 12u (true) of 24u (false). Voorkeur wordt
-// lokaal bewaard (per toestel), zodat de keuze een refresh overleeft. Alleen de
+// Zet het tijdlijn-venster op '24', '12' of 'dienst'. Voorkeur wordt lokaal
+// bewaard (per toestel), zodat de keuze een refresh overleeft. Alleen de
 // tijdlijn verandert; de kaarten en de "Recent afgerond"-lijst blijven altijd op 24u.
-function zetTlVenster(is12) {
-  if (S._tl12 === is12) return; // al actief — niets te doen
-  S._tl12 = is12;
-  LS.set('rn_tl_12', S._tl12);
+function zetTlVenster(mode) {
+  if (S._tlMode === mode) return; // al actief — niets te doen
+  S._tlMode = mode;
+  LS.set('rn_tl_mode', S._tlMode);
   updateTlVensterUI();
   const _c = Date.now() - tlWindowMs();
   clearTimeout(S._tlTimer);
@@ -2874,12 +2880,22 @@ function zetTlVenster(is12) {
 
 // Houd de segment-knoppen en de kop-tekst in sync met de huidige venster-keuze.
 function updateTlVensterUI() {
-  const seg24 = document.getElementById('tl-seg-24');
-  const seg12 = document.getElementById('tl-seg-12');
-  const hdr   = document.getElementById('tl-header-label');
-  if (seg24) seg24.classList.toggle('on', !S._tl12);
-  if (seg12) seg12.classList.toggle('on',  S._tl12);
-  if (hdr) hdr.textContent = 'Tijdslijn afgelopen ' + tlUren() + ' uur';
+  const seg24     = document.getElementById('tl-seg-24');
+  const seg12     = document.getElementById('tl-seg-12');
+  const segDienst = document.getElementById('tl-seg-dienst');
+  const hdr       = document.getElementById('tl-header-label');
+  if (seg24)     seg24.classList.toggle('on', S._tlMode === '24');
+  if (seg12)     seg12.classList.toggle('on', S._tlMode === '12');
+  if (segDienst) segDienst.classList.toggle('on', S._tlMode === 'dienst');
+  if (hdr) {
+    if (S._tlMode === 'dienst') {
+      const d = new Date();
+      const dd = dagdeelAtMinute(d.getHours() * 60 + d.getMinutes());
+      hdr.textContent = 'Tijdslijn dienst — ' + (dd.naam || 'huidig dagdeel');
+    } else {
+      hdr.textContent = 'Tijdslijn afgelopen ' + tlUren() + ' uur';
+    }
+  }
 }
 
 function updBtn() {
@@ -3448,6 +3464,7 @@ function renderLive() {
   clearInterval(S.tickTL);
   S.tickTL = setInterval(() => {
     if (document.getElementById('pane-live').classList.contains('on')) {
+      if (S._tlMode === 'dienst') updateTlVensterUI(); // koplabel bijwerken bij dagdeel-wissel
       const nowT = Date.now();
       const cut  = nowT - tlWindowMs();
       drawTimeline(logInWindow(cut), Object.entries(S.active), cut, nowT);
@@ -3557,10 +3574,36 @@ function commitNotitieEditor(rkey, container) {
   saveNotitie(r.route, r.start, area.value); // triggert renderLive → toont notitie
 }
 
-// Tijdlijn-venster: 24 uur (standaard) of 12 uur, omschakelbaar via de 24u/12u-knop.
-// Eén bron van waarheid voor alle aanroepen en voor de as-tekening.
-function tlUren()    { return S._tl12 ? 12 : 24; }
-function tlWindowMs() { return tlUren() * 3600000; }
+// Tijdlijn-venster: 24u / 12u / dienst (huidig dagdeel). Eén bron van waarheid.
+function tlUren() {
+  if (S._tlMode === 'dienst') return Math.ceil(tlWindowMs() / 3600000) || 1;
+  return S._tlMode === '12' ? 12 : 24;
+}
+// Geeft het tijdlijn-venster in ms.  Dienst = start huidig dagdeel → nu (min 10 min).
+function tlWindowMs() {
+  if (S._tlMode === 'dienst') {
+    const now = Date.now();
+    return Math.max(now - tlDienstCutoff(now), 600000);
+  }
+  return (S._tlMode === '12' ? 12 : 24) * 3600000;
+}
+// Bereken het cutoff-moment (Unix ms) = start van het huidige dagdeel.
+function tlDienstCutoff(now) {
+  const d = new Date(now);
+  const nowMin = d.getHours() * 60 + d.getMinutes();
+  const dd = dagdeelAtMinute(nowMin);
+  const startMin = hhmmToMin(dd.start);
+  if (isNaN(startMin)) return now - 24 * 3600000; // fallback
+  const nowS = d.getSeconds(), nowMs = d.getMilliseconds();
+  let msAgo;
+  if (nowMin >= startMin) {
+    msAgo = (nowMin - startMin) * 60000 + nowS * 1000 + nowMs;
+  } else {
+    // Wikkelt over middernacht (bv. nacht 23:00–07:00, nu 02:00)
+    msAgo = (1440 - startMin + nowMin) * 60000 + nowS * 1000 + nowMs;
+  }
+  return now - msAgo;
+}
 
 // ==============================================================================
 // SECTIE: TIMELINE (canvas)  — drawTimeline, roundRect
@@ -3729,7 +3772,7 @@ function drawTimeline(recent, active, cutoff, now) {
     ctx.fillStyle = '#5b6b7f';
     ctx.font = '12px system-ui, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Geen rondes in de afgelopen 24 uur', W / 2, 30);
+    ctx.fillText('Geen rondes in ' + (S._tlMode === 'dienst' ? 'deze dienst' : 'de afgelopen ' + tlUren() + ' uur'), W / 2, 30);
     return;
   }
 
@@ -7030,7 +7073,7 @@ document.addEventListener('keydown', e => {
 // SECTIE: FIREBASE INIT & LISTENERS  — initFirebase, fbListenMeldingen/Connected, schrijfGedeeldeMelding
 // ==============================================================================
 function initFirebase() {
-  updateTlVensterUI(); // herstel 24u/12u-knoplabel + kop uit bewaarde voorkeur
+  updateTlVensterUI(); // herstel 24u/12u/dienst-knoplabel + kop uit bewaarde voorkeur
   fbListen(); // this will populate S.active and S.log and trigger re-render
   fbListenMeldingen(); // listen for shared notifications
   fbListenConnected(); // listen for Firebase connectivity
