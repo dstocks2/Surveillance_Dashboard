@@ -143,7 +143,7 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .cfg-gedrag-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--c-bg)}
 .cfg-gedrag-row:last-child{border-bottom:none}
 .cfg-gedrag-label{font-size:13px;font-weight:500;color:var(--c-text)}
-.cfg-gedrag-sub{font-size:11px;color:var(--c-muted-2);margin-top:2px}
+.cfg-gedrag-sub{font-size:11px;color:var(--c-muted-2);margin-top:2px}.cfg-gedrag-subhead{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--c-muted-2);padding:16px 0 6px;border-bottom:1px solid var(--c-bg)}
 /* ── Mobile cfg layout ────────────────────────────────────────────────── */
 @media(max-width:700px){
   .tabs{display:none}
@@ -614,7 +614,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   .edit-modal-daglabel{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);color:#ebebf5}
 }
 .logout-box{text-align:center;max-width:380px}
-.logout-icon{width:46px;height:46px;margin:2px auto 14px;border-radius:12px;background:var(--c-primary-tint);display:flex;align-items:center;justify-content:center}
+.logout-icon{width:46px;height:46px;margin:14px auto 14px;border-radius:12px;background:var(--c-primary-tint);display:flex;align-items:center;justify-content:center}
 .logout-title{font-size:17px;font-weight:700;color:var(--c-text);margin-bottom:8px}
 .logout-sub{font-size:13px;color:var(--c-muted-2);line-height:1.5;margin-bottom:20px}
 .logout-btns{justify-content:center}
@@ -1376,7 +1376,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.0.0</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.0.2</span>
     </div>
   </nav>
 
@@ -1473,6 +1473,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         <div><div class="cfg-sec-title">Gedrag</div><div class="cfg-sec-sub">Tijdslimieten en vergrendelingsgedrag</div></div>
       </div>
       <div style="display:flex;flex-direction:column">
+        <div class="cfg-gedrag-subhead">Meldingen &amp; waarschuwingen</div>
         <div class="cfg-gedrag-row">
           <div><div class="cfg-gedrag-label">Lange-ronde waarschuwing</div><div class="cfg-gedrag-sub">Oranje melding als een ronde langer duurt dan dit aantal uur</div></div>
           <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
@@ -1487,7 +1488,8 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
             <span style="font-size:12px;color:#64748b">uur</span>
           </div>
         </div>
-                <div class="cfg-gedrag-row">
+        <div class="cfg-gedrag-subhead" style="margin-top:8px">Ronde-log</div>
+        <div class="cfg-gedrag-row">
           <div><div class="cfg-gedrag-label">Ronde-log bewaar-duur</div><div class="cfg-gedrag-sub">Hoe lang gelopen rondes bewaard blijven (auto-opruiming elke 30 min). Minimaal 25 uur wordt altijd bewaard voor de 24u-tijdlijn.</div></div>
           <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
             <input type="number" id="inp-log-retention" min="1" max="30" step="1" style="width:60px;padding:5px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;text-align:center;font-family:inherit" oninput="saveGedrag()">
@@ -1744,7 +1746,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '3.0.0';
+const APP_VERSION = '3.0.2';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
