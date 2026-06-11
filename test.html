@@ -8,13 +8,13 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="TEST Dashboard">
+<meta name="apple-mobile-web-app-title" content="TEST V3 Dashboard">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="description" content="Beveiligingsdashboard UMC Utrecht — surveillance rondes en dienstplanning.">
 <meta name="theme-color" content="#1e3a5c">
 <meta name="color-scheme" content="light">
 <meta name="format-detection" content="telephone=no">
-<title>[TEST] Surveillance Dashboard</title>
+<title>[TEST·V3] Surveillance Dashboard</title>
 <style>
 /* ─── Design tokens ─── Centraal beheer van kleuren. Aanpassen hier = overal. */
 :root {
@@ -128,7 +128,6 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .cfg-icon-btn:hover{color:var(--c-primary)}
 .cfg-icon-btn-del:hover{color:var(--c-danger)}
 .cfg-rail-footer{padding:16px 18px 20px;border-top:1px solid var(--c-bg);margin-top:auto}
-.cfg-rail-lock-row{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#16a34a;margin-bottom:10px}
 .cfg-rail-btn{padding:5px 10px;border:1px solid var(--c-border);border-radius:6px;background:var(--c-bg-2);color:var(--c-muted);font-size:11px;cursor:pointer;font-family:inherit;transition:all .12s;margin-right:4px}
 .cfg-rail-btn:hover{border-color:var(--c-border-2);color:var(--c-text)}
 .cfg-detail{flex:1;padding:28px 32px;overflow-y:auto;background:var(--c-bg-2);min-width:0}
@@ -161,7 +160,6 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .cfg-mobile-detail.open{display:flex}
 .cfg-mob-strip{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;background:#fff;border-bottom:0.5px solid #e5e5ea}
 .cfg-mob-strip-left{display:flex;align-items:center;gap:6px;min-width:0}
-#cfg-mob-lock-title{font-size:13px;font-weight:600;color:#1c1c1e;white-space:nowrap}
 .cfg-mob-strip-dot{color:var(--c-border-3);font-size:12px}
 .cfg-mob-strip-sub{font-size:12px;color:var(--c-muted-ios);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cfg-mob-strip-btn{flex-shrink:0;padding:5px 12px;border:1px solid var(--c-border-2);border-radius:7px;background:#fff;color:var(--c-text-3);font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;white-space:nowrap}
@@ -189,11 +187,6 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .pane{display:none}.pane.on{display:block}
 .lbl{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--c-muted);margin-bottom:8px}
 .btn-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
-.pin-key{padding:14px;border:1.5px solid var(--c-border);border-radius:10px;background:#fff;font-size:20px;font-weight:500;color:var(--c-text);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .1s,transform .08s;user-select:none}
-.pin-key:active{background:var(--c-bg);transform:scale(.94)}
-.pin-key-del{color:var(--c-muted)}
-.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--c-border-2);background:#fff;transition:background .15s,border-color .15s}
-.pin-dot.filled{background:var(--c-primary-deep);border-color:var(--c-primary-deep)}
 .nbtn{padding:9px 15px;border-radius:8px;border:1.5px solid var(--c-border-2);background:#fff;color:var(--c-text-2);font-size:13px;cursor:pointer;transition:all .13s;font-family:inherit;-webkit-tap-highlight-color:transparent}
 .nbtn:focus,.nbtn:focus-visible{outline:none;box-shadow:none}
 @media(hover:hover) and (pointer:fine){.nbtn:hover{border-color:var(--c-primary);color:var(--c-brand);background:var(--c-primary-tint)}}
@@ -638,11 +631,26 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 
 <!-- Firebase SDK -->
 <script type="module">
+
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, set, get, onValue, update, remove, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getDatabase, ref as _ref, onValue as _onValue, get as _get, set as _set, update as _update, remove as _remove, push as _push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-  // ⚠️ TEST-OMGEVING — surveillance-dashboard-test. NOOIT naar productie.
+  // ════════════════════════════════════════════════════════════════════════
+  // SCHEMA v3 — TEST-omgeving. Datalaag vertaalt de oude app-API (dashboard/*)
+  // naar het nieuwe ID-gebaseerde schema:
+  //   /meta    appVersion, schemaVersion, beheerders/{uid}
+  //   /config  medewerkers/{id}{naam,rol} routes/{id}{naam,categorie,dubbelOk}
+  //            routeCats/{id}{naam,volgorde} rollen/{id}{naam,volgorde}
+  //            dagdelen/{id}{naam,start,eind,kleur,volgorde}
+  //            schema/{id}{h,m,ronde?,taak?,dagen?,weekdagsOnly?,volgorde} gedrag
+  //   /ops     dienst/{medId}:true  active/{medId}{naam,route,start,groupId?}
+  //            log/{push} notities/{push} meldingen/{push}
+  //   /audit   log/{push}
+  // De app blijft arrays/namen gebruiken; deze laag beheert de ID's, doet
+  // per-item diff-writes en splitst de root-listener (audit/meldingen raken
+  // de app-verwerking nooit meer).
+  // ════════════════════════════════════════════════════════════════════════
   const firebaseConfig = {
     apiKey: "AIzaSyB-hz0MZyWEwwlsb3h6Ccamjo2lNwV2Z3Y",
     authDomain: "surveillance-dashboard-test.firebaseapp.com",
@@ -653,43 +661,249 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     appId: "1:235953749425:web:fa32258f016093b21b1190"
   };
 
-  const app   = initializeApp(firebaseConfig);
-  const db    = getDatabase(app);
-  const auth  = getAuth(app);
+  const app  = initializeApp(firebaseConfig);
+  const db   = getDatabase(app);
+  const auth = getAuth(app);
 
-  // Expose to global scope for use in non-module script
-  window.fbDb      = db;
-  window.fbRef     = ref;
-  window.fbSet     = set;
-  window.fbGet     = get;
-  window.fbOnValue = onValue;
-  window.fbUpdate  = update;
-  window.fbRemove  = remove;
-  window.fbPush    = push;
-  window.fbAuth    = auth;
-  window.firebaseReady = false; // wait for a real signed-in user before signalling ready
+  // ── ID-register: laatste /config-snapshot in ruwe id-vorm ──
+  const REG = { medewerkers:{}, routes:{}, routeCats:{}, rollen:{}, dagdelen:{}, schema:{}, gedrag:null };
+  let SNAP = { dienst: undefined, active: undefined };   // ruwe ops-snapshots (id-vorm)
 
-  // Expose auth helpers for the login UI (defined in the non-module script).
+  function newId(p) { return p + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function medIdByNaam(naam) {
+    for (const [id, v] of Object.entries(REG.medewerkers)) if (v && v.naam === naam) return id;
+    return null;
+  }
+  function sortedEntries(map, byVolgorde) {
+    const e = Object.entries(map || {});
+    if (byVolgorde) e.sort((a, b) => (a[1].volgorde ?? 0) - (b[1].volgorde ?? 0));
+    return e;
+  }
+
+  // ── pad-vertaling (simpele hernoemingen) ──
+  function mapPath(p) {
+    if (!p) return p;
+    if (p === 'dashboard/appVersion') return 'meta/appVersion';
+    if (p === 'dashboard/beheerders' || p.startsWith('dashboard/beheerders/')) return p.replace('dashboard/beheerders', 'meta/beheerders');
+    if (p === 'dashboard/auditLog'   || p.startsWith('dashboard/auditLog/'))   return p.replace('dashboard/auditLog', 'audit/log');
+    if (p === 'dashboard/log'        || p.startsWith('dashboard/log/'))        return p.replace('dashboard/log', 'ops/log');
+    if (p === 'dashboard/notities'   || p.startsWith('dashboard/notities/'))   return p.replace('dashboard/notities', 'ops/notities');
+    if (p === 'dashboard/meldingen'  || p.startsWith('dashboard/meldingen/'))  return p.replace('dashboard/meldingen', 'ops/meldingen');
+    if (p === 'dashboard/gedrag') return 'config/gedrag';
+    return p; // 'dashboard' en '.info/connected' worden apart afgehandeld
+  }
+
+  // ── schrijf-vertalingen: oude bundel-shapes → per-item diff-updates ──
+  function diffMedewerkersLike(kind, arr, fields) {
+    // kind: 'medewerkers'|'routes'|'schema'|'dagdelen' — items dragen _id (geïnjecteerd)
+    const out = {};
+    const seen = new Set();
+    const fieldsEq = (a, b) => {
+      if (!a) return false;
+      const keys = fields.concat(['volgorde']);
+      for (const f of keys) {
+        const av = a[f] === undefined ? null : a[f];
+        const bv = b[f] === undefined ? null : b[f];
+        if (JSON.stringify(av) !== JSON.stringify(bv)) return false;
+      }
+      return true;
+    };
+    (arr || []).forEach((item, i) => {
+      let id = item._id;
+      if (!id) id = item._id = newId(kind.slice(0, 3));
+      seen.add(id);
+      const stored = {};
+      fields.forEach(f => { if (item[f] !== undefined && item[f] !== null) stored[f] = item[f]; });
+      if (kind === 'dagdelen' || kind === 'schema') stored.volgorde = i;
+      if (!fieldsEq(REG[kind][id], stored)) out['config/' + kind + '/' + id] = stored;
+    });
+    Object.keys(REG[kind]).forEach(id => { if (!seen.has(id)) out['config/' + kind + '/' + id] = null; });
+    return out;
+  }
+
+  function diffLabelList(kind, names) {
+    // routeCats / rollen: positionele match — hernoemen op zelfde index = zelfde id
+    const out = {};
+    const prev = sortedEntries(REG[kind], true); // [[id,{naam,volgorde}]...]
+    const n = names || [];
+    for (let i = 0; i < Math.max(prev.length, n.length); i++) {
+      if (i < n.length && i < prev.length) {
+        const [id, v] = prev[i];
+        if (v.naam !== n[i] || (v.volgorde ?? 0) !== i) out['config/' + kind + '/' + id] = { naam: n[i], volgorde: i };
+      } else if (i < n.length) {
+        out['config/' + kind + '/' + newId(kind.slice(0, 3))] = { naam: n[i], volgorde: i };
+      } else {
+        out['config/' + kind + '/' + prev[i][0]] = null;
+      }
+    }
+    return out;
+  }
+
+  function diffDienst(namesArr) {
+    const out = {};
+    const cur = SNAP.dienst || {};
+    const wantIds = new Set();
+    (namesArr || []).forEach(naam => { const id = medIdByNaam(naam); if (id) wantIds.add(id); });
+    wantIds.forEach(id => { if (!cur[id]) out['ops/dienst/' + id] = true; });
+    Object.keys(cur).forEach(id => { if (!wantIds.has(id)) out['ops/dienst/' + id] = null; });
+    return out;
+  }
+
+  function diffActive(byName) {
+    const out = {};
+    const cur = SNAP.active || {};
+    const want = {}; // medId → entry
+    Object.entries(byName || {}).forEach(([naam, a]) => {
+      const id = medIdByNaam(naam);
+      if (!id) { console.warn('v3: active voor onbekende medewerker', naam); return; }
+      const e = { naam: naam, route: a.route, start: a.start };
+      if (a.groupId) e.groupId = a.groupId;
+      want[id] = e;
+    });
+    Object.entries(want).forEach(([id, e]) => {
+      const c = cur[id];
+      const same = c && c.naam === e.naam && c.route === e.route && c.start === e.start && (c.groupId || null) === (e.groupId || null);
+      if (!same) out['ops/active/' + id] = e;
+    });
+    Object.keys(cur).forEach(id => { if (!(id in want)) out['ops/active/' + id] = null; });
+    return out;
+  }
+
+  function translateUpdates(updates) {
+    const out = {};
+    for (const [rawKey, val] of Object.entries(updates)) {
+      const key = rawKey.replace(/^\/+/, '');
+      if (key === 'dashboard/dienst')           Object.assign(out, diffDienst(val));
+      else if (key === 'dashboard/active')      Object.assign(out, diffActive(val || {}));
+      else if (key === 'dashboard/medewerkers') Object.assign(out, diffMedewerkersLike('medewerkers', val, ['naam', 'rol']));
+      else if (key === 'dashboard/routes')      Object.assign(out, diffMedewerkersLike('routes', val, ['naam', 'categorie', 'dubbelOk']));
+      else if (key === 'dashboard/schema')      Object.assign(out, diffMedewerkersLike('schema', val || [], ['h', 'm', 'ronde', 'taak', 'dagen', 'weekdagsOnly']));
+      else if (key === 'dashboard/dagdelen')    Object.assign(out, diffMedewerkersLike('dagdelen', val || [], ['naam', 'start', 'eind', 'kleur']));
+      else if (key === 'dashboard/routeCats')   Object.assign(out, diffLabelList('routeCats', val));
+      else if (key === 'dashboard/rollen')      Object.assign(out, diffLabelList('rollen', val));
+      else if (key === 'dashboard/gedrag') {
+        const g = REG.gedrag || {};
+        const same = g.timeoutWarn === val.timeoutWarn && g.meldingTTL === val.meldingTTL && g.logRetention === val.logRetention;
+        if (!same) out['config/gedrag'] = val;
+      }
+      else out[mapPath(key)] = val;
+    }
+    return out;
+  }
+
+  // ── lees-composities: id-vorm → oude app-vorm ──
+  function composeConfigArrays(cfg) {
+    REG.medewerkers = (cfg && cfg.medewerkers) || {};
+    REG.routes      = (cfg && cfg.routes)      || {};
+    REG.routeCats   = (cfg && cfg.routeCats)   || {};
+    REG.rollen      = (cfg && cfg.rollen)      || {};
+    REG.dagdelen    = (cfg && cfg.dagdelen)    || {};
+    REG.schema      = (cfg && cfg.schema)      || {};
+    REG.gedrag      = (cfg && cfg.gedrag)      || null;
+    const med = Object.entries(REG.medewerkers).map(([id, v]) => ({ _id: id, naam: v.naam || '', rol: v.rol || '' }));
+    med.sort((a, b) => a.naam.toLowerCase().localeCompare(b.naam.toLowerCase(), 'nl'));
+    const routes = Object.entries(REG.routes).map(([id, v]) => ({ _id: id, naam: v.naam || '', categorie: v.categorie || '', dubbelOk: !!v.dubbelOk }));
+    routes.sort((a, b) => a.naam.toLowerCase().localeCompare(b.naam.toLowerCase(), 'nl'));
+    const cats   = sortedEntries(REG.routeCats, true).map(([, v]) => v.naam);
+    const rollen = sortedEntries(REG.rollen, true).map(([, v]) => v.naam);
+    const dagd   = sortedEntries(REG.dagdelen, true).map(([id, v]) => ({ _id: id, naam: v.naam, start: v.start, eind: v.eind, kleur: v.kleur }));
+    const schema = sortedEntries(REG.schema, true).map(([id, v]) => { const o = { _id: id, h: v.h, m: v.m }; if (v.ronde) o.ronde = v.ronde; if (v.taak) o.taak = v.taak; if (v.dagen) o.dagen = v.dagen; if (v.weekdagsOnly !== undefined) o.weekdagsOnly = v.weekdagsOnly; return o; });
+    return { med, routes, cats, rollen, dagd, schema, gedrag: REG.gedrag };
+  }
+  function naamByMedId(id, fallback) {
+    const m = REG.medewerkers[id];
+    return (m && m.naam) || fallback || null;
+  }
+  function composeRoot(parts) {
+    const c = composeConfigArrays(parts.config);
+    SNAP.dienst = parts.dienst || {};
+    SNAP.active = parts.active || {};
+    const dienstNames = Object.keys(SNAP.dienst).map(id => naamByMedId(id)).filter(Boolean);
+    const activeByName = {};
+    Object.entries(SNAP.active).forEach(([id, a]) => {
+      const naam = naamByMedId(id, a && a.naam);
+      if (!naam) return;
+      const e = { route: a.route, start: a.start };
+      if (a.groupId) e.groupId = a.groupId;
+      activeByName[naam] = e;
+    });
+    const root = {
+      medewerkers: c.med, routes: c.routes,
+      dienst: dienstNames,
+      active: Object.keys(activeByName).length ? activeByName : undefined,
+      log: parts.log || undefined,
+      notities: parts.notities || undefined,
+      appVersion: parts.appVersion || undefined,
+      gedrag: c.gedrag || undefined
+    };
+    if (c.cats.length)   root.routeCats = c.cats;
+    if (c.rollen.length) root.rollen = c.rollen;
+    if (c.dagd.length)   root.dagdelen = c.dagd;
+    if (c.schema.length) root.schema = c.schema;
+    return root;
+  }
+
+  function snapLike(v) { const val = (v === undefined) ? null : v; return { exists: () => val !== null, val: () => val }; }
+
+  // ── publieke API (zelfde signatuur als voorheen) ──
+  window.fbDb  = db;
+  window.fbRef = (d, path) => ({ __p: path || '' });
+  const realRef = (marker) => _ref(db, mapPath(marker.__p));
+
+  window.fbSet    = (m, v) => _set(realRef(m), v);
+  window.fbGet    = (m) => _get(realRef(m));
+  window.fbRemove = (m) => _remove(realRef(m));
+  window.fbPush   = (m, v) => {
+    const r = _push(_ref(db, mapPath(m.__p)));
+    if (v === undefined) return { __p: null, __real: r, key: r.key };
+    return _set(r, v).then(() => ({ key: r.key }));
+  };
+  // fbSet moet ook refs van fbPush-zonder-waarde accepteren
+  const _fbSetOrig = window.fbSet;
+  window.fbSet = (m, v) => m && m.__real ? _set(m.__real, v) : _fbSetOrig(m, v);
+
+  window.fbUpdate = (m, updates) => _update(_ref(db), translateUpdates(updates));
+
+  window.fbOnValue = (m, cb, errCb) => {
+    const p = m.__p;
+    if (p === '.info/connected') return _onValue(_ref(db, '.info/connected'), s => cb(snapLike(s.val())), errCb);
+    if (p === 'dashboard') {
+      // Gesplitste root: config + ops(dienst/active/log/notities) + meta/appVersion.
+      // audit/log en ops/meldingen hebben eigen listeners en triggeren dit NIET.
+      const parts = { config: undefined, dienst: undefined, active: undefined, log: undefined, notities: undefined, appVersion: undefined };
+      let pending = 0;
+      const emit = () => {
+        for (const k of ['config', 'dienst', 'active', 'log', 'notities', 'appVersion']) if (parts[k] === undefined) return;
+        cb(snapLike(composeRoot(parts)));
+      };
+      const sub = (path, key) => {
+        pending++;
+        _onValue(_ref(db, path), s => { parts[key] = s.val() ?? null; emit(); },
+          e => { console.error('v3 listener ' + path, e); if (errCb) errCb(e); });
+      };
+      sub('config', 'config');
+      sub('ops/dienst', 'dienst');
+      sub('ops/active', 'active');
+      sub('ops/log', 'log');
+      sub('ops/notities', 'notities');
+      sub('meta/appVersion', 'appVersion');
+      return () => {};
+    }
+    return _onValue(realRef(m), s => cb(snapLike(s.val())), errCb);
+  };
+
+  window.fbAuth = auth;
+  window.firebaseReady = false;
   window.fbSignIn  = (email, pw) => signInWithEmailAndPassword(auth, email, pw);
   window.fbSignOut = () => signOut(auth);
-
-  // Keep the session across reloads/app restarts so guards don't have to log in
-  // every time. Persistence must be set before the first sign-in attempt.
   setPersistence(auth, browserLocalPersistence).catch(() => {});
 
-  // Central auth gate. This is the ONLY thing that decides whether the dashboard
-  // runs. No user -> show login overlay, keep app hidden. User present -> hide
-  // overlay, reveal app, and boot the app exactly once.
   onAuthStateChanged(auth, user => {
-    if (window.onAuthChanged) {
-      window.onAuthChanged(user);
-    } else {
-      // Non-module script not parsed yet; stash the latest user so it can pick it up.
-      window.__pendingAuthUser = user;
-      window.__pendingAuthFired = true;
-    }
+    if (window.onAuthChanged) window.onAuthChanged(user);
+    else { window.__pendingAuthUser = user; window.__pendingAuthFired = true; }
   });
-</script>
+
+  </script>
 </head>
 <body class="pre-auth">
 
@@ -721,6 +935,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       </div>
       <span class="login-brand-name">Surveillance Dashboard</span>
       <span style="background:#fde047;color:#713f12;font-size:10px;font-weight:800;letter-spacing:.08em;padding:2px 7px;border-radius:5px;margin-left:8px;align-self:center">TEST</span>
+      <span style="background:#c4b5fd;color:#3b0764;font-size:10px;font-weight:800;letter-spacing:.08em;padding:2px 7px;border-radius:5px;margin-left:4px;align-self:center">V3</span>
     </div>
     <div class="login-brand-mid">
       <h2 class="login-brand-head">Grip op elke ronde.</h2>
@@ -841,7 +1056,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   <img src="logo.png" alt="Logo" style="height:36px;width:auto;object-fit:contain;flex-shrink:0;border-radius:6px" onerror="this.style.display='none';var d=document.getElementById('header-logo-divider');if(d)d.style.display='none'">
   <div id="header-logo-divider" style="width:1px;height:36px;background:rgba(255,255,255,.2);flex-shrink:0"></div>
   <div id="header-left" style="flex:1;min-width:0">
-    <h1 style="display:flex;align-items:center;gap:8px">Surveillance Dashboard <span style="background:#fde047;color:#713f12;font-size:11px;font-weight:800;letter-spacing:.08em;padding:2px 8px;border-radius:5px;flex-shrink:0">TEST</span></h1>
+    <h1 style="display:flex;align-items:center;gap:8px">Surveillance Dashboard <span style="background:#fde047;color:#713f12;font-size:11px;font-weight:800;letter-spacing:.08em;padding:2px 8px;border-radius:5px;flex-shrink:0">TEST</span><span style="background:#c4b5fd;color:#3b0764;font-size:11px;font-weight:800;letter-spacing:.08em;padding:2px 8px;border-radius:5px;flex-shrink:0">V3</span></h1>
     <p id="header-sub" style="margin-top:2px">&nbsp;</p>
   </div>
   <div id="header-right" style="display:flex;align-items:center;gap:10px;flex-shrink:0;margin-left:auto">
@@ -861,6 +1076,9 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   <button type="button" class="bel-wrap" id="bel-btn" onclick="toggleMeldingen()" title="Meldingen" aria-label="Meldingen">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
     <span class="bel-badge" id="bel-badge"></span>
+  </button>
+  <button type="button" class="bel-wrap" id="tab-wissel" onclick="doLogout()" title="Uitloggen / account wisselen" aria-label="Uitloggen">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
   </button>
   <button type="button" class="tab tab-cfg" onclick="goTab('cfg')" title="Instellingen" aria-label="Instellingen" style="display:none">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -885,6 +1103,9 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   <button type="button" class="mob-tab" id="mob-tab-dienst" onclick="goTab('dienst')">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
     Op dienst
+  </button>
+  <button type="button" class="mob-tab" id="mob-tab-wissel" onclick="doLogout()" style="display:flex">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
   </button>
   <button type="button" class="mob-tab" id="mob-tab-cfg" onclick="goTab('cfg')" style="display:none">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -1008,40 +1229,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   <div id="pane-cfg" class="pane cfg-shell" role="tabpanel" aria-label="Instellingen" style="position:relative">
 
     <!-- PIN lock overlay -->
-    <div id="cfg-lock" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9500;flex-direction:column;align-items:center;justify-content:center;padding:20px;display:none">
-      <div style="background:#fff;border-radius:16px;padding:28px 24px 24px;max-width:340px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.22);display:flex;flex-direction:column;align-items:center;position:relative">
-        <button type="button" onclick="hideCfgLock();goTab('reg')" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:22px;color:#5b6b7f;cursor:pointer;line-height:1">&times;</button>
-        <div style="width:48px;height:48px;background:#f1f5f9;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        </div>
-        <div style="font-size:18px;font-weight:700;color:#1e293b;margin-bottom:6px">Instellingen vergrendeld</div>
-        <div style="font-size:13px;color:#64748b;text-align:center;margin-bottom:20px">Voer de pincode in om door te gaan</div>
-        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;color:#64748b;margin-bottom:12px;text-transform:uppercase">Pincode</div>
-        <div id="lock-dots" style="display:flex;gap:12px;margin-bottom:24px">
-          <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:260px">
-          <button type="button" class="pin-key" onclick="lockKeyPress('1')">1</button>
-          <button type="button" class="pin-key" onclick="lockKeyPress('2')">2</button>
-          <button type="button" class="pin-key" onclick="lockKeyPress('3')">3</button>
-          <button type="button" class="pin-key" onclick="lockKeyPress('4')">4</button>
-          <button type="button" class="pin-key" onclick="lockKeyPress('5')">5</button>
-          <button type="button" class="pin-key" onclick="lockKeyPress('6')">6</button>
-          <button type="button" class="pin-key" onclick="lockKeyPress('7')">7</button>
-          <button type="button" class="pin-key" onclick="lockKeyPress('8')">8</button>
-          <button type="button" class="pin-key" onclick="lockKeyPress('9')">9</button>
-          <div></div>
-          <button type="button" class="pin-key" onclick="lockKeyPress('0')">0</button>
-          <button type="button" class="pin-key pin-key-del" onclick="lockKeyDel()">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="13" y2="14"/><line x1="13" y1="9" x2="18" y2="14"/></svg>
-          </button>
-        </div>
-        <div id="cfg-pin-error" style="font-size:12px;color:#ef4444;min-height:18px;margin-top:10px;display:none">Onjuiste pincode</div>
-        <!-- hidden input zodat checkPin() nog werkt -->
-        <input type="hidden" id="cfg-pin-input">
-      </div>
-    </div>
-
+    
     <!-- Beheerder-modal -->
     <div id="beheerder-modal-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9400;display:none;align-items:center;justify-content:center;padding:20px">
       <div style="background:#fff;border-radius:16px;padding:28px 24px 24px;max-width:400px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.22);position:relative">
@@ -1062,46 +1250,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
 
     <!-- PIN keypad modal (setup + wijzigen, gedeeld) -->
-    <div id="pin-keypad-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9600;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px">
-      <div style="background:#fff;border-radius:16px;padding:28px 24px 24px;max-width:340px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.22);display:flex;flex-direction:column;align-items:center;position:relative">
-        <button type="button" id="pin-keypad-close" onclick="pinKeypadClose()" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:22px;color:#5b6b7f;cursor:pointer;line-height:1">&times;</button>
-        <div style="width:48px;height:48px;background:#f1f5f9;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        </div>
-        <div id="pin-keypad-title" style="font-size:18px;font-weight:700;color:#1e293b;margin-bottom:6px"></div>
-        <div id="pin-keypad-sub" style="font-size:13px;color:#64748b;text-align:center;margin-bottom:20px;line-height:1.4"></div>
-        <div style="display:flex;gap:6px;margin-bottom:18px">
-          <div id="pin-step-1" style="width:28px;height:4px;border-radius:2px;background:#1e40af"></div>
-          <div id="pin-step-2" style="width:28px;height:4px;border-radius:2px;background:#e2e8f0"></div>
-        </div>
-        <div id="pin-keypad-label" style="font-size:10px;font-weight:700;letter-spacing:.08em;color:#64748b;margin-bottom:12px;text-transform:uppercase"></div>
-        <div id="pin-dots" style="display:flex;gap:12px;margin-bottom:24px">
-          <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:260px">
-          <button type="button" class="pin-key" onclick="pinKeyPress('1')">1</button>
-          <button type="button" class="pin-key" onclick="pinKeyPress('2')">2</button>
-          <button type="button" class="pin-key" onclick="pinKeyPress('3')">3</button>
-          <button type="button" class="pin-key" onclick="pinKeyPress('4')">4</button>
-          <button type="button" class="pin-key" onclick="pinKeyPress('5')">5</button>
-          <button type="button" class="pin-key" onclick="pinKeyPress('6')">6</button>
-          <button type="button" class="pin-key" onclick="pinKeyPress('7')">7</button>
-          <button type="button" class="pin-key" onclick="pinKeyPress('8')">8</button>
-          <button type="button" class="pin-key" onclick="pinKeyPress('9')">9</button>
-          <div></div>
-          <button type="button" class="pin-key" onclick="pinKeyPress('0')">0</button>
-          <button type="button" class="pin-key pin-key-del" onclick="pinKeyDel()">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="13" y2="14"/><line x1="13" y1="9" x2="18" y2="14"/></svg>
-          </button>
-        </div>
-        <div id="pin-keypad-error" style="font-size:12px;color:#ef4444;min-height:18px;margin-top:10px"></div>
-        <div style="width:100%;max-width:260px;margin-top:14px">
-          <button type="button" id="pin-btn-back" onclick="pinKeypadBack()" style="display:none;width:100%;max-width:260px;padding:11px;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;font-size:14px;color:#475569;cursor:pointer;font-weight:500">← Terug</button>
-          <button type="button" id="pin-btn-next" onclick="pinKeypadNext()" style="width:100%;max-width:260px;padding:11px;border:none;border-radius:8px;background:#1e40af;color:#fff;font-size:14px;font-weight:600;cursor:pointer">Doorgaan →</button>
-        </div>
-      </div>
-    </div>
-
+    
     <!-- Unlocked content -->
     <div id="cfg-content">
 
@@ -1111,15 +1260,6 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <div id="cfg-mobile-master" class="cfg-mobile-master" style="display:none">
 
   <!-- Status strip -->
-  <div class="cfg-mob-strip" id="cfg-mob-strip">
-    <div class="cfg-mob-strip-left">
-      <svg id="cfg-mob-strip-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      <span id="cfg-mob-lock-title">Ontgrendeld</span>
-      <span class="cfg-mob-strip-dot">·</span>
-      <span id="cfg-mob-lock-sub" class="cfg-mob-strip-sub">beveiligd met pincode</span>
-    </div>
-    <button type="button" class="cfg-mob-strip-btn" id="cfg-mob-lock-btn" onclick="manualLockCfg()">Vergrendel</button>
-  </div>
 
   <div class="cfg-mob-page-title">Instellingen</div>
 
@@ -1161,11 +1301,6 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     <button type="button" class="cfg-mob-row" id="cfg-mob-row-beheerders" onclick="cfgMobGoSection('beheerders')" style="display:none">
       <div class="cfg-mob-row-icon cfg-mob-row-icon-slate"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.85"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
       <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Beheerders</div><div class="cfg-mob-row-sub">Accounts met instellingen-toegang</div></div>
-      <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </button>
-    <button type="button" class="cfg-mob-row" onclick="changePinDialog()">
-      <div class="cfg-mob-row-icon cfg-mob-row-icon-slate"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-      <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Pincode wijzigen</div><div class="cfg-mob-row-sub">4-cijferige toegangscode</div></div>
       <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
     <button type="button" class="cfg-mob-row" onclick="doLogout()">
@@ -1240,16 +1375,10 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </button>
 
     <div class="cfg-rail-footer">
-      <div class="cfg-rail-lock-row">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <span id="cfg-rail-lock-label">Ontgrendeld</span>
-      </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
-        <button type="button" class="cfg-rail-btn" onclick="manualLockCfg()">Vergrendelen</button>
-        <button type="button" class="cfg-rail-btn" onclick="changePinDialog()">Pincode</button>
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.71</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.0.0</span>
     </div>
   </nav>
 
@@ -1360,14 +1489,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
             <span style="font-size:12px;color:#64748b">uur</span>
           </div>
         </div>
-        <div class="cfg-gedrag-row">
-          <div><div class="cfg-gedrag-label">Automatische vergrendeling instellingen</div><div class="cfg-gedrag-sub">Hoe lang instellingen ontgrendeld blijven na invoer van pincode</div></div>
-          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-            <input type="number" id="inp-pin-cache" min="5" max="480" step="5" style="width:68px;padding:5px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;text-align:center;font-family:inherit" oninput="saveGedrag()">
-            <span style="font-size:12px;color:#64748b">min</span>
-          </div>
-        </div>
-        <div class="cfg-gedrag-row">
+                <div class="cfg-gedrag-row">
           <div><div class="cfg-gedrag-label">Ronde-log bewaar-duur</div><div class="cfg-gedrag-sub">Hoe lang gelopen rondes bewaard blijven (auto-opruiming elke 30 min). Minimaal 25 uur wordt altijd bewaard voor de 24u-tijdlijn.</div></div>
           <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
             <input type="number" id="inp-log-retention" min="1" max="30" step="1" style="width:60px;padding:5px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;text-align:center;font-family:inherit" oninput="saveGedrag()">
@@ -1624,14 +1746,14 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.71';
+const APP_VERSION = '3.0.0';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
 //  Inhoudsopgave (zoek op 'SECTIE:' om naar een blok te springen)
 //
 //    1. LOGGING & EVENT LOG  — logEvent, fbListenEventLog, EVENT_LOG
-//    2. FIREBASE SYNC (schrijf)  — fbSave, fbSavePin, fbSaveDienst, fbSaveActive, fbPushLogEntry
+//    2. FIREBASE SYNC (schrijf)  — fbSave, fbSaveDienst, fbSaveActive, fbPushLogEntry
 //    3. SANITIZE & ESCAPE  — sanitizeFromFirebase, escHtml, safeColor, decodeEntities, sanitize*
 //    4. STATE  — S (medewerkers/active/log/schema/routes/dienst...), defaults, pending-locks
 //    5. UTILITIES  — save, fmtT/fmtDT/elaps, notitie-helpers, showToast, goTab
@@ -1645,8 +1767,7 @@ const APP_VERSION = '2.6.71';
 //   13. MEDEWERKERS-LIJST  — rolfilter, renderMedewerkersList, highlight
 //   14. INSTELLINGEN (cfg)  — renderCfg, cfg-navigatie, rail-lock
 //   15. SCHEMA- & DAGDEEL-MODALS  — open/save/close schema- en dagdeelmodal
-//   16. PINCODE (cfg-lock)  — hashPin, cfg-lock keypad, checkPin
-//   17. PIN-KEYPAD (setup/change)  — pinKeypad*, showPinSetup, saveGedrag, logRetention
+//   17. GEDRAG-INSTELLINGEN  — saveGedrag, logRetention
 //   18. CRUD: NAMEN/ROUTES/CATEGORIEEN  — sanitizeInput, add/rm name/route/cat, ronde-modal
 //   19. OP DIENST  — dienstInitialen, dienstToggle, renderDienst
 //   20. CONFIRM-MODAL & TOPBAR  — customConfirm, updateTopbarHeight
@@ -1701,13 +1822,18 @@ let EVENT_LOG = []; // local cache for rendering, populated from Firebase
 // SECTIE: LOGGING & EVENT LOG  — logEvent, fbListenEventLog, EVENT_LOG
 // ==============================================================================
 function logEvent(type, msg, detail) {
-  // type: 'start'|'retour'|'dienst'|'settings'|'sync'|'auto'|'system'|'melding'|'pin'|'error'
+  // type: 'start'|'retour'|'dienst'|'settings'|'sync'|'auto'|'system'|'melding'|'error'
+  // userEmail: actueel ingelogd account (bewaker of beheerder). Pas beschikbaar
+  // nadat Firebase Auth een sessie heeft hersteld; vóór die tijd '' (komt zelden
+  // voor — alleen tijdens een paar booteventen). Veld is optioneel in de rules.
+  const _u = (window.fbAuth && window.fbAuth.currentUser) ? window.fbAuth.currentUser : null;
   const evt = {
     ts: Date.now(),
     type: String(type || 'system'),
     msg: String(msg || ''),
     detail: detail !== undefined && detail !== null ? (typeof detail === 'string' ? detail : JSON.stringify(detail).slice(0, 500)) : '',
     deviceId: DEVICE_ID,
+    userEmail: _u && _u.email ? String(_u.email) : '',
     appVersion: typeof APP_VERSION === 'string' ? APP_VERSION : ''
   };
   // Always log locally first so we have a record even if Firebase is offline
@@ -1750,6 +1876,7 @@ function fbListenEventLog() {
         msg: decodeEntities(sanitizeFromFirebase(e.msg || '')),
         detail: decodeEntities(sanitizeFromFirebase(e.detail || '')),
         deviceId: decodeEntities(sanitizeFromFirebase(e.deviceId || '')),
+        userEmail: decodeEntities(sanitizeFromFirebase(e.userEmail || '')),
         appVersion: decodeEntities(sanitizeFromFirebase(e.appVersion || ''))
       });
     });
@@ -1765,7 +1892,7 @@ function fbListenEventLog() {
 
 // ── Firebase sync ─────────────────────────────────────────────────────────
 // ==============================================================================
-// SECTIE: FIREBASE SYNC (schrijf)  — fbSave, fbSavePin, fbSaveDienst, fbSaveActive, fbPushLogEntry
+// SECTIE: FIREBASE SYNC (schrijf)  — fbSave, fbSaveDienst, fbSaveActive, fbPushLogEntry
 // ==============================================================================
 function fbSave() {
   if (!window.fbDb) return;
@@ -1793,19 +1920,9 @@ function fbSave() {
   // landde en de echo de oude lijst direct terugzette — ook lokaal.
   updates['/dashboard/schema']   = (S.schema && S.schema.length) ? S.schema : null;
   updates['/dashboard/dagdelen'] = (S.dagdelen && S.dagdelen.length) ? S.dagdelen : null;
-  updates['/dashboard/gedrag'] = { timeoutWarn: S.timeoutWarn, meldingTTL: S.meldingTTL, pinCacheDur: S.pinCacheDur, logRetention: S.logRetention };
-  // PIN: alleen schrijven als er een geldige hash in localStorage staat
-  const storedPin = LS.get('rn_cfg_pin');
-  if (storedPin && storedPin.length === 64) updates['/dashboard/pin'] = storedPin;
+  updates['/dashboard/gedrag'] = { timeoutWarn: S.timeoutWarn, meldingTTL: S.meldingTTL, logRetention: S.logRetention };
   window.fbUpdate(window.fbRef(window.fbDb), updates)
     .catch(e => { logEvent('error', 'Instellingen opslaan MISLUKT', { error: String(e) }); setFbStatus('error'); });
-}
-
-function fbSavePin(pin) {
-  if (!window.fbDb) return;
-  window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/pin': pin })
-    .then(() => setFbStatus('ok'))
-    .catch(e => { logEvent('error', 'PIN opslaan MISLUKT', { error: String(e) }); });
 }
 
 // Gerichte write van ALLEEN de dienst-tak. Gebruikt door reconcileState() en de
@@ -2027,6 +2144,7 @@ function sanitizeMedewerkers(arr) {
   return arr.map(m => {
     if (typeof m === 'string') return { naam: decodeEntities(sanitizeFromFirebase(m)), rol: '' };
     return {
+      _id: typeof m._id === 'string' ? m._id : undefined,
       naam: decodeEntities(sanitizeFromFirebase(m.naam || '')),
       rol:  decodeEntities(sanitizeFromFirebase(String(m.rol || '').slice(0, 200)))
     };
@@ -2038,6 +2156,7 @@ function sanitizeRoutes(arr) {
   return arr.map(r => {
     if (typeof r === 'string') return { naam: decodeEntities(sanitizeFromFirebase(r)), categorie: '', dubbelOk: false };
     return {
+      _id:       typeof r._id === 'string' ? r._id : undefined,
       naam:      decodeEntities(sanitizeFromFirebase(r.naam      || '')),
       categorie: decodeEntities(sanitizeFromFirebase(r.categorie || '')),
       dubbelOk:  r.dubbelOk === true
@@ -2055,6 +2174,7 @@ function sanitizeSchema(arr) {
     if (!item || typeof item !== 'object') return null;
     const h = Number(item.h), m = Number(item.m);
     const out = {
+      _id: typeof item._id === 'string' ? item._id : undefined,
       h: Number.isFinite(h) ? h : 0,
       m: Number.isFinite(m) ? m : 0,
       ronde: item.ronde == null ? null : decodeEntities(sanitizeFromFirebase(String(item.ronde))),
@@ -2081,6 +2201,7 @@ function sanitizeDagdelen(arr) {
   return arr.map(d => {
     if (!d || typeof d !== 'object') return null;
     return {
+      _id:   typeof d._id === 'string' ? d._id : undefined,
       naam:  decodeEntities(sanitizeFromFirebase(String(d.naam  || ''))),
       start: decodeEntities(sanitizeFromFirebase(String(d.start || ''))),
       eind:  decodeEntities(sanitizeFromFirebase(String(d.eind  || ''))),
@@ -2331,14 +2452,6 @@ function fbListen() {
         LS.set('rn_dagdelen', S.dagdelen);
       }
     }
-    // Sync PIN from Firebase — only accept hashed values (64 char SHA-256)
-    if (d.pin && typeof d.pin === 'string' && d.pin.length === 64) {
-      LS.set('rn_cfg_pin', d.pin);
-    } else if (d.pin === null || d.pin === undefined) {
-      // Geen PIN in Firebase = source of truth → lokale cache wissen en setup tonen
-      localStorage.removeItem('rn_cfg_pin');
-      showPinSetup();
-    }
     // Sync gedrag-instellingen from Firebase
     if (d.gedrag && typeof d.gedrag === 'object') {
       const g = d.gedrag;
@@ -2347,9 +2460,6 @@ function fbListen() {
       }
       if (typeof g.meldingTTL === 'number' && g.meldingTTL >= 1 && g.meldingTTL <= 72 && g.meldingTTL !== S.meldingTTL) {
         S.meldingTTL = g.meldingTTL; LS.set('rn_melding_ttl', g.meldingTTL);
-      }
-      if (typeof g.pinCacheDur === 'number' && g.pinCacheDur >= 5 && g.pinCacheDur <= 480 && g.pinCacheDur !== S.pinCacheDur) {
-        S.pinCacheDur = g.pinCacheDur; LS.set('rn_pin_cache_dur', g.pinCacheDur);
       }
       if (typeof g.logRetention === 'number' && g.logRetention >= 1 && g.logRetention <= 30 && g.logRetention !== S.logRetention) {
         S.logRetention = g.logRetention; LS.set('rn_log_retention', g.logRetention);
@@ -2435,7 +2545,6 @@ let S = {
   // Gedrag-instellingen (beheersbaar via instellingen-tab)
   timeoutWarn:  LS.get('rn_timeout_warn')  ?? 4,
   meldingTTL:   LS.get('rn_melding_ttl')   ?? 8,
-  pinCacheDur:  LS.get('rn_pin_cache_dur') ?? 30,
   logRetention: LS.get('rn_log_retention') ?? 2,   // dagen: hoe lang ronde-log bewaard blijft
 };
 
@@ -2607,7 +2716,7 @@ function goTab(id) {
   if (id === 'plan')  renderPlan();
   if (id === 'dienst') renderDienst();
   if (id === 'cfg') {
-    if (isMobile()) { cfgShowMobile(); checkCfgLock(); } else { cfgGoSection(_cfgActiveSection || 'medewerkers'); checkCfgLock(); }
+    if (isMobile()) { cfgShowMobile(); } else { cfgGoSection(_cfgActiveSection || 'medewerkers'); }
   }
   // Sync tab aria-selected
   document.querySelectorAll('.tab[role="tab"]').forEach(btn => {
@@ -4007,6 +4116,10 @@ function pruneNotities() {
 // Entries zonder geldige ts worden nooit gewist.
 let _pruneAuditBusy = false;
 function pruneEventLog() {
+  // v3: audit/log is append-only voor bewakers; alleen beheerders mogen opschonen.
+  // Check via window-flag: pruneEventLog draait al bij script-init, vóór de
+  // declaratie van de _isBeheerder-let (TDZ) — window-flag is altijd veilig.
+  if (!window._isBeheerderV3) return;
   if (window._appOutdated || _pruneAuditBusy) return;
   if (!window.fbDb || !window.fbGet || !window.fbRemove) return;
   const cutoff = Date.now() - EVENT_LOG_TTL_MS;
@@ -4582,7 +4695,10 @@ function renderPlan() {
     // A ronde at this slot is "done" if there's a log entry for it that started
     // at or after the slot time (in wall-clock adjusted minutes) and has ended.
     const allDone = sameTimeCheck.every(s => {
-      if (!s.ronde) return true; // non-ronde items always considered done
+      // Taak zonder ronde: toon het slot zolang het het meest recente verstreken
+      // tijdstip is — beschouw het als "done" zodra het VOLGENDE slot ook al
+      // verstreken is. Dit voorkomt dat het slot direct wordt overgeslagen (v2.6.73).
+      if (!s.ronde) return false;
       // Check if this ronde has a completed log entry that started after the slot time today
       const slotMs = (() => {
         const d = new Date();
@@ -4983,11 +5099,9 @@ function renderCfg() {
   // Vul gedrag-inputs in met huidige waarden
   const inpTW = document.getElementById('inp-timeout-warn');
   const inpMT = document.getElementById('inp-melding-ttl');
-  const inpPC = document.getElementById('inp-pin-cache');
   const inpLR = document.getElementById('inp-log-retention');
   if (inpTW && document.activeElement !== inpTW) inpTW.value = S.timeoutWarn;
   if (inpMT && document.activeElement !== inpMT) inpMT.value = S.meldingTTL;
-  if (inpPC && document.activeElement !== inpPC) inpPC.value = S.pinCacheDur;
   if (inpLR && document.activeElement !== inpLR) inpLR.value = S.logRetention;
 
   // Render medewerkers list — sorted alphabetically, styled like dagdelen
@@ -5866,11 +5980,9 @@ function cfgMobBack() {
 function _rewireGedragInputs(container) {
   var tw = container.querySelector('#inp-timeout-warn');
   var mt = container.querySelector('#inp-melding-ttl');
-  var pc = container.querySelector('#inp-pin-cache');
   var lr = container.querySelector('#inp-log-retention');
   if (tw) { tw.value = S.timeoutWarn; tw.oninput = function() { S.timeoutWarn = parseFloat(tw.value); saveGedrag(); }; }
   if (mt) { mt.value = S.meldingTTL;  mt.oninput = function() { S.meldingTTL  = parseFloat(mt.value); saveGedrag(); }; }
-  if (pc) { pc.value = S.pinCacheDur; pc.oninput = function() { S.pinCacheDur = parseFloat(pc.value); saveGedrag(); }; }
   if (lr) { lr.value = S.logRetention; lr.oninput = function() { S.logRetention = parseFloat(lr.value); saveGedrag(); }; }
 }
 
@@ -5884,23 +5996,6 @@ function _rewireAuditlog(container) {
 function cfgShowMobile() {
   document.getElementById('cfg-mobile-master').classList.remove('hidden');
   document.getElementById('cfg-mobile-detail').classList.remove('open');
-  var unlocked = LS.get('rn_cfg_unlocked');
-  var isUnlocked = unlocked && (Date.now() - Number(unlocked)) < S.pinCacheDur * 60000;
-  var title = document.getElementById('cfg-mob-lock-title');
-  var sub   = document.getElementById('cfg-mob-lock-sub');
-  var btn   = document.getElementById('cfg-mob-lock-btn');
-  var strip = document.getElementById('cfg-mob-strip');
-  if (isUnlocked) {
-    if (title) { title.textContent = 'Ontgrendeld'; title.style.color = '#1c1c1e'; }
-    if (sub)   sub.textContent = 'beveiligd met pincode';
-    if (btn)   { btn.textContent = 'Vergrendel'; btn.onclick = manualLockCfg; }
-    if (strip) strip.classList.remove('locked');
-  } else {
-    if (title) { title.textContent = 'Vergrendeld'; title.style.color = '#68686d'; }
-    if (sub)   sub.textContent = 'tik om te ontgrendelen';
-    if (btn)   { btn.textContent = 'Ontgrendel'; btn.onclick = showCfgLock; }
-    if (strip) strip.classList.add('locked');
-  }
   var setBadge = function(id, val) { var el = document.getElementById('cfg-mob-badge-' + id); if (el) el.textContent = val || ''; };
   setBadge('medewerkers', S.medewerkers && S.medewerkers.length ? S.medewerkers.length + (S.rollen && S.rollen.length ? ' / ' + S.rollen.length : '') : '');
   setBadge('rondes', S.routes && S.routes.length ? S.routes.length + (S.routeCats && S.routeCats.length ? ' / ' + S.routeCats.length : '') : '');
@@ -5965,210 +6060,10 @@ function cfgGoSection(id) {
   if (id === 'beheerders') renderBeheerders();
 }
 
-function _updateRailLockLabel(unlocked) {
-  var lbl = document.getElementById('cfg-rail-lock-label');
-  if (!lbl) return;
-  var svg = lbl.previousElementSibling;
-  if (unlocked) {
-    lbl.textContent = 'Ontgrendeld'; lbl.style.color = '#16a34a';
-    if (svg) svg.setAttribute('stroke','#22c55e');
-  } else {
-    lbl.textContent = 'Vergrendeld'; lbl.style.color = '#5b6b7f';
-    if (svg) svg.setAttribute('stroke','#94a3b8');
-  }
-}
-
-// ── PIN LOCK ──────────────────────────────────────────────────────────────
-const CFG_PIN_KEY = 'rn_cfg_pin';
-
-// SHA-256 hash via Web Crypto API — PIN nooit plaintext opgeslagen of zichtbaar
-// ==============================================================================
-// SECTIE: PINCODE (cfg-lock)  — hashPin, cfg-lock keypad, checkPin
-// ==============================================================================
-async function hashPin(pin) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pin));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
-
-async function getCfgPinHash() {
-  const stored = LS.get(CFG_PIN_KEY);
-  if (stored && stored.length === 64) return stored;
-  return null; // geen geldige hash beschikbaar
-}
-
-function showCfgLock() {
-  const lock = document.getElementById('cfg-lock');
-  const content = document.getElementById('cfg-content');
-  if (lock)    { lock.style.display = 'flex'; }
-  if (content) { content.style.display = 'none'; }
-  _updateRailLockLabel(false);
-  _lockVal = '';
-  lockKeypadDots();
-  document.getElementById('cfg-pin-error').style.display = 'none';
-}
-
-function hideCfgLock() {
-  const lock = document.getElementById('cfg-lock');
-  const content = document.getElementById('cfg-content');
-  if (lock)    lock.style.display = 'none';
-  if (content) content.style.display = 'block';
-  _updateRailLockLabel(true);
-  if (isMobile()) cfgShowMobile();
-}
-
-function manualLockCfg() {
-  localStorage.removeItem('rn_cfg_unlocked');
-  logEvent('pin', 'Instellingen handmatig vergrendeld');
-  hideCfgLock();
-  goTab('reg');
-}
-
-let _lockVal = '';
-
-function lockKeypadDots() {
-  const dots = document.querySelectorAll('#lock-dots .pin-dot');
-  dots.forEach((d, i) => d.classList.toggle('filled', i < _lockVal.length));
-}
-
-function lockKeyPress(digit) {
-  if (_lockVal.length >= PIN_MAX) return;
-  _lockVal += digit;
-  lockKeypadDots();
-  if (_lockVal.length === PIN_MAX) setTimeout(checkPin, 180);
-}
-
-function lockKeyDel() {
-  _lockVal = _lockVal.slice(0, -1);
-  lockKeypadDots();
-}
-
-async function checkPin() {
-  const err = document.getElementById('cfg-pin-error');
-  const entered = await hashPin(_lockVal);
-  const stored  = await getCfgPinHash();
-  if (!stored) { showPinSetup(); return; }
-  if (entered === stored) {
-    err.style.display = 'none';
-    LS.set('rn_cfg_unlocked', Date.now());
-    hideCfgLock();
-  } else {
-    err.style.display = 'block';
-    _lockVal = '';
-    lockKeypadDots();
-  }
-}
-
-// ── PIN KEYPAD ────────────────────────────────────────────────────────────
-// Gedeeld keypad voor setup (geen sluitknop) en wijzigen (wel sluitknop)
-// _pinMode: 'setup' | 'change'
-// _pinStep: 1 | 2
-// _pinVal1: ingevoerde waarde stap 1
-let _pinMode = 'setup', _pinStep = 1, _pinVal1 = '', _pinValNow = '';
-const PIN_MAX = 4;
-
-// ==============================================================================
-// SECTIE: PIN-KEYPAD (setup/change)  — pinKeypad*, showPinSetup, saveGedrag, logRetention
-// ==============================================================================
-function pinKeypadOpen(mode) {
-  _pinMode = mode;
-  _pinStep = 1;
-  _pinVal1 = '';
-  _pinValNow = '';
-  const overlay = document.getElementById('pin-keypad-overlay');
-  overlay.style.display = 'flex';
-  // Sluitknop alleen zichtbaar bij wijzigen
-  document.getElementById('pin-keypad-close').style.display = mode === 'change' ? 'block' : 'none';
-  pinKeypadRender();
-}
-
-function pinKeypadClose() {
-  document.getElementById('pin-keypad-overlay').style.display = 'none';
-}
-
-function pinKeypadRender() {
-  const isStep1 = _pinStep === 1;
-  document.getElementById('pin-keypad-title').textContent = _pinMode === 'setup' ? 'Pincode instellen' : 'Pincode wijzigen';
-  document.getElementById('pin-keypad-sub').textContent  = isStep1
-    ? 'Kies een pincode van 4 cijfers.'
-    : 'Voer je pincode nog een keer in om te bevestigen.';
-  document.getElementById('pin-keypad-label').textContent = isStep1 ? 'Nieuwe pincode' : 'Bevestig pincode';
-  document.getElementById('pin-step-1').style.background = '#1e40af';
-  document.getElementById('pin-step-2').style.background = isStep1 ? '#e2e8f0' : '#1e40af';
-  // Knoppen
-  // Knoppen: stap 1 = Doorgaan zichtbaar, stap 2 = alleen Terug (opslaan gaat automatisch)
-  document.getElementById('pin-btn-back').style.display = isStep1 ? 'none' : 'block';
-  document.getElementById('pin-btn-next').style.display = isStep1 ? 'block' : 'none';
-  document.getElementById('pin-keypad-error').textContent = '';
-  pinKeypadDots();
-}
-
-function pinKeypadDots() {
-  const dots = document.querySelectorAll('#pin-dots .pin-dot');
-  dots.forEach((d, i) => {
-    d.classList.toggle('filled', i < _pinValNow.length);
-  });
-}
-
-function pinKeyPress(digit) {
-  if (_pinValNow.length >= PIN_MAX) return;
-  _pinValNow += digit;
-  pinKeypadDots();
-  // Auto-doorgaan bij 4 cijfers
-  if (_pinValNow.length === PIN_MAX) setTimeout(pinKeypadNext, 180);
-}
-
-function pinKeyDel() {
-  _pinValNow = _pinValNow.slice(0, -1);
-  pinKeypadDots();
-}
-
-function pinKeypadBack() {
-  _pinStep = 1;
-  _pinValNow = '';
-  pinKeypadRender();
-}
-
-async function pinKeypadNext() {
-  const err = document.getElementById('pin-keypad-error');
-  if (_pinValNow.length < 4) { err.textContent = 'Voer 4 cijfers in'; return; }
-  if (_pinStep === 1) {
-    _pinVal1 = _pinValNow;
-    _pinValNow = '';
-    _pinStep = 2;
-    pinKeypadRender();
-  } else {
-    if (_pinValNow !== _pinVal1) {
-      err.textContent = 'Pincodes komen niet overeen';
-      _pinValNow = '';
-      pinKeypadDots();
-      return;
-    }
-    // Opslaan
-    const hash = await hashPin(_pinVal1);
-    LS.set(CFG_PIN_KEY, hash);
-    if (window.fbDb) {
-      await window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/pin': hash })
-        .catch(e => logEvent('error', 'PIN Firebase write MISLUKT', { error: String(e) }));
-    }
-    logEvent('pin', _pinMode === 'setup' ? 'Pincode aangemaakt' : 'Pincode gewijzigd');
-    pinKeypadClose();
-    if (_pinMode === 'setup') {
-      LS.set('rn_cfg_unlocked', Date.now());
-      hideCfgLock();
-    }
-    showToast('Pincode opgeslagen ✓');
-  }
-}
-
-// Publieke wrappers voor bestaande aanroepen
-function showPinSetup()      { pinKeypadOpen('setup'); }
-function changePinDialog()   { pinKeypadOpen('change'); }
-
 // ── GEDRAG-INSTELLINGEN ────────────────────────────────────────────────────
 async function saveGedrag() {
   const tw  = parseInt(document.getElementById('inp-timeout-warn')?.value, 10);
   const mt  = parseInt(document.getElementById('inp-melding-ttl')?.value, 10);
-  const pc  = parseInt(document.getElementById('inp-pin-cache')?.value, 10);
 
   // Waarschuw als meldingTTL omlaag gaat en actieve gedeelde meldingen afkapt
   if (!isNaN(mt) && mt < S.meldingTTL) {
@@ -6187,7 +6082,6 @@ async function saveGedrag() {
 
   if (!isNaN(tw) && tw >= 1  && tw <= 24)  { S.timeoutWarn  = tw;  LS.set('rn_timeout_warn',  tw); }
   if (!isNaN(mt) && mt >= 1  && mt <= 72)  { S.meldingTTL   = mt;  LS.set('rn_melding_ttl',   mt); }
-  if (!isNaN(pc) && pc >= 5  && pc <= 480) { S.pinCacheDur  = pc;  LS.set('rn_pin_cache_dur', pc); }
 
   // De log-bewaar-duur wordt NIET hier direct opgeslagen. Met de pijltjes loopt de
   // waarde 4→3→2→1; elke tik vuurt oninput. Een directe waarschuwing zou dan
@@ -6197,7 +6091,7 @@ async function saveGedrag() {
   scheduleLogRetentionCommit();
 
   save();
-  logEvent('settings', 'Gedrag-instellingen gewijzigd', { timeoutWarn: S.timeoutWarn, meldingTTL: S.meldingTTL, pinCacheDur: S.pinCacheDur, logRetention: S.logRetention });
+  logEvent('settings', 'Gedrag-instellingen gewijzigd', { timeoutWarn: S.timeoutWarn, meldingTTL: S.meldingTTL, logRetention: S.logRetention });
 }
 
 // Debounced verwerking van de log-bewaar-duur. Toont hooguit één bevestigingspopup,
@@ -6239,48 +6133,6 @@ async function commitLogRetention() {
   save();
   logEvent('settings', 'Bewaar-duur log gewijzigd', { logRetention: lr });
 }
-
-function checkCfgLock() {
-  // Beheerders zijn ingelogd via Firebase Auth — geen PIN-gate nodig
-  if (_isBeheerder) { hideCfgLock(); return; }
-  const unlocked = LS.get('rn_cfg_unlocked');
-  if (unlocked && Date.now() - unlocked < S.pinCacheDur * 60 * 1000) {
-    hideCfgLock();
-  } else {
-    showCfgLock();
-  }
-}
-
-// Ververs de inactiviteits-timer bij elke interactie in het cfg-pane.
-function bumpCfgActivity() {
-  if (LS.get('rn_cfg_unlocked')) LS.set('rn_cfg_unlocked', Date.now());
-}
-(function() {
-  const pane = document.getElementById('pane-cfg');
-  if (!pane) return;
-  ['input','change','click','keydown'].forEach(evt =>
-    pane.addEventListener(evt, bumpCfgActivity, { passive: true })
-  );
-})();
-
-// Auto-lock: check every 30s of de inactiviteits-timer verlopen is.
-// Slaat vergrendeling over als er een edit-modal open staat.
-setInterval(() => {
-  const unlocked = LS.get('rn_cfg_unlocked');
-  if (!unlocked) return;
-  if (Date.now() - Number(unlocked) < S.pinCacheDur * 60 * 1000) return;
-  // Niet vergrendelen als een edit-modal open staat — anders gaat invulwerk verloren.
-  const editModalOpen = ['medewerker-modal-overlay','ronde-modal-overlay',
-    'cat-modal-overlay','dagdeel-modal-overlay','schema-modal-overlay']
-    .some(id => { const el = document.getElementById(id); return el && el.style.display !== 'none'; });
-  if (editModalOpen) { LS.set('rn_cfg_unlocked', Date.now()); return; }
-  localStorage.removeItem('rn_cfg_unlocked');
-  const pane = document.getElementById('pane-cfg');
-  if (pane && pane.classList.contains('on')) {
-    logEvent('pin', 'Instellingen automatisch vergrendeld na inactiviteit (' + S.pinCacheDur + ' min)');
-    showCfgLock();
-  }
-}, 30000);
 
 async function rmSchemaItem(i) {
   const activeSchema = S.schema ? [...S.schema] : [...SCHEMA];
@@ -6528,7 +6380,7 @@ function dienstToggle(n, srcEl) {
     markDienstPending(n, 'remove');
     S.dienst.delete(n);
     lockDienstUi(n);
-    save();
+    fbSaveDienst();
     renderDienst();
     renderNameBtns();
     logEvent('dienst', n + ' einde dienst');
@@ -6537,7 +6389,7 @@ function dienstToggle(n, srcEl) {
     markDienstPending(n, 'add');
     S.dienst.add(n);
     lockDienstUi(n);
-    save();
+    fbSaveDienst();
     renderDienst();
     renderNameBtns();
     logEvent('dienst', n + ' op dienst');
@@ -6648,7 +6500,7 @@ function dienstLeeg() {
       changed = true;
     }
   }
-  if (changed) { save(); renderDienst(); renderNameBtns(); }
+  if (changed) { fbSaveDienst(); renderDienst(); renderNameBtns(); }
   if (geblokkeerd.length) {
     const hebben = geblokkeerd.length === 1 ? 'heeft' : 'hebben';
     showToast('⚠ ' + geblokkeerd.join(', ') + ' ' + hebben + ' nog een actieve ronde. Meld eerst retour.', 4000);
@@ -6902,7 +6754,6 @@ function _eventTypeColor(type) {
     case 'dienst':   return '#0891b2';
     case 'settings': return '#64748b';
     case 'melding':  return '#7c3aed';
-    case 'pin':      return '#475569';
     case 'system':   return '#334155';
     default:         return '#475569';
   }
@@ -6921,7 +6772,8 @@ function renderEventLog() {
   if (sq) items = items.filter(e =>
     (e.msg || '').toLowerCase().includes(sq) ||
     (e.detail || '').toLowerCase().includes(sq) ||
-    (e.deviceId || '').toLowerCase().includes(sq)
+    (e.deviceId || '').toLowerCase().includes(sq) ||
+    (e.userEmail || '').toLowerCase().includes(sq)
   );
 
   if (!items.length) {
@@ -6933,7 +6785,11 @@ function renderEventLog() {
   el.innerHTML = items.slice(0, 500).map(e => {
     const color = _eventTypeColor(e.type);
     const isMine = e.deviceId === myId;
-    const devLabel = isMine ? 'dit apparaat' : (e.deviceId ? e.deviceId.slice(0, 16) : '?');
+    // E-mail heeft voorrang voor leesbaarheid; deviceId blijft als fallback voor
+    // oude entries van vóór v2.6.78 die nog geen userEmail hebben.
+    const devLabel = e.userEmail
+      ? e.userEmail
+      : (isMine ? 'dit apparaat' : (e.deviceId ? e.deviceId.slice(0, 16) : '?'));
     const detailHtml = e.detail ? '<div style="color:#64748b;font-size:10px;margin-top:2px;word-break:break-word">' + sanitizeInput(e.detail) + '</div>' : '';
     return '<div style="padding:6px 10px;border-bottom:1px solid #e2e8f0">' +
            '<div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">' +
@@ -6951,7 +6807,7 @@ function exportEventLog() {
   const filterType = document.getElementById('event-log-filter');
   const tf = filterType ? filterType.value : '';
   const items = tf ? EVENT_LOG.filter(e => e.type === tf) : EVENT_LOG;
-  const rows = [['timestamp', 'datetime', 'type', 'msg', 'detail', 'deviceId', 'appVersion']];
+  const rows = [['timestamp', 'datetime', 'type', 'msg', 'detail', 'deviceId', 'userEmail', 'appVersion']];
   items.forEach(e => {
     rows.push([
       e.ts,
@@ -6960,6 +6816,7 @@ function exportEventLog() {
       (e.msg || '').replace(/[\r\n]+/g, ' '),
       (e.detail || '').replace(/[\r\n]+/g, ' '),
       e.deviceId,
+      e.userEmail || '',
       e.appVersion
     ]);
   });
@@ -7053,7 +6910,6 @@ function sluitMeldingen() {
 
 pruneLog();
 pruneEventLog();
-// PIN wordt geladen via Firebase listener (fbListen) — geen lokale init nodig
 
 // ── Header: datum, dagdeel, klok ────────────────────────────────────────────
 function updateHeader() {
@@ -7101,20 +6957,6 @@ updateHeader();
 render();
 renderAllActive();
 renderPlan();
-
-// Toetsenbord → actief keypad (lock of setup/change)
-document.addEventListener('keydown', e => {
-  const lockVisible  = document.getElementById('cfg-lock')?.style.display === 'flex';
-  const setupVisible = document.getElementById('pin-keypad-overlay')?.style.display === 'flex';
-  if (!lockVisible && !setupVisible) return;
-  if (e.key >= '0' && e.key <= '9') {
-    lockVisible ? lockKeyPress(e.key) : pinKeyPress(e.key);
-  } else if (e.key === 'Backspace') {
-    lockVisible ? lockKeyDel() : pinKeyDel();
-  } else if (e.key === 'Enter' && setupVisible) {
-    pinKeypadNext();
-  }
-});
 
 // ── Modal-toegankelijkheid: Escape-sluiting + focus-trap ────────────────────
 // Elke inhoudelijke modal-overlay koppelen aan zijn eigen sluit-functie. De
@@ -7448,11 +7290,18 @@ function _checkBeheerder(uid) {
 }
 
 function applyBeheerderUI() {
-  var tabCfg    = document.querySelector('.tab-cfg');
-  var mobTabCfg = document.getElementById('mob-tab-cfg');
+  window._isBeheerderV3 = _isBeheerder;
+  var tabCfg     = document.querySelector('.tab-cfg');
+  var mobTabCfg  = document.getElementById('mob-tab-cfg');
+  var tabWissel  = document.getElementById('tab-wissel');
+  var mobWissel  = document.getElementById('mob-tab-wissel');
   var d = _isBeheerder ? '' : 'none';
   if (tabCfg)    tabCfg.style.display    = d;
   if (mobTabCfg) mobTabCfg.style.display = d;
+  // Wissel-knop: zichtbaar voor bewakers, verborgen voor beheerder
+  // (beheerder heeft uitloggen al in Instellingen → Systeembeheer)
+  if (tabWissel) tabWissel.style.display  = _isBeheerder ? 'none' : '';
+  if (mobWissel) mobWissel.style.display  = _isBeheerder ? 'none' : '';
   if (!_isBeheerder) {
     var cfgPane = document.getElementById('pane-cfg');
     if (cfgPane && cfgPane.classList.contains('on')) goTab('reg');
