@@ -631,10 +631,26 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 
 <!-- Firebase SDK -->
 <script type="module">
+
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, set, get, onValue, update, remove, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getDatabase, ref as _ref, onValue as _onValue, get as _get, set as _set, update as _update, remove as _remove, push as _push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
+  // ════════════════════════════════════════════════════════════════════════
+  // SCHEMA v3 — TEST-omgeving. Datalaag vertaalt de oude app-API (dashboard/*)
+  // naar het nieuwe ID-gebaseerde schema:
+  //   /meta    appVersion, schemaVersion, beheerders/{uid}
+  //   /config  medewerkers/{id}{naam,rol} routes/{id}{naam,categorie,dubbelOk}
+  //            routeCats/{id}{naam,volgorde} rollen/{id}{naam,volgorde}
+  //            dagdelen/{id}{naam,start,eind,kleur,volgorde}
+  //            schema/{id}{h,m,ronde?,taak?,dagen?,weekdagsOnly?,volgorde} gedrag
+  //   /ops     dienst/{medId}:true  active/{medId}{naam,route,start,groupId?}
+  //            log/{push} notities/{push} meldingen/{push}
+  //   /audit   log/{push}
+  // De app blijft arrays/namen gebruiken; deze laag beheert de ID's, doet
+  // per-item diff-writes en splitst de root-listener (audit/meldingen raken
+  // de app-verwerking nooit meer).
+  // ════════════════════════════════════════════════════════════════════════
   const firebaseConfig = {
     apiKey: "AIzaSyB9D09JXjLPp0Pdz-F3iIFHWdNCTKFtDOk",
     authDomain: "surveillance-dashboard-bab07.firebaseapp.com",
@@ -645,43 +661,249 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     appId: "1:463291924795:web:8ea56aed92b83a8e5c371e"
   };
 
-  const app   = initializeApp(firebaseConfig);
-  const db    = getDatabase(app);
-  const auth  = getAuth(app);
+  const app  = initializeApp(firebaseConfig);
+  const db   = getDatabase(app);
+  const auth = getAuth(app);
 
-  // Expose to global scope for use in non-module script
-  window.fbDb      = db;
-  window.fbRef     = ref;
-  window.fbSet     = set;
-  window.fbGet     = get;
-  window.fbOnValue = onValue;
-  window.fbUpdate  = update;
-  window.fbRemove  = remove;
-  window.fbPush    = push;
-  window.fbAuth    = auth;
-  window.firebaseReady = false; // wait for a real signed-in user before signalling ready
+  // ── ID-register: laatste /config-snapshot in ruwe id-vorm ──
+  const REG = { medewerkers:{}, routes:{}, routeCats:{}, rollen:{}, dagdelen:{}, schema:{}, gedrag:null };
+  let SNAP = { dienst: undefined, active: undefined };   // ruwe ops-snapshots (id-vorm)
 
-  // Expose auth helpers for the login UI (defined in the non-module script).
+  function newId(p) { return p + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function medIdByNaam(naam) {
+    for (const [id, v] of Object.entries(REG.medewerkers)) if (v && v.naam === naam) return id;
+    return null;
+  }
+  function sortedEntries(map, byVolgorde) {
+    const e = Object.entries(map || {});
+    if (byVolgorde) e.sort((a, b) => (a[1].volgorde ?? 0) - (b[1].volgorde ?? 0));
+    return e;
+  }
+
+  // ── pad-vertaling (simpele hernoemingen) ──
+  function mapPath(p) {
+    if (!p) return p;
+    if (p === 'dashboard/appVersion') return 'meta/appVersion';
+    if (p === 'dashboard/beheerders' || p.startsWith('dashboard/beheerders/')) return p.replace('dashboard/beheerders', 'meta/beheerders');
+    if (p === 'dashboard/auditLog'   || p.startsWith('dashboard/auditLog/'))   return p.replace('dashboard/auditLog', 'audit/log');
+    if (p === 'dashboard/log'        || p.startsWith('dashboard/log/'))        return p.replace('dashboard/log', 'ops/log');
+    if (p === 'dashboard/notities'   || p.startsWith('dashboard/notities/'))   return p.replace('dashboard/notities', 'ops/notities');
+    if (p === 'dashboard/meldingen'  || p.startsWith('dashboard/meldingen/'))  return p.replace('dashboard/meldingen', 'ops/meldingen');
+    if (p === 'dashboard/gedrag') return 'config/gedrag';
+    return p; // 'dashboard' en '.info/connected' worden apart afgehandeld
+  }
+
+  // ── schrijf-vertalingen: oude bundel-shapes → per-item diff-updates ──
+  function diffMedewerkersLike(kind, arr, fields) {
+    // kind: 'medewerkers'|'routes'|'schema'|'dagdelen' — items dragen _id (geïnjecteerd)
+    const out = {};
+    const seen = new Set();
+    const fieldsEq = (a, b) => {
+      if (!a) return false;
+      const keys = fields.concat(['volgorde']);
+      for (const f of keys) {
+        const av = a[f] === undefined ? null : a[f];
+        const bv = b[f] === undefined ? null : b[f];
+        if (JSON.stringify(av) !== JSON.stringify(bv)) return false;
+      }
+      return true;
+    };
+    (arr || []).forEach((item, i) => {
+      let id = item._id;
+      if (!id) id = item._id = newId(kind.slice(0, 3));
+      seen.add(id);
+      const stored = {};
+      fields.forEach(f => { if (item[f] !== undefined && item[f] !== null) stored[f] = item[f]; });
+      if (kind === 'dagdelen' || kind === 'schema') stored.volgorde = i;
+      if (!fieldsEq(REG[kind][id], stored)) out['config/' + kind + '/' + id] = stored;
+    });
+    Object.keys(REG[kind]).forEach(id => { if (!seen.has(id)) out['config/' + kind + '/' + id] = null; });
+    return out;
+  }
+
+  function diffLabelList(kind, names) {
+    // routeCats / rollen: positionele match — hernoemen op zelfde index = zelfde id
+    const out = {};
+    const prev = sortedEntries(REG[kind], true); // [[id,{naam,volgorde}]...]
+    const n = names || [];
+    for (let i = 0; i < Math.max(prev.length, n.length); i++) {
+      if (i < n.length && i < prev.length) {
+        const [id, v] = prev[i];
+        if (v.naam !== n[i] || (v.volgorde ?? 0) !== i) out['config/' + kind + '/' + id] = { naam: n[i], volgorde: i };
+      } else if (i < n.length) {
+        out['config/' + kind + '/' + newId(kind.slice(0, 3))] = { naam: n[i], volgorde: i };
+      } else {
+        out['config/' + kind + '/' + prev[i][0]] = null;
+      }
+    }
+    return out;
+  }
+
+  function diffDienst(namesArr) {
+    const out = {};
+    const cur = SNAP.dienst || {};
+    const wantIds = new Set();
+    (namesArr || []).forEach(naam => { const id = medIdByNaam(naam); if (id) wantIds.add(id); });
+    wantIds.forEach(id => { if (!cur[id]) out['ops/dienst/' + id] = true; });
+    Object.keys(cur).forEach(id => { if (!wantIds.has(id)) out['ops/dienst/' + id] = null; });
+    return out;
+  }
+
+  function diffActive(byName) {
+    const out = {};
+    const cur = SNAP.active || {};
+    const want = {}; // medId → entry
+    Object.entries(byName || {}).forEach(([naam, a]) => {
+      const id = medIdByNaam(naam);
+      if (!id) { console.warn('v3: active voor onbekende medewerker', naam); return; }
+      const e = { naam: naam, route: a.route, start: a.start };
+      if (a.groupId) e.groupId = a.groupId;
+      want[id] = e;
+    });
+    Object.entries(want).forEach(([id, e]) => {
+      const c = cur[id];
+      const same = c && c.naam === e.naam && c.route === e.route && c.start === e.start && (c.groupId || null) === (e.groupId || null);
+      if (!same) out['ops/active/' + id] = e;
+    });
+    Object.keys(cur).forEach(id => { if (!(id in want)) out['ops/active/' + id] = null; });
+    return out;
+  }
+
+  function translateUpdates(updates) {
+    const out = {};
+    for (const [rawKey, val] of Object.entries(updates)) {
+      const key = rawKey.replace(/^\/+/, '');
+      if (key === 'dashboard/dienst')           Object.assign(out, diffDienst(val));
+      else if (key === 'dashboard/active')      Object.assign(out, diffActive(val || {}));
+      else if (key === 'dashboard/medewerkers') Object.assign(out, diffMedewerkersLike('medewerkers', val, ['naam', 'rol']));
+      else if (key === 'dashboard/routes')      Object.assign(out, diffMedewerkersLike('routes', val, ['naam', 'categorie', 'dubbelOk']));
+      else if (key === 'dashboard/schema')      Object.assign(out, diffMedewerkersLike('schema', val || [], ['h', 'm', 'ronde', 'taak', 'dagen', 'weekdagsOnly']));
+      else if (key === 'dashboard/dagdelen')    Object.assign(out, diffMedewerkersLike('dagdelen', val || [], ['naam', 'start', 'eind', 'kleur']));
+      else if (key === 'dashboard/routeCats')   Object.assign(out, diffLabelList('routeCats', val));
+      else if (key === 'dashboard/rollen')      Object.assign(out, diffLabelList('rollen', val));
+      else if (key === 'dashboard/gedrag') {
+        const g = REG.gedrag || {};
+        const same = g.timeoutWarn === val.timeoutWarn && g.meldingTTL === val.meldingTTL && g.logRetention === val.logRetention;
+        if (!same) out['config/gedrag'] = val;
+      }
+      else out[mapPath(key)] = val;
+    }
+    return out;
+  }
+
+  // ── lees-composities: id-vorm → oude app-vorm ──
+  function composeConfigArrays(cfg) {
+    REG.medewerkers = (cfg && cfg.medewerkers) || {};
+    REG.routes      = (cfg && cfg.routes)      || {};
+    REG.routeCats   = (cfg && cfg.routeCats)   || {};
+    REG.rollen      = (cfg && cfg.rollen)      || {};
+    REG.dagdelen    = (cfg && cfg.dagdelen)    || {};
+    REG.schema      = (cfg && cfg.schema)      || {};
+    REG.gedrag      = (cfg && cfg.gedrag)      || null;
+    const med = Object.entries(REG.medewerkers).map(([id, v]) => ({ _id: id, naam: v.naam || '', rol: v.rol || '' }));
+    med.sort((a, b) => a.naam.toLowerCase().localeCompare(b.naam.toLowerCase(), 'nl'));
+    const routes = Object.entries(REG.routes).map(([id, v]) => ({ _id: id, naam: v.naam || '', categorie: v.categorie || '', dubbelOk: !!v.dubbelOk }));
+    routes.sort((a, b) => a.naam.toLowerCase().localeCompare(b.naam.toLowerCase(), 'nl'));
+    const cats   = sortedEntries(REG.routeCats, true).map(([, v]) => v.naam);
+    const rollen = sortedEntries(REG.rollen, true).map(([, v]) => v.naam);
+    const dagd   = sortedEntries(REG.dagdelen, true).map(([id, v]) => ({ _id: id, naam: v.naam, start: v.start, eind: v.eind, kleur: v.kleur }));
+    const schema = sortedEntries(REG.schema, true).map(([id, v]) => { const o = { _id: id, h: v.h, m: v.m }; if (v.ronde) o.ronde = v.ronde; if (v.taak) o.taak = v.taak; if (v.dagen) o.dagen = v.dagen; if (v.weekdagsOnly !== undefined) o.weekdagsOnly = v.weekdagsOnly; return o; });
+    return { med, routes, cats, rollen, dagd, schema, gedrag: REG.gedrag };
+  }
+  function naamByMedId(id, fallback) {
+    const m = REG.medewerkers[id];
+    return (m && m.naam) || fallback || null;
+  }
+  function composeRoot(parts) {
+    const c = composeConfigArrays(parts.config);
+    SNAP.dienst = parts.dienst || {};
+    SNAP.active = parts.active || {};
+    const dienstNames = Object.keys(SNAP.dienst).map(id => naamByMedId(id)).filter(Boolean);
+    const activeByName = {};
+    Object.entries(SNAP.active).forEach(([id, a]) => {
+      const naam = naamByMedId(id, a && a.naam);
+      if (!naam) return;
+      const e = { route: a.route, start: a.start };
+      if (a.groupId) e.groupId = a.groupId;
+      activeByName[naam] = e;
+    });
+    const root = {
+      medewerkers: c.med, routes: c.routes,
+      dienst: dienstNames,
+      active: Object.keys(activeByName).length ? activeByName : undefined,
+      log: parts.log || undefined,
+      notities: parts.notities || undefined,
+      appVersion: parts.appVersion || undefined,
+      gedrag: c.gedrag || undefined
+    };
+    if (c.cats.length)   root.routeCats = c.cats;
+    if (c.rollen.length) root.rollen = c.rollen;
+    if (c.dagd.length)   root.dagdelen = c.dagd;
+    if (c.schema.length) root.schema = c.schema;
+    return root;
+  }
+
+  function snapLike(v) { const val = (v === undefined) ? null : v; return { exists: () => val !== null, val: () => val }; }
+
+  // ── publieke API (zelfde signatuur als voorheen) ──
+  window.fbDb  = db;
+  window.fbRef = (d, path) => ({ __p: path || '' });
+  const realRef = (marker) => _ref(db, mapPath(marker.__p));
+
+  window.fbSet    = (m, v) => _set(realRef(m), v);
+  window.fbGet    = (m) => _get(realRef(m));
+  window.fbRemove = (m) => _remove(realRef(m));
+  window.fbPush   = (m, v) => {
+    const r = _push(_ref(db, mapPath(m.__p)));
+    if (v === undefined) return { __p: null, __real: r, key: r.key };
+    return _set(r, v).then(() => ({ key: r.key }));
+  };
+  // fbSet moet ook refs van fbPush-zonder-waarde accepteren
+  const _fbSetOrig = window.fbSet;
+  window.fbSet = (m, v) => m && m.__real ? _set(m.__real, v) : _fbSetOrig(m, v);
+
+  window.fbUpdate = (m, updates) => _update(_ref(db), translateUpdates(updates));
+
+  window.fbOnValue = (m, cb, errCb) => {
+    const p = m.__p;
+    if (p === '.info/connected') return _onValue(_ref(db, '.info/connected'), s => cb(snapLike(s.val())), errCb);
+    if (p === 'dashboard') {
+      // Gesplitste root: config + ops(dienst/active/log/notities) + meta/appVersion.
+      // audit/log en ops/meldingen hebben eigen listeners en triggeren dit NIET.
+      const parts = { config: undefined, dienst: undefined, active: undefined, log: undefined, notities: undefined, appVersion: undefined };
+      let pending = 0;
+      const emit = () => {
+        for (const k of ['config', 'dienst', 'active', 'log', 'notities', 'appVersion']) if (parts[k] === undefined) return;
+        cb(snapLike(composeRoot(parts)));
+      };
+      const sub = (path, key) => {
+        pending++;
+        _onValue(_ref(db, path), s => { parts[key] = s.val() ?? null; emit(); },
+          e => { console.error('v3 listener ' + path, e); if (errCb) errCb(e); });
+      };
+      sub('config', 'config');
+      sub('ops/dienst', 'dienst');
+      sub('ops/active', 'active');
+      sub('ops/log', 'log');
+      sub('ops/notities', 'notities');
+      sub('meta/appVersion', 'appVersion');
+      return () => {};
+    }
+    return _onValue(realRef(m), s => cb(snapLike(s.val())), errCb);
+  };
+
+  window.fbAuth = auth;
+  window.firebaseReady = false;
   window.fbSignIn  = (email, pw) => signInWithEmailAndPassword(auth, email, pw);
   window.fbSignOut = () => signOut(auth);
-
-  // Keep the session across reloads/app restarts so guards don't have to log in
-  // every time. Persistence must be set before the first sign-in attempt.
   setPersistence(auth, browserLocalPersistence).catch(() => {});
 
-  // Central auth gate. This is the ONLY thing that decides whether the dashboard
-  // runs. No user -> show login overlay, keep app hidden. User present -> hide
-  // overlay, reveal app, and boot the app exactly once.
   onAuthStateChanged(auth, user => {
-    if (window.onAuthChanged) {
-      window.onAuthChanged(user);
-    } else {
-      // Non-module script not parsed yet; stash the latest user so it can pick it up.
-      window.__pendingAuthUser = user;
-      window.__pendingAuthFired = true;
-    }
+    if (window.onAuthChanged) window.onAuthChanged(user);
+    else { window.__pendingAuthUser = user; window.__pendingAuthFired = true; }
   });
-</script>
+
+  </script>
 </head>
 <body class="pre-auth">
 
@@ -1154,7 +1376,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.78</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.0.0</span>
     </div>
   </nav>
 
@@ -1522,7 +1744,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.78';
+const APP_VERSION = '3.0.0';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -1920,6 +2142,7 @@ function sanitizeMedewerkers(arr) {
   return arr.map(m => {
     if (typeof m === 'string') return { naam: decodeEntities(sanitizeFromFirebase(m)), rol: '' };
     return {
+      _id: typeof m._id === 'string' ? m._id : undefined,
       naam: decodeEntities(sanitizeFromFirebase(m.naam || '')),
       rol:  decodeEntities(sanitizeFromFirebase(String(m.rol || '').slice(0, 200)))
     };
@@ -1931,6 +2154,7 @@ function sanitizeRoutes(arr) {
   return arr.map(r => {
     if (typeof r === 'string') return { naam: decodeEntities(sanitizeFromFirebase(r)), categorie: '', dubbelOk: false };
     return {
+      _id:       typeof r._id === 'string' ? r._id : undefined,
       naam:      decodeEntities(sanitizeFromFirebase(r.naam      || '')),
       categorie: decodeEntities(sanitizeFromFirebase(r.categorie || '')),
       dubbelOk:  r.dubbelOk === true
@@ -1948,6 +2172,7 @@ function sanitizeSchema(arr) {
     if (!item || typeof item !== 'object') return null;
     const h = Number(item.h), m = Number(item.m);
     const out = {
+      _id: typeof item._id === 'string' ? item._id : undefined,
       h: Number.isFinite(h) ? h : 0,
       m: Number.isFinite(m) ? m : 0,
       ronde: item.ronde == null ? null : decodeEntities(sanitizeFromFirebase(String(item.ronde))),
@@ -1974,6 +2199,7 @@ function sanitizeDagdelen(arr) {
   return arr.map(d => {
     if (!d || typeof d !== 'object') return null;
     return {
+      _id:   typeof d._id === 'string' ? d._id : undefined,
       naam:  decodeEntities(sanitizeFromFirebase(String(d.naam  || ''))),
       start: decodeEntities(sanitizeFromFirebase(String(d.start || ''))),
       eind:  decodeEntities(sanitizeFromFirebase(String(d.eind  || ''))),
@@ -3888,6 +4114,10 @@ function pruneNotities() {
 // Entries zonder geldige ts worden nooit gewist.
 let _pruneAuditBusy = false;
 function pruneEventLog() {
+  // v3: audit/log is append-only voor bewakers; alleen beheerders mogen opschonen.
+  // Check via window-flag: pruneEventLog draait al bij script-init, vóór de
+  // declaratie van de _isBeheerder-let (TDZ) — window-flag is altijd veilig.
+  if (!window._isBeheerderV3) return;
   if (window._appOutdated || _pruneAuditBusy) return;
   if (!window.fbDb || !window.fbGet || !window.fbRemove) return;
   const cutoff = Date.now() - EVENT_LOG_TTL_MS;
@@ -7058,6 +7288,7 @@ function _checkBeheerder(uid) {
 }
 
 function applyBeheerderUI() {
+  window._isBeheerderV3 = _isBeheerder;
   var tabCfg     = document.querySelector('.tab-cfg');
   var mobTabCfg  = document.getElementById('mob-tab-cfg');
   var tabWissel  = document.getElementById('tab-wissel');
