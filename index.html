@@ -1154,7 +1154,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.77</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v2.6.78</span>
     </div>
   </nav>
 
@@ -1522,7 +1522,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '2.6.77';
+const APP_VERSION = '2.6.78';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -1599,12 +1599,17 @@ let EVENT_LOG = []; // local cache for rendering, populated from Firebase
 // ==============================================================================
 function logEvent(type, msg, detail) {
   // type: 'start'|'retour'|'dienst'|'settings'|'sync'|'auto'|'system'|'melding'|'error'
+  // userEmail: actueel ingelogd account (bewaker of beheerder). Pas beschikbaar
+  // nadat Firebase Auth een sessie heeft hersteld; vóór die tijd '' (komt zelden
+  // voor — alleen tijdens een paar booteventen). Veld is optioneel in de rules.
+  const _u = (window.fbAuth && window.fbAuth.currentUser) ? window.fbAuth.currentUser : null;
   const evt = {
     ts: Date.now(),
     type: String(type || 'system'),
     msg: String(msg || ''),
     detail: detail !== undefined && detail !== null ? (typeof detail === 'string' ? detail : JSON.stringify(detail).slice(0, 500)) : '',
     deviceId: DEVICE_ID,
+    userEmail: _u && _u.email ? String(_u.email) : '',
     appVersion: typeof APP_VERSION === 'string' ? APP_VERSION : ''
   };
   // Always log locally first so we have a record even if Firebase is offline
@@ -1647,6 +1652,7 @@ function fbListenEventLog() {
         msg: decodeEntities(sanitizeFromFirebase(e.msg || '')),
         detail: decodeEntities(sanitizeFromFirebase(e.detail || '')),
         deviceId: decodeEntities(sanitizeFromFirebase(e.deviceId || '')),
+        userEmail: decodeEntities(sanitizeFromFirebase(e.userEmail || '')),
         appVersion: decodeEntities(sanitizeFromFirebase(e.appVersion || ''))
       });
     });
@@ -6534,7 +6540,8 @@ function renderEventLog() {
   if (sq) items = items.filter(e =>
     (e.msg || '').toLowerCase().includes(sq) ||
     (e.detail || '').toLowerCase().includes(sq) ||
-    (e.deviceId || '').toLowerCase().includes(sq)
+    (e.deviceId || '').toLowerCase().includes(sq) ||
+    (e.userEmail || '').toLowerCase().includes(sq)
   );
 
   if (!items.length) {
@@ -6546,7 +6553,11 @@ function renderEventLog() {
   el.innerHTML = items.slice(0, 500).map(e => {
     const color = _eventTypeColor(e.type);
     const isMine = e.deviceId === myId;
-    const devLabel = isMine ? 'dit apparaat' : (e.deviceId ? e.deviceId.slice(0, 16) : '?');
+    // E-mail heeft voorrang voor leesbaarheid; deviceId blijft als fallback voor
+    // oude entries van vóór v2.6.78 die nog geen userEmail hebben.
+    const devLabel = e.userEmail
+      ? e.userEmail
+      : (isMine ? 'dit apparaat' : (e.deviceId ? e.deviceId.slice(0, 16) : '?'));
     const detailHtml = e.detail ? '<div style="color:#64748b;font-size:10px;margin-top:2px;word-break:break-word">' + sanitizeInput(e.detail) + '</div>' : '';
     return '<div style="padding:6px 10px;border-bottom:1px solid #e2e8f0">' +
            '<div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">' +
@@ -6564,7 +6575,7 @@ function exportEventLog() {
   const filterType = document.getElementById('event-log-filter');
   const tf = filterType ? filterType.value : '';
   const items = tf ? EVENT_LOG.filter(e => e.type === tf) : EVENT_LOG;
-  const rows = [['timestamp', 'datetime', 'type', 'msg', 'detail', 'deviceId', 'appVersion']];
+  const rows = [['timestamp', 'datetime', 'type', 'msg', 'detail', 'deviceId', 'userEmail', 'appVersion']];
   items.forEach(e => {
     rows.push([
       e.ts,
@@ -6573,6 +6584,7 @@ function exportEventLog() {
       (e.msg || '').replace(/[\r\n]+/g, ' '),
       (e.detail || '').replace(/[\r\n]+/g, ' '),
       e.deviceId,
+      e.userEmail || '',
       e.appVersion
     ]);
   });
