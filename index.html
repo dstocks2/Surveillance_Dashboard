@@ -1407,7 +1407,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.2.1</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.2.2</span>
     </div>
   </nav>
 
@@ -1788,7 +1788,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.2.1';
+const APP_VERSION = '3.2.2';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -5497,17 +5497,18 @@ function renderCfg() {
           if (isNaN(sb)) return -1;
           return sa - sb;
         });
-      dl.innerHTML = ordered.map(({ d, origIdx }) => {
+      dl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">` + ordered.map(({ d, origIdx }) => {
         const bg = safeColor(d.kleur);
-        const tx = autoTekstKleur(bg);
-        return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;margin-bottom:6px;background:${bg};font-size:12px">
-          <span style="font-weight:700;color:${tx};text-transform:uppercase;letter-spacing:.05em;font-size:11px;min-width:60px">${escHtml(d.naam) || '—'}</span>
-          <span style="color:${tx};font-family:monospace;font-size:12px;opacity:.85">${escHtml(d.start)} – ${escHtml(d.eind)}</span>
-          <span style="flex:1"></span>
-          <button type="button" onclick="editDagdeel(${origIdx})" style="background:none;border:none;cursor:pointer;color:${tx};opacity:.7;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen" aria-label="Wijzigen">✎</button>
-          <button type="button" onclick="rmDagdeel(${origIdx})" style="background:none;border:none;cursor:pointer;color:${tx};opacity:.7;font-size:14px;padding:0 4px;flex-shrink:0" title="Verwijderen" aria-label="Verwijderen">✕</button>
+        return `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid #e2e8f0;border-radius:10px;background:#fff">
+          <span style="width:34px;height:34px;border-radius:8px;background:${bg};flex-shrink:0;border:1px solid rgba(0,0,0,.06)"></span>
+          <div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1">
+            <span style="font-weight:600;color:#1e293b;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(d.naam) || '—'}</span>
+            <span style="color:#64748b;font-size:12px">${escHtml(d.start)} – ${escHtml(d.eind)}</span>
+          </div>
+          <button type="button" onclick="editDagdeel(${origIdx})" style="background:#fff;border:1px solid #e2e8f0;border-radius:7px;cursor:pointer;color:#334155;font-size:12px;font-weight:500;padding:6px 12px;flex-shrink:0;font-family:inherit" title="Wijzigen">Bewerk</button>
+          <button type="button" onclick="rmDagdeel(${origIdx})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:15px;padding:0 2px;flex-shrink:0" title="Verwijderen" aria-label="Verwijderen">✕</button>
         </div>`;
-      }).join('');
+      }).join('') + `</div>`;
     }
   }
 
