@@ -312,6 +312,17 @@ input[type=text]:focus{outline:none;border-color:var(--c-primary);box-shadow:0 0
 .sm.del:hover{background:#fee2e2;color:#dc2626}
 .toast{position:fixed;bottom:max(20px,calc(env(safe-area-inset-bottom) + 12px));left:50%;transform:translateX(-50%) translateY(120px);background:var(--c-text);color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-family:inherit;transition:transform .25s ease;z-index:999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.2)}
 .toast.show{transform:translateX(-50%) translateY(0)}
+/* Action-toast: toast met een actieknop (bv. Ongedaan maken). Eigen element zodat
+   de gewone showToast (pure tekst) ongemoeid blijft. */
+.toast-action{position:fixed;bottom:max(20px,calc(env(safe-area-inset-bottom) + 12px));left:50%;transform:translateX(-50%) translateY(120px);background:var(--c-text);color:#fff;padding:10px 12px 10px 18px;border-radius:8px;font-size:13px;font-family:inherit;transition:transform .25s ease;z-index:999;display:flex;align-items:center;gap:14px;box-shadow:0 4px 20px rgba(0,0,0,.2);max-width:calc(100vw - 24px)}
+.toast-action.show{transform:translateX(-50%) translateY(0)}
+.toast-action-msg{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toast-action-btn{flex-shrink:0;background:rgba(255,255,255,.16);border:none;color:#fff;font-family:inherit;font-size:13px;font-weight:600;padding:6px 12px;border-radius:6px;cursor:pointer;transition:background .12s}
+.toast-action-btn:hover{background:rgba(255,255,255,.26)}
+@media(max-width:600px){
+  .toast-action{bottom:calc(66px + env(safe-area-inset-bottom) + 12px);font-size:12px}
+  .toast-action-msg{white-space:normal}
+}
 /* ── Op dienst-tab (v2.3.13) ───────────────────────────────────────── */
 #dienst-selectiebalk{position:sticky;top:0;z-index:5;background:#fff;border:1px solid #dce3ec;border-radius:11px;box-shadow:0 1px 2px rgba(17,42,68,.04),0 4px 16px rgba(17,42,68,.05);padding:13px 15px;margin-bottom:18px}
 #dienst-selectiebalk-top{display:flex;align-items:center;gap:9px}
@@ -783,7 +794,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       else if (key === 'dashboard/rollen')      Object.assign(out, diffLabelList('rollen', val));
       else if (key === 'dashboard/gedrag') {
         const g = REG.gedrag || {};
-        const same = g.timeoutWarn === val.timeoutWarn && g.meldingTTL === val.meldingTTL && g.logRetention === val.logRetention;
+        const same = g.timeoutWarn === val.timeoutWarn && g.meldingTTL === val.meldingTTL && g.logRetention === val.logRetention && g.rewarnHours === val.rewarnHours;
         if (!same) out['config/gedrag'] = val;
       }
       else out[mapPath(key)] = val;
@@ -1377,7 +1388,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.0.4</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.1.1</span>
     </div>
   </nav>
 
@@ -1479,6 +1490,13 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
           <div><div class="cfg-gedrag-label">Lange-ronde waarschuwing</div><div class="cfg-gedrag-sub">Oranje melding als een ronde langer duurt dan dit aantal uur</div></div>
           <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
             <input type="number" id="inp-timeout-warn" min="1" max="24" step="1" style="width:60px;padding:5px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;text-align:center;font-family:inherit" oninput="saveGedrag()">
+            <span style="font-size:12px;color:#64748b">uur</span>
+          </div>
+        </div>
+        <div class="cfg-gedrag-row">
+          <div><div class="cfg-gedrag-label">Herhaal-waarschuwing</div><div class="cfg-gedrag-sub">Herhaal de lange-ronde melding om de zoveel uur zolang de ronde nog loopt</div></div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            <input type="number" id="inp-rewarn-hours" min="1" max="24" step="1" style="width:60px;padding:5px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;text-align:center;font-family:inherit" oninput="saveGedrag()">
             <span style="font-size:12px;color:#64748b">uur</span>
           </div>
         </div>
@@ -1745,9 +1763,13 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
+<div class="toast-action" id="toast-action" role="status" aria-live="polite">
+  <span class="toast-action-msg" id="toast-action-msg"></span>
+  <button type="button" class="toast-action-btn" id="toast-action-btn"></button>
+</div>
 
 <script>
-const APP_VERSION = '3.0.4';
+const APP_VERSION = '3.1.1';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -1921,7 +1943,7 @@ function fbSave() {
   // landde en de echo de oude lijst direct terugzette — ook lokaal.
   updates['/dashboard/schema']   = (S.schema && S.schema.length) ? S.schema : null;
   updates['/dashboard/dagdelen'] = (S.dagdelen && S.dagdelen.length) ? S.dagdelen : null;
-  updates['/dashboard/gedrag'] = { timeoutWarn: S.timeoutWarn, meldingTTL: S.meldingTTL, logRetention: S.logRetention };
+  updates['/dashboard/gedrag'] = { timeoutWarn: S.timeoutWarn, meldingTTL: S.meldingTTL, logRetention: S.logRetention, rewarnHours: S.rewarnHours };
   window.fbUpdate(window.fbRef(window.fbDb), updates)
     .catch(e => { logEvent('error', 'Instellingen opslaan MISLUKT', { error: String(e) }); setFbStatus('error'); });
 }
@@ -2295,9 +2317,10 @@ function fbListen() {
         return;
       }
       merged[n] = v;
-      // Preserve _warned flag if previously set locally for same entry
-      if (S.active[n] && S.active[n].start === v.start && S.active[n]._warned) {
-        merged[n]._warned = true;
+      // Preserve _lastWarned timestamp if previously set locally for same entry,
+      // zodat de herhaal-waarschuwing zijn interval over snapshots heen onthoudt.
+      if (S.active[n] && S.active[n].start === v.start && S.active[n]._lastWarned) {
+        merged[n]._lastWarned = S.active[n]._lastWarned;
       }
     });
     // Add pending 'add' entries that aren't in Firebase yet
@@ -2465,6 +2488,9 @@ function fbListen() {
       if (typeof g.logRetention === 'number' && g.logRetention >= 1 && g.logRetention <= 30 && g.logRetention !== S.logRetention) {
         S.logRetention = g.logRetention; LS.set('rn_log_retention', g.logRetention);
       }
+      if (typeof g.rewarnHours === 'number' && g.rewarnHours >= 1 && g.rewarnHours <= 24 && g.rewarnHours !== S.rewarnHours) {
+        S.rewarnHours = g.rewarnHours; LS.set('rn_rewarn_hours', g.rewarnHours);
+      }
     }
 
     // Only back up settings to localStorage (not active/log)
@@ -2546,6 +2572,7 @@ let S = {
   // Gedrag-instellingen (beheersbaar via instellingen-tab)
   timeoutWarn:  LS.get('rn_timeout_warn')  ?? 4,
   meldingTTL:   LS.get('rn_melding_ttl')   ?? 8,
+  rewarnHours:  LS.get('rn_rewarn_hours')  ?? 2,   // uur: herhaalinterval lange-ronde waarschuwing
   logRetention: LS.get('rn_log_retention') ?? 2,   // dagen: hoe lang ronde-log bewaard blijft
 };
 
@@ -2696,6 +2723,27 @@ function showToast(msg, duration) {
   t.classList.add('show');
   clearTimeout(window._tt);
   window._tt = setTimeout(() => t.classList.remove('show'), duration || 2600);
+}
+
+// Action-toast: een toast met één actieknop (bv. "Ongedaan maken"). Verdwijnt na
+// `duration` ms of zodra de knop is gebruikt. Klik op de knop voert `onAction` uit.
+// Los van showToast zodat bestaande pure-tekst toasts ongemoeid blijven.
+let _actionToastTimer = null;
+function showActionToast(msg, actionLabel, onAction, duration) {
+  const t  = document.getElementById('toast-action');
+  const m  = document.getElementById('toast-action-msg');
+  const b  = document.getElementById('toast-action-btn');
+  if (!t || !m || !b) return;
+  m.textContent = msg;
+  b.textContent = actionLabel;
+  // Vervang de knop zodat oude click-handlers van een vorige toast verdwijnen.
+  const nb = b.cloneNode(true);
+  b.parentNode.replaceChild(nb, b);
+  const hide = () => { t.classList.remove('show'); clearTimeout(_actionToastTimer); };
+  nb.addEventListener('click', () => { hide(); if (typeof onAction === 'function') onAction(); });
+  t.classList.add('show');
+  clearTimeout(_actionToastTimer);
+  _actionToastTimer = setTimeout(hide, duration || 6000);
 }
 
 function goTab(id) {
@@ -3071,8 +3119,15 @@ async function doRetour(name, _opts) {
       _pendingLog.delete(logEntry.id);
       opruimStaleLangeRondeMeldingen();
       logEvent('retour', n.split(' ')[0] + ' retour van ' + a.route + ' (' + dur + ' min)', { name: n, route: a.route, start: a.start, end, dur, logId: logEntry.id });
-      showToast(n.split(' ')[0] + ' terug! \u2014 ' + dur + ' min');
-      if (!skipMelding) schrijfGedeeldeMelding('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.');
+      if (!skipMelding) {
+        schrijfGedeeldeMelding('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.');
+        // Undo alleen bij losse retour (niet bij groepsretour, die skipt de melding):
+        // zet de ronde terug naar actief en verwijder de zojuist gemaakte log-entry.
+        showActionToast(n.split(' ')[0] + ' terug \u2014 ' + dur + ' min', 'Ongedaan maken',
+          () => herstelRetour(n, { route: a.route, start: a.start, groupId: a.groupId }, logEntry));
+      } else {
+        showToast(n.split(' ')[0] + ' terug! \u2014 ' + dur + ' min');
+      }
       return true;
     } catch (e) {
       clearActivePending(n);
@@ -3096,6 +3151,32 @@ async function doRetour(name, _opts) {
     if (!skipMelding) schrijfGedeeldeMelding('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.');
     return true;
   }
+}
+
+// Undo-helper voor een zojuist gemelde retour: zet de ronde terug naar actief en
+// verwijder de bijbehorende log-entry (lokaal + Firebase). Guard: niets doen als
+// de persoon intussen alweer een nieuwe ronde loopt.
+function herstelRetour(n, prev, logEntry) {
+  if (S.active[n]) { showToast(n.split(' ')[0] + ' loopt alweer een ronde'); return; }
+  // 1) Active lokaal herstellen + pending 'add' zodat een oude snapshot 'm niet wegveegt.
+  const entry = { route: prev.route, start: prev.start };
+  if (prev.groupId) entry.groupId = prev.groupId;
+  S.active[n] = entry;
+  markActivePending(n, 'add', entry);
+  // 2) Log-entry lokaal verwijderen.
+  S.log = S.log.filter(r => r.id !== logEntry.id);
+  renderAllActive(); updBtn(); renderLive();
+  // 3) Firebase: active terugschrijven + de log-entry-node verwijderen.
+  if (window.fbDb) {
+    window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/active': cleanActiveForFirebase() })
+      .then(() => setFbStatus('ok'))
+      .catch(e => { setFbStatus('error'); logEvent('error', 'Retour ongedaan maken MISLUKT', { error: String(e), name: n }); });
+    if (logEntry._fbKey && window.fbRemove) {
+      fbRemoveLogEntry(logEntry._fbKey).catch(() => {});
+    }
+  }
+  logEvent('retour', n.split(' ')[0] + ' retour ongedaan gemaakt \u2014 ' + prev.route, { name: n, route: prev.route, start: prev.start });
+  showToast(n.split(' ')[0] + ' weer onderweg \u2014 ' + prev.route);
 }
 
 function renderOwnCard() {
@@ -4298,22 +4379,33 @@ function reconcileState() {
 // Periodiek vangnet voor stille periodes (geen snapshots). Idempotent.
 TIMERS.set('reconcileCheck', reconcileState, 60 * 1000);
 
+// Herhaalinterval voor de lange-ronde waarschuwing. De eerste waarschuwing valt
+// op S.timeoutWarn uur; daarna herhalen we elke REWARN_MS zolang de ronde nog
+// loopt. Zo verdwijnt een gemiste melding niet stilletjes (de eenmalige variant
+// liet een hangende ronde onopgemerkt doorlopen — zie reconcile/stale-bug).
 function checkActiveTimeout() {
-  // Warn if someone has been active for more than 4 hours
   const now = Date.now();
   const TIMEOUT_MS = S.timeoutWarn * 60 * 60 * 1000;
+  // Herhaalinterval instelbaar via Gedrag (S.rewarnHours, default 2u).
+  const REWARN_MS = (S.rewarnHours ?? 2) * 60 * 60 * 1000;
   Object.entries(S.active).forEach(([name, a]) => {
     const dur = now - a.start;
-    if (dur > TIMEOUT_MS && !a._warned) {
-      a._warned = true;
-      const hrs = Math.floor(dur / 3600000);
-      const mins = Math.floor((dur % 3600000) / 60000);
-      const sub = a.route + ' loopt al ' + hrs + 'u ' + mins + 'min.';
-      logEvent('auto', 'Lange-ronde waarschuwing voor ' + name + ' (' + hrs + 'u ' + mins + 'min)', { name, route: a.route, start: a.start, durationMin: Math.round(dur/60000) });
-      voegMeldingToe('oranje', 'Lange ronde \u2014 ' + name.split(' ')[0], sub, 'Retour melden', () => doRetour(name), name);
-      schrijfGedeeldeMelding('oranje', 'Lange ronde \u2014 ' + name.split(' ')[0], sub);
-      showToast('\u26a0 ' + name.split(' ')[0] + ' is al ' + hrs + 'u ' + mins + 'min onderweg \u2014 retour vergeten?', 6000);
-    }
+    if (dur <= TIMEOUT_MS) return;
+    // Eerste waarschuwing zodra de limiet is gepasseerd, daarna elke REWARN_MS.
+    // _lastWarned houdt het tijdstip van de laatste waarschuwing bij (was: _warned
+    // boolean, die maar één keer vuurde).
+    const last = a._lastWarned || 0;
+    if (last && (now - last) < REWARN_MS) return;
+    const herhaling = !!last; // tweede+ waarschuwing voor dezelfde ronde
+    a._lastWarned = now;
+    const hrs = Math.floor(dur / 3600000);
+    const mins = Math.floor((dur % 3600000) / 60000);
+    const sub = a.route + ' loopt al ' + hrs + 'u ' + mins + 'min.';
+    const pre = herhaling ? 'Nog steeds lange ronde \u2014 ' : 'Lange ronde \u2014 ';
+    logEvent('auto', 'Lange-ronde waarschuwing voor ' + name + ' (' + hrs + 'u ' + mins + 'min)' + (herhaling ? ' [herhaling]' : ''), { name, route: a.route, start: a.start, durationMin: Math.round(dur/60000), herhaling });
+    voegMeldingToe('oranje', pre + name.split(' ')[0], sub, 'Retour melden', () => doRetour(name), name);
+    schrijfGedeeldeMelding('oranje', pre + name.split(' ')[0], sub);
+    showToast('\u26a0 ' + name.split(' ')[0] + ' is al ' + hrs + 'u ' + mins + 'min onderweg \u2014 retour vergeten?', 6000);
   });
 }
 // Check every 5 minutes
@@ -5154,9 +5246,11 @@ function renderCfg() {
   const inpTW = document.getElementById('inp-timeout-warn');
   const inpMT = document.getElementById('inp-melding-ttl');
   const inpLR = document.getElementById('inp-log-retention');
+  const inpRW = document.getElementById('inp-rewarn-hours');
   if (inpTW && document.activeElement !== inpTW) inpTW.value = S.timeoutWarn;
   if (inpMT && document.activeElement !== inpMT) inpMT.value = S.meldingTTL;
   if (inpLR && document.activeElement !== inpLR) inpLR.value = S.logRetention;
+  if (inpRW && document.activeElement !== inpRW) inpRW.value = S.rewarnHours;
 
   // Render medewerkers list — sorted alphabetically, styled like dagdelen
   renderMedewerkersList();
@@ -6035,9 +6129,11 @@ function _rewireGedragInputs(container) {
   var tw = container.querySelector('#inp-timeout-warn');
   var mt = container.querySelector('#inp-melding-ttl');
   var lr = container.querySelector('#inp-log-retention');
+  var rw = container.querySelector('#inp-rewarn-hours');
   if (tw) { tw.value = S.timeoutWarn; tw.oninput = function() { S.timeoutWarn = parseFloat(tw.value); saveGedrag(); }; }
   if (mt) { mt.value = S.meldingTTL;  mt.oninput = function() { S.meldingTTL  = parseFloat(mt.value); saveGedrag(); }; }
   if (lr) { lr.value = S.logRetention; lr.oninput = function() { S.logRetention = parseFloat(lr.value); saveGedrag(); }; }
+  if (rw) { rw.value = S.rewarnHours; rw.oninput = function() { S.rewarnHours = parseFloat(rw.value); saveGedrag(); }; }
 }
 
 function _rewireAuditlog(container) {
@@ -6118,6 +6214,7 @@ function cfgGoSection(id) {
 async function saveGedrag() {
   const tw  = parseInt(document.getElementById('inp-timeout-warn')?.value, 10);
   const mt  = parseInt(document.getElementById('inp-melding-ttl')?.value, 10);
+  const rw  = parseInt(document.getElementById('inp-rewarn-hours')?.value, 10);
 
   // Waarschuw als meldingTTL omlaag gaat en actieve gedeelde meldingen afkapt
   if (!isNaN(mt) && mt < S.meldingTTL) {
@@ -6136,6 +6233,7 @@ async function saveGedrag() {
 
   if (!isNaN(tw) && tw >= 1  && tw <= 24)  { S.timeoutWarn  = tw;  LS.set('rn_timeout_warn',  tw); }
   if (!isNaN(mt) && mt >= 1  && mt <= 72)  { S.meldingTTL   = mt;  LS.set('rn_melding_ttl',   mt); }
+  if (!isNaN(rw) && rw >= 1  && rw <= 24)  { S.rewarnHours  = rw;  LS.set('rn_rewarn_hours',  rw); }
 
   // De log-bewaar-duur wordt NIET hier direct opgeslagen. Met de pijltjes loopt de
   // waarde 4→3→2→1; elke tik vuurt oninput. Een directe waarschuwing zou dan
@@ -6145,7 +6243,7 @@ async function saveGedrag() {
   scheduleLogRetentionCommit();
 
   save();
-  logEvent('settings', 'Gedrag-instellingen gewijzigd', { timeoutWarn: S.timeoutWarn, meldingTTL: S.meldingTTL, logRetention: S.logRetention });
+  logEvent('settings', 'Gedrag-instellingen gewijzigd', { timeoutWarn: S.timeoutWarn, meldingTTL: S.meldingTTL, logRetention: S.logRetention, rewarnHours: S.rewarnHours });
 }
 
 // Debounced verwerking van de log-bewaar-duur. Toont hooguit één bevestigingspopup,
@@ -6439,6 +6537,9 @@ function dienstToggle(n, srcEl) {
     renderNameBtns();
     logEvent('dienst', n + ' einde dienst');
     schrijfGedeeldeMelding('grijs', 'Einde dienst', n);
+    // Undo: zet de afmelding terug. Vangt de meest voorkomende vergissing
+    // (verkeerde collega aangetikt) zonder opnieuw door de flow te hoeven.
+    showActionToast(n.split(' ')[0] + ' van dienst gehaald', 'Ongedaan maken', () => herstelDienst(n));
   } else {
     markDienstPending(n, 'add');
     S.dienst.add(n);
@@ -6449,6 +6550,20 @@ function dienstToggle(n, srcEl) {
     logEvent('dienst', n + ' op dienst');
     schrijfGedeeldeMelding('grijs', 'Aanvang dienst', n);
   }
+}
+
+// Undo-helper voor een zojuist afgemelde collega: zet 'm weer op dienst, mits
+// nog steeds bekend als medewerker. Spiegelt de 'add'-tak van dienstToggle.
+function herstelDienst(n) {
+  if (S.dienst.has(n)) return; // al terug
+  if (!S.medewerkers.some(m => m.naam === n)) { showToast(n.split(' ')[0] + ' bestaat niet meer'); return; }
+  markDienstPending(n, 'add');
+  S.dienst.add(n);
+  fbSaveDienst();
+  renderDienst();
+  renderNameBtns();
+  logEvent('dienst', n + ' op dienst (hersteld)');
+  showToast(n.split(' ')[0] + ' weer op dienst');
 }
 
 function renderDienst() {
