@@ -648,14 +648,14 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
   // ════════════════════════════════════════════════════════════════════════
-  // SCHEMA v3 — TEST-omgeving. Datalaag vertaalt de oude app-API (dashboard/*)
+  // SCHEMA v3 — PRODUCTIE (bab07). Datalaag vertaalt de oude app-API (dashboard/*)
   // naar het nieuwe ID-gebaseerde schema:
   //   /meta    appVersion, schemaVersion, beheerders/{uid}
   //   /config  medewerkers/{id}{naam,rol} routes/{id}{naam,categorie,dubbelOk}
   //            routeCats/{id}{naam,volgorde} rollen/{id}{naam,volgorde}
   //            dagdelen/{id}{naam,start,eind,kleur,volgorde}
   //            schema/{id}{h,m,ronde?,taak?,dagen?,weekdagsOnly?,volgorde} gedrag
-  //   /ops     dienst/{medId}:true  active/{medId}{naam,route,start,groupId?}
+  //   /ops     dienst/{medId}{on,ts,naam}  active/{medId}{naam,route,start,groupId?}
   //            log/{push} notities/{push} meldingen/{push}
   //   /audit   log/{push}
   // De app blijft arrays/namen gebruiken; deze laag beheert de ID's, doet
@@ -1241,7 +1241,6 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   <!-- OP DIENST -->
   <div id="pane-dienst" class="pane" role="tabpanel" aria-label="Op dienst">
     <p class="lbl">Wie zijn er vandaag op dienst?</p>
-    <p style="font-size:12px;color:#5b6b7f;margin:-6px 0 14px">Selecteer de collega's die op dienst zijn. Alleen geselecteerde namen verschijnen bij de registratie.</p>
     <div id="dienst-selectiebalk">
       <div id="dienst-selectiebalk-top">
         <span id="dienst-teller">0</span>
@@ -1257,8 +1256,6 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   <!-- BEHEER -->
   <div id="pane-cfg" class="pane cfg-shell" role="tabpanel" aria-label="Instellingen" style="position:relative">
 
-    <!-- PIN lock overlay -->
-    
     <!-- Beheerder-modal -->
     <div id="beheerder-modal-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9400;display:none;align-items:center;justify-content:center;padding:20px">
       <div style="background:#fff;border-radius:16px;padding:28px 24px 24px;max-width:400px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.22);position:relative">
@@ -1407,7 +1404,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.2.2</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.2.5</span>
     </div>
   </nav>
 
@@ -1788,7 +1785,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.2.2';
+const APP_VERSION = '3.2.5';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -2588,7 +2585,7 @@ let S = {
   routes: sanitizeRoutes(LS.get('rn_routes') || DR),
   routeCats: (LS.get('rn_route_cats') || ROUTE_CATEGORIEEN_DEFAULT.slice()).map(c => c.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>')),
   rollen: (function() { var v = LS.get('rn_rollen'); return Array.isArray(v) ? v.map(function(r) { return typeof r === 'string' ? r.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>') : ''; }).filter(Boolean) : []; })(),
-  schema: LS.get('rn_schema') || null, // null = use hardcoded SCHEMA default
+  schema: LS.get('rn_schema') || null, // null = use SCHEMA default (leeg; schema komt uit Firebase)
   dagdelen: LS.get('rn_dagdelen') || null, // null = use DAGDELEN_DEFAULT
   active: {},   // always loaded from Firebase — never from localStorage
   log:    [],   // always loaded from Firebase — never from localStorage
