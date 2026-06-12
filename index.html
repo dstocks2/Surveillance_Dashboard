@@ -644,7 +644,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <script type="module">
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref as _ref, onValue as _onValue, get as _get, set as _set, update as _update, remove as _remove, push as _push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getDatabase, ref as _ref, onValue as _onValue, get as _get, set as _set, update as _update, remove as _remove, push as _push, serverTimestamp as _serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
   // ════════════════════════════════════════════════════════════════════════
@@ -750,13 +750,22 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     return out;
   }
 
+  // Dienst-entries dragen sinds v3.2.0 een server-ts: { on:bool, ts:serverTime }.
+  // Dat geeft elke toggle een serverklok zodat twee sessies die tegelijk dezelfde
+  // medewerker tegengesteld toggelen deterministisch worden opgelost (laatste
+  // server-ts wint). Afmelden = tombstone {on:false}, NIET deleten — een delete
+  // draagt geen ts en zou de race-winnaar onbepaald laten. Bij ~10 medewerkers
+  // blijft de tak triviaal klein, dus geen prune nodig.
+  function _dienstIsOn(e) { return e === true ? true : !!(e && e.on); } // legacy-true telt als on
   function diffDienst(namesArr) {
     const out = {};
     const cur = SNAP.dienst || {};
     const wantIds = new Set();
     (namesArr || []).forEach(naam => { const id = medIdByNaam(naam); if (id) wantIds.add(id); });
-    wantIds.forEach(id => { if (!cur[id]) out['ops/dienst/' + id] = true; });
-    Object.keys(cur).forEach(id => { if (!wantIds.has(id)) out['ops/dienst/' + id] = null; });
+    // op dienst zetten: gewenst maar nu niet on
+    wantIds.forEach(id => { if (!_dienstIsOn(cur[id])) out['ops/dienst/' + id] = { on: true, ts: _serverTimestamp() }; });
+    // afmelden: nu on maar niet meer gewenst → tombstone met ts
+    Object.keys(cur).forEach(id => { if (_dienstIsOn(cur[id]) && !wantIds.has(id)) out['ops/dienst/' + id] = { on: false, ts: _serverTimestamp() }; });
     return out;
   }
 
@@ -829,7 +838,14 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     const c = composeConfigArrays(parts.config);
     SNAP.dienst = parts.dienst || {};
     SNAP.active = parts.active || {};
-    const dienstNames = Object.keys(SNAP.dienst).map(id => naamByMedId(id)).filter(Boolean);
+    // Alleen entries met on===true tellen als 'op dienst'. Tombstones {on:false}
+    // worden genegeerd. Per naam exporteren we de server-ts naar window, zodat
+    // de merge in fbListen de race-winnaar kan bepalen (server-vs-server klok).
+    const _tsOf = (e) => (e && typeof e.ts === 'number') ? e.ts : 0; // legacy-true → 0
+    const dienstNames = Object.keys(SNAP.dienst).filter(id => _dienstIsOn(SNAP.dienst[id])).map(id => naamByMedId(id)).filter(Boolean);
+    const _dienstTs = {};
+    Object.entries(SNAP.dienst).forEach(([id, e]) => { const naam = naamByMedId(id); if (naam) _dienstTs[naam] = _tsOf(e); });
+    window._dienstTsByNaam = _dienstTs;
     const activeByName = {};
     Object.entries(SNAP.active).forEach(([id, a]) => {
       const naam = naamByMedId(id, a && a.naam);
@@ -1388,7 +1404,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.1.1</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.2.0</span>
     </div>
   </nav>
 
@@ -1769,7 +1785,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.1.1';
+const APP_VERSION = '3.2.0';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -2397,8 +2413,20 @@ function fbListen() {
     {
       let fbDienst = sanitizeNames(Array.isArray(d.dienst) ? d.dienst : []);
       if (_pendingDienst.size) {
+        // De shim levert per naam de server-ts van de laatste dienst-toggle.
+        // Onze pending-intent wint alleen zolang de SERVER geen nieuwere toggle
+        // voor die medewerker heeft: zodra serverTs > onze pending.ts (met een
+        // kleine klok-tolerantie) heeft een andere sessie later getoggeld en
+        // volgen we de server. Dit lost de twee-sessie-race deterministisch op.
+        const tsMap = window._dienstTsByNaam || {};
         const merged = new Set(fbDienst);
         for (const [name, p] of _pendingDienst) {
+          const serverTs = tsMap[name] || 0;
+          if (serverTs && serverTs > (p.ts + 250)) { _pendingDienst.delete(name); continue; }
+          // Server bevestigt onze eigen toggle (ts hoort bij onze write) → herijk
+          // pending.ts naar de server-ts, zodat volgende vergelijkingen zuiver
+          // server-vs-server zijn i.p.v. client-vs-server.
+          if (serverTs && serverTs >= (p.ts - 2000) && serverTs <= (p.ts + 5000)) p.ts = serverTs;
           if (p.op === 'add')    merged.add(name);
           if (p.op === 'remove') merged.delete(name);
         }
@@ -2619,12 +2647,17 @@ function markLogPending(id) {
   setTimeout(() => _pendingLog.delete(id), 60000); // auto-cleanup after 60s
 }
 function markDienstPending(name, op) {
-  _pendingDienst.set(name, { op, ts: Date.now() });
+  const now = Date.now();
+  // ts  = race-klok: start op clientklok, wordt in fbListen herijkt naar de
+  //       server-ts van onze eigen write (server-vs-server vergelijking).
+  // _localTs = TTL-klok: blijft altijd clientklok, zodat de auto-cleanup niet
+  //       scheefloopt als ts naar een afwijkende serverklok wordt herijkt.
+  _pendingDienst.set(name, { op, ts: now, _localTs: now });
   // Cancel any previous auto-clear for this name to prevent stacking
   if (S._dienstPendingTimers[name]) clearTimeout(S._dienstPendingTimers[name]);
   S._dienstPendingTimers[name] = setTimeout(() => {
     const cur = _pendingDienst.get(name);
-    if (cur && cur.op === op && Date.now() - cur.ts >= PENDING_DIENST_TTL - 50) {
+    if (cur && cur.op === op && Date.now() - (cur._localTs || cur.ts) >= PENDING_DIENST_TTL - 50) {
       _pendingDienst.delete(name);
     }
     delete S._dienstPendingTimers[name];
@@ -2638,7 +2671,7 @@ setInterval(() => {
   }
   const dienstCutoff = Date.now() - PENDING_DIENST_TTL;
   for (const [name, p] of _pendingDienst) {
-    if (p.ts < dienstCutoff) _pendingDienst.delete(name);
+    if ((p._localTs || p.ts) < dienstCutoff) _pendingDienst.delete(name);
   }
 }, 10000);
 
