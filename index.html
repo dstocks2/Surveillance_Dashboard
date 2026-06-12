@@ -1176,8 +1176,9 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <p class="lbl" style="margin-bottom:0" id="tl-header-label">Tijdslijn afgelopen 24 uur</p>
       <div style="display:flex;align-items:center;gap:8px">
         <div id="tl-window-seg" role="group" aria-label="Tijdlijn-venster">
-          <button type="button" class="tl-seg on" id="tl-seg-24" onclick="zetTlVenster(false)">24u</button>
-          <button type="button" class="tl-seg" id="tl-seg-12" onclick="zetTlVenster(true)">12u</button>
+          <button type="button" class="tl-seg on" id="tl-seg-24" onclick="zetTlVenster('24')">24u</button>
+          <button type="button" class="tl-seg" id="tl-seg-12" onclick="zetTlVenster('12')">12u</button>
+          <button type="button" class="tl-seg" id="tl-seg-dienst" onclick="zetTlVenster('dienst')">Dienst</button>
         </div>
         <button type="button" class="tl-toggle-btn" onclick="toggleTimeline()" style="display:none;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;color:#64748b;font-size:12px;cursor:pointer;font-family:inherit" id="tl-toggle-btn">
           <span id="tl-toggle-icon">▼</span> <span id="tl-toggle-label">Toon tijdlijn</span>
@@ -1376,7 +1377,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.0.2</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.0.4</span>
     </div>
   </nav>
 
@@ -1746,7 +1747,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-const APP_VERSION = '3.0.2';
+const APP_VERSION = '3.0.4';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -2539,7 +2540,7 @@ let S = {
   tick: null, tickL: null, tickTL: null,
   _dienstPendingTimers: {}, // clearTimeout refs per naam
   _tlTimer: null,           // debounce ref for drawTimeline
-  _tl12: LS.get('rn_tl_12') === true,  // tijdlijn-venster: true=12u, false=24u (default)
+  _tlMode: LS.get('rn_tl_mode') || (LS.get('rn_tl_12') === true ? '12' : '24'),  // tijdlijn-venster: '24'|'12'|'dienst'
   _headerTimer: null,       // setTimeout ref for scheduleHeader
   _headerInterval: null,    // setInterval ref for updateHeader
   // Gedrag-instellingen (beheersbaar via instellingen-tab)
@@ -2859,13 +2860,13 @@ function toggleTimeline() {
   if (isOpen) { clearTimeout(S._tlTimer); S._tlTimer = setTimeout(() => { const _c = Date.now() - tlWindowMs(); drawTimeline(logInWindow(_c), Object.entries(S.active), _c, Date.now()); }, 50); }
 }
 
-// Zet het tijdlijn-venster expliciet op 12u (true) of 24u (false). Voorkeur wordt
-// lokaal bewaard (per toestel), zodat de keuze een refresh overleeft. Alleen de
+// Zet het tijdlijn-venster op '24', '12' of 'dienst'. Voorkeur wordt lokaal
+// bewaard (per toestel), zodat de keuze een refresh overleeft. Alleen de
 // tijdlijn verandert; de kaarten en de "Recent afgerond"-lijst blijven altijd op 24u.
-function zetTlVenster(is12) {
-  if (S._tl12 === is12) return; // al actief — niets te doen
-  S._tl12 = is12;
-  LS.set('rn_tl_12', S._tl12);
+function zetTlVenster(mode) {
+  if (S._tlMode === mode) return; // al actief — niets te doen
+  S._tlMode = mode;
+  LS.set('rn_tl_mode', S._tlMode);
   updateTlVensterUI();
   const _c = Date.now() - tlWindowMs();
   clearTimeout(S._tlTimer);
@@ -2874,12 +2875,22 @@ function zetTlVenster(is12) {
 
 // Houd de segment-knoppen en de kop-tekst in sync met de huidige venster-keuze.
 function updateTlVensterUI() {
-  const seg24 = document.getElementById('tl-seg-24');
-  const seg12 = document.getElementById('tl-seg-12');
-  const hdr   = document.getElementById('tl-header-label');
-  if (seg24) seg24.classList.toggle('on', !S._tl12);
-  if (seg12) seg12.classList.toggle('on',  S._tl12);
-  if (hdr) hdr.textContent = 'Tijdslijn afgelopen ' + tlUren() + ' uur';
+  const seg24     = document.getElementById('tl-seg-24');
+  const seg12     = document.getElementById('tl-seg-12');
+  const segDienst = document.getElementById('tl-seg-dienst');
+  const hdr       = document.getElementById('tl-header-label');
+  if (seg24)     seg24.classList.toggle('on', S._tlMode === '24');
+  if (seg12)     seg12.classList.toggle('on', S._tlMode === '12');
+  if (segDienst) segDienst.classList.toggle('on', S._tlMode === 'dienst');
+  if (hdr) {
+    if (S._tlMode === 'dienst') {
+      const d = new Date();
+      const dd = dagdeelAtMinute(d.getHours() * 60 + d.getMinutes());
+      hdr.textContent = 'Tijdslijn dienst — ' + (dd.naam || 'huidig dagdeel');
+    } else {
+      hdr.textContent = 'Tijdslijn afgelopen ' + tlUren() + ' uur';
+    }
+  }
 }
 
 function updBtn() {
@@ -3448,6 +3459,7 @@ function renderLive() {
   clearInterval(S.tickTL);
   S.tickTL = setInterval(() => {
     if (document.getElementById('pane-live').classList.contains('on')) {
+      if (S._tlMode === 'dienst') updateTlVensterUI(); // koplabel bijwerken bij dagdeel-wissel
       const nowT = Date.now();
       const cut  = nowT - tlWindowMs();
       drawTimeline(logInWindow(cut), Object.entries(S.active), cut, nowT);
@@ -3557,10 +3569,36 @@ function commitNotitieEditor(rkey, container) {
   saveNotitie(r.route, r.start, area.value); // triggert renderLive → toont notitie
 }
 
-// Tijdlijn-venster: 24 uur (standaard) of 12 uur, omschakelbaar via de 24u/12u-knop.
-// Eén bron van waarheid voor alle aanroepen en voor de as-tekening.
-function tlUren()    { return S._tl12 ? 12 : 24; }
-function tlWindowMs() { return tlUren() * 3600000; }
+// Tijdlijn-venster: 24u / 12u / dienst (huidig dagdeel). Eén bron van waarheid.
+function tlUren() {
+  if (S._tlMode === 'dienst') return Math.ceil(tlWindowMs() / 3600000) || 1;
+  return S._tlMode === '12' ? 12 : 24;
+}
+// Geeft het tijdlijn-venster in ms.  Dienst = start huidig dagdeel → nu (min 10 min).
+function tlWindowMs() {
+  if (S._tlMode === 'dienst') {
+    const now = Date.now();
+    return Math.max(now - tlDienstCutoff(now), 600000);
+  }
+  return (S._tlMode === '12' ? 12 : 24) * 3600000;
+}
+// Bereken het cutoff-moment (Unix ms) = start van het huidige dagdeel.
+function tlDienstCutoff(now) {
+  const d = new Date(now);
+  const nowMin = d.getHours() * 60 + d.getMinutes();
+  const dd = dagdeelAtMinute(nowMin);
+  const startMin = hhmmToMin(dd.start);
+  if (isNaN(startMin)) return now - 24 * 3600000; // fallback
+  const nowS = d.getSeconds(), nowMs = d.getMilliseconds();
+  let msAgo;
+  if (nowMin >= startMin) {
+    msAgo = (nowMin - startMin) * 60000 + nowS * 1000 + nowMs;
+  } else {
+    // Wikkelt over middernacht (bv. nacht 23:00–07:00, nu 02:00)
+    msAgo = (1440 - startMin + nowMin) * 60000 + nowS * 1000 + nowMs;
+  }
+  return now - msAgo;
+}
 
 // ==============================================================================
 // SECTIE: TIMELINE (canvas)  — drawTimeline, roundRect
@@ -3729,7 +3767,7 @@ function drawTimeline(recent, active, cutoff, now) {
     ctx.fillStyle = '#5b6b7f';
     ctx.font = '12px system-ui, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Geen rondes in de afgelopen 24 uur', W / 2, 30);
+    ctx.fillText('Geen rondes in ' + (S._tlMode === 'dienst' ? 'deze dienst' : 'de afgelopen ' + tlUren() + ' uur'), W / 2, 30);
     return;
   }
 
@@ -4152,10 +4190,13 @@ TIMERS.set('prune', () => { pruneLog(); pruneNotities(); pruneEventLog(); }, 30 
 // veroorzaakt false-positive lange-ronde waarschuwingen én — bij retour —
 // 22u-log-entries die de 24u-tijdlijn vervuilen. We dumpen ze uit S.active
 // zonder log-entry te maken; het feit van de opruiming gaat in de eventLog.
+// Gedeelde stale-grens: een active-entry ouder dan dit is geen echte loper meer,
+// maar een vergeten retour. Gebruikt door pruneStaleActive én reconcileState (I1/I2).
+const STALE_ACTIVE_MS = 12 * 60 * 60 * 1000;
 function pruneStaleActive() {
   if (window._appOutdated) return;
   const now = Date.now();
-  const STALE_MS = 12 * 60 * 60 * 1000;
+  const STALE_MS = STALE_ACTIVE_MS;
   const stale = [];
   Object.entries(S.active).forEach(([name, a]) => {
     if (a && a.start && (now - a.start) > STALE_MS) {
@@ -4203,11 +4244,17 @@ function reconcileState() {
   if (S.active && S.log && S.log.length) {
     const loggedKeys = new Set(S.log.map(r => (r.name||'') + '|' + (r.route||'') + '|' + (r.start||'')));
     const ghosts = [];
+    const nowI1 = Date.now();
     Object.entries(S.active).forEach(([n, a]) => {
       const pending = _pendingActive.get(n);
       if (pending && pending.op === 'add') return; // verse start niet aanraken
       const key = n + '|' + (a.route||'') + '|' + (a.start||'');
-      if (loggedKeys.has(key)) ghosts.push({ n, route: a.route, start: a.start });
+      // Spook: óf dezelfde ronde staat al afgerond in het log, óf de entry is
+      // ouder dan de stale-grens (vergeten retour, geen echte loper meer).
+      // De leeftijdscheck vangt het geval waarin de afgeronde logregel al is
+      // weggeschoond (logRetention), zodat de log-match niet meer aanslaat.
+      const tooOld = a && a.start && (nowI1 - a.start) > STALE_ACTIVE_MS;
+      if (loggedKeys.has(key) || tooOld) ghosts.push({ n, route: a.route, start: a.start });
     });
     if (ghosts.length) {
       ghosts.forEach(g => {
@@ -4219,7 +4266,7 @@ function reconcileState() {
       // save vóór logEvent (vaste ordering-regel tegen fbListen-races)
       fbSaveActive();
       renderAllActive(); renderLive();
-      ghosts.forEach(g => logEvent('auto', 'Spook-ronde opgeruimd: ' + g.n.split(' ')[0] + ' — ' + g.route + ' (stond in active én log)', { name: g.n, route: g.route, start: g.start }));
+      ghosts.forEach(g => logEvent('auto', 'Spook-ronde opgeruimd: ' + g.n.split(' ')[0] + ' — ' + g.route + ' (verouderde/afgeronde ronde nog actief)', { name: g.n, route: g.route, start: g.start }));
     }
   }
 
@@ -4227,9 +4274,16 @@ function reconcileState() {
   // Iemand met een lopende ronde hoort op dienst te staan. Voeg ontbrekende
   // lopers toe aan S.dienst en schrijf alleen de dienst-tak terug.
   if (S.active) {
+    const nowI2 = Date.now();
     const toevoegen = [];
-    Object.keys(S.active).forEach(n => {
-      if (!S.dienst.has(n)) toevoegen.push(n);
+    Object.entries(S.active).forEach(([n, a]) => {
+      if (S.dienst.has(n)) return;
+      // Negeer stale active: een entry ouder dan de stale-grens is een vergeten
+      // ronde, geen echte loper. Die mag een handmatige afmelding niet terugdraaien
+      // (anders ploppen afgemelde collega's telkens weer op dienst). I1 ruimt zo'n
+      // stale entry op; hier nemen we hem alvast niet als reden om op dienst te zetten.
+      if (a && a.start && (nowI2 - a.start) > STALE_ACTIVE_MS) return;
+      toevoegen.push(n);
     });
     if (toevoegen.length) {
       toevoegen.forEach(n => { markDienstPending(n, 'add'); S.dienst.add(n); });
@@ -7030,7 +7084,7 @@ document.addEventListener('keydown', e => {
 // SECTIE: FIREBASE INIT & LISTENERS  — initFirebase, fbListenMeldingen/Connected, schrijfGedeeldeMelding
 // ==============================================================================
 function initFirebase() {
-  updateTlVensterUI(); // herstel 24u/12u-knoplabel + kop uit bewaarde voorkeur
+  updateTlVensterUI(); // herstel 24u/12u/dienst-knoplabel + kop uit bewaarde voorkeur
   fbListen(); // this will populate S.active and S.log and trigger re-render
   fbListenMeldingen(); // listen for shared notifications
   fbListenConnected(); // listen for Firebase connectivity
