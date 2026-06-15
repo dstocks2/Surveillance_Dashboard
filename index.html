@@ -351,7 +351,13 @@ input[type=text]:focus{outline:none;border-color:var(--c-primary);box-shadow:0 0
   .toast-action-btn{width:100%;padding:9px 12px}
 }
 /* ── Op dienst-tab (v2.3.13) ───────────────────────────────────────── */
-#dienst-selectiebalk{position:sticky;top:0;z-index:5;background:#fff;border:1px solid #dce3ec;border-radius:11px;box-shadow:0 1px 2px rgba(17,42,68,.04),0 4px 16px rgba(17,42,68,.05);padding:13px 15px;margin-bottom:18px}
+#dienst-layout{display:flex;align-items:flex-start;gap:18px}
+#dienst-selectiebalk{position:sticky;top:0;z-index:5;background:#fff;border:1px solid #dce3ec;border-radius:11px;box-shadow:0 1px 2px rgba(17,42,68,.04),0 4px 16px rgba(17,42,68,.05);padding:13px 15px;flex:0 0 280px}
+#dienst-grid{flex:1;min-width:0}
+@media(max-width:880px){
+  #dienst-layout{display:block}
+  #dienst-selectiebalk{margin-bottom:18px}
+}
 #dienst-selectiebalk-top{display:flex;align-items:center;gap:9px}
 #dienst-teller{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 7px;border-radius:7px;background:var(--c-brand-dark);color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
 #dienst-teller-label{font-size:13px;font-weight:600;color:#18283a}
@@ -1273,16 +1279,18 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   <!-- OP DIENST -->
   <div id="pane-dienst" class="pane" role="tabpanel" tabindex="0" aria-labelledby="tab-dienst">
     <p class="lbl">Wie zijn er vandaag op dienst?</p>
-    <div id="dienst-selectiebalk">
-      <div id="dienst-selectiebalk-top">
-        <span id="dienst-teller">0</span>
-        <span id="dienst-teller-label">collega's op dienst</span>
-        <button type="button" id="dienst-wis" onclick="dienstLeeg()" style="display:none">Selectie wissen</button>
+    <div id="dienst-layout">
+      <div id="dienst-selectiebalk">
+        <div id="dienst-selectiebalk-top">
+          <span id="dienst-teller">0</span>
+          <span id="dienst-teller-label">collega's op dienst</span>
+          <button type="button" id="dienst-wis" onclick="dienstLeeg()" style="display:none">Selectie wissen</button>
+        </div>
+        <div id="dienst-chips"></div>
+        <div id="dienst-leeg">Nog niemand geselecteerd — tik hieronder op een naam.</div>
       </div>
-      <div id="dienst-chips"></div>
-      <div id="dienst-leeg">Nog niemand geselecteerd — tik hieronder op een naam.</div>
+      <div id="dienst-grid"></div>
     </div>
-    <div id="dienst-grid"></div>
   </div>
 
   <!-- BEHEER -->
@@ -1434,7 +1442,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.3.13</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.3.14</span>
     </div>
   </nav>
 
@@ -1836,7 +1844,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.3.13';
+const APP_VERSION = '3.3.14';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
