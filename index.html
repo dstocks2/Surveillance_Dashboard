@@ -1461,7 +1461,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.3.19</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.3.21</span>
     </div>
   </nav>
 
@@ -1723,7 +1723,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="edit-modal-foot">
       <button type="button" class="edit-modal-btn edit-modal-btn-cancel" onclick="cancelMedewerkerEdit()">Annuleren</button>
-      <button type="button" class="edit-modal-btn edit-modal-btn-save" onclick="saveMedewerkerEdit()"><svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan</button>
+      <button type="button" id="medewerker-modal-save-btn" class="edit-modal-btn edit-modal-btn-save" disabled onclick="saveMedewerkerEdit()"><svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan</button>
     </div>
   </div>
 </div>
@@ -1736,7 +1736,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     <div class="edit-modal-body">
       <div class="edit-modal-field">
         <label for="inp-ronde-edit-naam">Naam</label>
-        <input type="text" id="inp-ronde-edit-naam" maxlength="80" placeholder="bijv. Verpleegronde, Buitenronde…" onkeydown="if(event.key==='Enter')saveRondeEdit()">
+        <input type="text" id="inp-ronde-edit-naam" maxlength="80" placeholder="bijv. Verpleegronde, Buitenronde…" onkeydown="if(event.key==='Enter'&&!document.getElementById('ronde-modal-save-btn').disabled)saveRondeEdit()">
       </div>
       <div class="edit-modal-field">
         <label for="inp-ronde-edit-cat">Categorie <span style="font-weight:400;color:#6e6e73">(optioneel)</span></label>
@@ -1751,7 +1751,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="edit-modal-foot">
       <button type="button" class="edit-modal-btn edit-modal-btn-cancel" onclick="cancelRondeEdit()">Annuleren</button>
-      <button type="button" class="edit-modal-btn edit-modal-btn-save" onclick="saveRondeEdit()"><svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan</button>
+      <button type="button" id="ronde-modal-save-btn" class="edit-modal-btn edit-modal-btn-save" disabled onclick="saveRondeEdit()"><svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan</button>
     </div>
   </div>
 </div>
@@ -1764,12 +1764,12 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     <div class="edit-modal-body">
       <div class="edit-modal-field">
         <label for="inp-cat-naam">Naam</label>
-        <input type="text" id="inp-cat-naam" maxlength="80" placeholder="bijv. Parkeren, Noodhulp…" onkeydown="if(event.key==='Enter')saveCatEdit()">
+        <input type="text" id="inp-cat-naam" maxlength="80" placeholder="bijv. Parkeren, Noodhulp…" onkeydown="if(event.key==='Enter'&&!document.getElementById('cat-modal-save-btn').disabled)saveCatEdit()">
       </div>
     </div>
     <div class="edit-modal-foot">
       <button type="button" class="edit-modal-btn edit-modal-btn-cancel" onclick="cancelCatEdit()">Annuleren</button>
-      <button type="button" class="edit-modal-btn edit-modal-btn-save" onclick="saveCatEdit()"><svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan</button>
+      <button type="button" id="cat-modal-save-btn" class="edit-modal-btn edit-modal-btn-save" disabled onclick="saveCatEdit()"><svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan</button>
     </div>
   </div>
 </div>
@@ -1782,7 +1782,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     <div class="edit-modal-body">
       <div class="edit-modal-field">
         <label for="inp-rol-naam">Naam</label>
-        <input type="text" id="inp-rol-naam" maxlength="80" placeholder="bijv. Teamleider, Beveiliger…" onkeydown="if(event.key==='Enter')saveRolEdit()">
+        <input type="text" id="inp-rol-naam" maxlength="80" placeholder="bijv. Teamleider, Beveiliger…" oninput="_updateRolModalSaveState()" onkeydown="if(event.key==='Enter'&&!document.getElementById('rol-modal-save-btn').disabled)saveRolEdit()">
       </div>
       <div id="rol-modal-voorstel-row" class="edit-modal-field" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid #f1f5f9">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
@@ -1798,7 +1798,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="edit-modal-foot">
       <button type="button" class="edit-modal-btn edit-modal-btn-cancel" onclick="cancelRolEdit()">Annuleren</button>
-      <button type="button" class="edit-modal-btn edit-modal-btn-save" onclick="saveRolEdit()"><svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan</button>
+      <button type="button" id="rol-modal-save-btn" class="edit-modal-btn edit-modal-btn-save" disabled onclick="saveRolEdit()"><svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan</button>
     </div>
   </div>
 </div>
@@ -1830,7 +1830,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="edit-modal-foot">
       <button type="button" class="edit-modal-btn edit-modal-btn-cancel" onclick="cancelDagdeelEdit()">Annuleren</button>
-      <button type="button" class="edit-modal-btn edit-modal-btn-save" onclick="saveDagdeelEdit()"><svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan</button>
+      <button type="button" id="dagdeel-modal-save-btn" class="edit-modal-btn edit-modal-btn-save" disabled onclick="saveDagdeelEdit()"><svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan</button>
     </div>
   </div>
 </div>
@@ -1874,7 +1874,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.3.19';
+const APP_VERSION = '3.3.21';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -5848,6 +5848,12 @@ function openDagdeelModal(idx) {
     document.getElementById('inp-dagdeel-edit-eind').value = '';
     document.getElementById('inp-dagdeel-edit-kleur').value = '#fef9c3';
   }
+  _setupModalDirtyCheck('dagdeel', {
+    fieldIds: ['inp-dagdeel-edit-naam', 'inp-dagdeel-edit-start', 'inp-dagdeel-edit-eind', 'inp-dagdeel-edit-kleur'],
+    requiredIds: ['inp-dagdeel-edit-naam', 'inp-dagdeel-edit-start', 'inp-dagdeel-edit-eind'],
+    btnId: 'dagdeel-modal-save-btn',
+    isEdit: isEdit
+  });
   document.getElementById('dagdeel-modal-overlay').style.display = 'flex';
   setTimeout(() => document.getElementById('inp-dagdeel-edit-naam').focus(), 50);
 }
@@ -5960,6 +5966,14 @@ function openMedewerkerModal(idx) {
   // Rol-veld: rij-per-rij selects
   var currentRollen = rolArray(_medItem ? (_medItem.rol || '') : '');
   _buildRolRows(currentRollen);
+  _setupModalDirtyCheck('medewerker', {
+    fieldIds: ['inp-medewerker-edit-naam'],
+    requiredIds: ['inp-medewerker-edit-naam'],
+    btnId: 'medewerker-modal-save-btn',
+    isEdit: isEdit,
+    extraFn: function() { return _leesRolRijen().join(','); },
+    extraChangeEl: 'inp-medewerker-edit-rol-checks'
+  });
   document.getElementById('medewerker-modal-overlay').style.display = 'flex';
   setTimeout(() => document.getElementById('inp-medewerker-edit-naam').focus(), 50);
 }
@@ -6089,6 +6103,7 @@ function rondesActionBtn() {
 var _medSubView = 'medewerkers'; // 'medewerkers' | 'rollen'
 var _schemaSubView = 'schema'; // 'schema' | 'dagdelen'
 var _rolEditIdx = null;
+var _rolModalOrigNaam = ''; // waarde van inp-rol-naam bij openen modal — bepaalt of Opslaan actief is
 
 function schemaSubView(which) {
   _schemaSubView = which;
@@ -6201,6 +6216,8 @@ function openRolModal(idx) {
   var isEdit = idx !== null;
   document.getElementById('rol-modal-title').textContent = isEdit ? 'Rol / Functie wijzigen' : 'Rol / Functie toevoegen';
   document.getElementById('inp-rol-naam').value = isEdit ? (S.rollen[idx] || '') : '';
+  _rolModalOrigNaam = isEdit ? (S.rollen[idx] || '') : '';
+  _updateRolModalSaveState();
   // Voorstel-toggle: alleen relevant voor een bestaande rol (heeft al een
   // Firebase-record om config/rollen/{id}/voorstel op te schrijven).
   var voorstelRow = document.getElementById('rol-modal-voorstel-row');
@@ -6212,6 +6229,59 @@ function openRolModal(idx) {
   setTimeout(function() { document.getElementById('inp-rol-naam').focus(); }, 50);
 }
 
+// ════════════════════════════════════════════════════════════════════════
+// Generieke "dirty"-check voor modal-Opslaan-knoppen (sinds v3.3.21).
+// Vergelijkt een snapshot van veldwaarden met de waarde bij openen; Opslaan
+// blijft uitgeschakeld tot er een wijziging is EN de verplichte velden gevuld
+// zijn. Bij "toevoegen" (isEdit=false) is er geen vorige waarde — dan wordt
+// Opslaan actief zodra de verplichte velden gevuld zijn.
+// extraFn (optioneel) levert extra snapshot-tekst voor dynamische onderdelen
+// (bv. de rol-selects in de medewerker-modal); extraChangeEl is het element
+// waarop (via delegatie) een 'change'-listener komt voor die dynamische rijen.
+// ════════════════════════════════════════════════════════════════════════
+var _modalDirty = {};
+function _modalFieldSnapshot(fieldIds, extraFn) {
+  var parts = fieldIds.map(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return '';
+    if (el.type === 'checkbox') return el.checked ? '1' : '0';
+    return (el.value || '').trim();
+  });
+  if (extraFn) parts.push(extraFn());
+  return parts.join('|');
+}
+function _checkModalDirty(key) {
+  var opts = _modalDirty[key];
+  if (!opts) return;
+  var btn = document.getElementById(opts.btnId);
+  if (!btn) return;
+  var requiredFilled = (opts.requiredIds || []).every(function(id) {
+    var el = document.getElementById(id);
+    return el && (el.value || '').trim().length > 0;
+  });
+  var dirty;
+  if (opts._initial === null) {
+    dirty = requiredFilled;
+  } else {
+    dirty = requiredFilled && _modalFieldSnapshot(opts.fieldIds, opts.extraFn) !== opts._initial;
+  }
+  btn.disabled = !dirty;
+}
+function _setupModalDirtyCheck(key, opts) {
+  _modalDirty[key] = opts;
+  opts._initial = opts.isEdit ? _modalFieldSnapshot(opts.fieldIds, opts.extraFn) : null;
+  var handler = function() { _checkModalDirty(key); };
+  opts.fieldIds.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) { el.oninput = handler; el.onchange = handler; }
+  });
+  if (opts.extraChangeEl) {
+    var ex = document.getElementById(opts.extraChangeEl);
+    if (ex) ex.onchange = handler;
+  }
+  _checkModalDirty(key);
+}
+
 // Werkt de visuele staat van de voorstel-toggle in de rol-modal bij.
 function _renderRolModalVoorstelToggle(rol) {
   var el = document.getElementById('rol-modal-voorstel-toggle');
@@ -6221,6 +6291,18 @@ function _renderRolModalVoorstelToggle(rol) {
   el.style.background = aan ? '#2563eb' : '#e2e8f0';
   var thumb = el.firstElementChild;
   if (thumb) thumb.style.left = aan ? '17px' : '2px';
+}
+
+// Opslaan-knop blijft uitgeschakeld (grijs) tot de naam daadwerkelijk wijzigt
+// t.o.v. de waarde bij openen — voorkomt verwarring met de direct-opslaande
+// Voorstel-toggle hierboven, die geen "Opslaan" nodig heeft.
+function _updateRolModalSaveState() {
+  var btn = document.getElementById('rol-modal-save-btn');
+  var inp = document.getElementById('inp-rol-naam');
+  if (!btn || !inp) return;
+  var val = (inp.value || '').trim();
+  var changed = val.length > 0 && val !== (_rolModalOrigNaam || '').trim();
+  btn.disabled = !changed;
 }
 
 // Klik op de voorstel-toggle in de rol-modal: gebruikt de bestaande
@@ -6647,6 +6729,7 @@ function openCatModal(idx) {
   const isEdit = idx !== null;
   document.getElementById('cat-modal-title').textContent = isEdit ? 'Categorie wijzigen' : 'Categorie toevoegen';
   document.getElementById('inp-cat-naam').value = isEdit ? (S.routeCats[idx] || '') : '';
+  _setupModalDirtyCheck('cat', { fieldIds: ['inp-cat-naam'], requiredIds: ['inp-cat-naam'], btnId: 'cat-modal-save-btn', isEdit: isEdit });
   document.getElementById('cat-modal-overlay').style.display = 'flex';
   setTimeout(() => document.getElementById('inp-cat-naam').focus(), 50);
 }
@@ -6708,6 +6791,12 @@ function openRondeModal(idx) {
     (S.routeCats || []).map(c => `<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('');
   catSel.value = isEdit ? (S.routes[idx].categorie || '') : '';
   document.getElementById('inp-ronde-edit-dubbel').checked = isEdit ? (S.routes[idx].dubbelOk === true) : false;
+  _setupModalDirtyCheck('ronde', {
+    fieldIds: ['inp-ronde-edit-naam', 'inp-ronde-edit-cat', 'inp-ronde-edit-dubbel'],
+    requiredIds: ['inp-ronde-edit-naam'],
+    btnId: 'ronde-modal-save-btn',
+    isEdit: isEdit
+  });
   document.getElementById('ronde-modal-overlay').style.display = 'flex';
   setTimeout(() => document.getElementById('inp-ronde-edit-naam').focus(), 50);
 }
