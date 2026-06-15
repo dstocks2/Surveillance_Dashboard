@@ -145,6 +145,24 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .cfg-gedrag-row:last-child{border-bottom:none}
 .cfg-gedrag-label{font-size:13px;font-weight:500;color:var(--c-text)}
 .cfg-gedrag-sub{font-size:11px;color:var(--c-muted-2);margin-top:2px}.cfg-gedrag-subhead{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--c-muted-2);padding:16px 0 6px;border-bottom:1px solid var(--c-bg)}
+/* ── Gedrag: card-gebaseerde layout + stepper-controls (v3.3.9) ──────── */
+.cfg-card{background:var(--c-bg);border:1px solid var(--c-border);border-radius:10px;padding:4px 18px;margin-bottom:14px}
+.cfg-card:last-child{margin-bottom:0}
+.cfg-card-header{display:flex;align-items:center;gap:10px;padding:14px 0 4px}
+.cfg-card-icon{width:28px;height:28px;border-radius:8px;background:var(--c-primary-tint2);color:var(--c-primary);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cfg-card-title{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--c-muted-2)}
+.cfg-card .cfg-gedrag-row{border-bottom-color:var(--c-border)}
+.cfg-card-danger{background:#fef2f2;border-color:#fecaca}
+.cfg-card-danger .cfg-card-icon{background:#fee2e2;color:var(--c-danger)}
+.cfg-card-danger .cfg-card-title{color:var(--c-danger)}
+.cfg-stepper{display:flex;align-items:stretch;border:1.5px solid var(--c-border-2);border-radius:8px;overflow:hidden;flex-shrink:0;background:#fff}
+.cfg-stepper-btn{width:30px;border:none;background:#fff;color:var(--c-muted-2);font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1;transition:background .12s}
+.cfg-stepper-btn:hover{background:var(--c-bg)}
+.cfg-stepper-btn:active{background:var(--c-border)}
+.cfg-stepper-val{display:flex;align-items:center;gap:5px;padding:0 10px;border-left:1.5px solid var(--c-border-2);border-right:1.5px solid var(--c-border-2);min-width:60px;justify-content:center}
+.cfg-stepper-input{width:26px;border:none;text-align:center;font-size:14px;font-weight:700;color:var(--c-text);font-family:inherit;background:transparent;padding:0;-moz-appearance:textfield}
+.cfg-stepper-input::-webkit-outer-spin-button,.cfg-stepper-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.cfg-stepper-unit{font-size:11px;color:var(--c-muted-2)}
 /* ── Mobile cfg layout ────────────────────────────────────────────────── */
 @media(max-width:700px){
   .tabs{display:none}
@@ -1409,7 +1427,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.3.8</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.3.9</span>
     </div>
   </nav>
 
@@ -1505,39 +1523,60 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div class="cfg-sec-header">
         <div><div class="cfg-sec-title">Gedrag</div><div class="cfg-sec-sub">Tijdslimieten en vergrendelingsgedrag</div></div>
       </div>
-      <div style="display:flex;flex-direction:column">
-        <div class="cfg-gedrag-subhead">Meldingen &amp; waarschuwingen</div>
+
+      <div class="cfg-card">
+        <div class="cfg-card-header">
+          <div class="cfg-card-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></div>
+          <div class="cfg-card-title">Meldingen &amp; waarschuwingen</div>
+        </div>
         <div class="cfg-gedrag-row">
           <div><div class="cfg-gedrag-label">Lange-ronde waarschuwing</div><div class="cfg-gedrag-sub">Oranje melding als een ronde langer duurt dan dit aantal uur</div></div>
-          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-            <input type="number" id="inp-timeout-warn" min="1" max="24" step="1" style="width:60px;padding:5px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;text-align:center;font-family:inherit" oninput="saveGedrag()">
-            <span style="font-size:12px;color:#64748b">uur</span>
+          <div class="cfg-stepper">
+            <button type="button" class="cfg-stepper-btn" onclick="gedragStep('inp-timeout-warn',-1)" aria-label="Verlagen">−</button>
+            <div class="cfg-stepper-val"><input type="number" id="inp-timeout-warn" min="1" max="24" step="1" class="cfg-stepper-input" oninput="saveGedrag()"><span class="cfg-stepper-unit">uur</span></div>
+            <button type="button" class="cfg-stepper-btn" onclick="gedragStep('inp-timeout-warn',1)" aria-label="Verhogen">+</button>
           </div>
         </div>
         <div class="cfg-gedrag-row">
           <div><div class="cfg-gedrag-label">Herhaal-waarschuwing</div><div class="cfg-gedrag-sub">Herhaal de lange-ronde melding om de zoveel uur zolang de ronde nog loopt</div></div>
-          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-            <input type="number" id="inp-rewarn-hours" min="1" max="24" step="1" style="width:60px;padding:5px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;text-align:center;font-family:inherit" oninput="saveGedrag()">
-            <span style="font-size:12px;color:#64748b">uur</span>
-          </div>
-        </div>
-        <div class="cfg-gedrag-row">
-          <div><div class="cfg-gedrag-label">Melding duur</div><div class="cfg-gedrag-sub">Hoe lang gedeelde meldingen zichtbaar blijven voor alle apparaten</div></div>
-          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-            <input type="number" id="inp-melding-ttl" min="1" max="72" step="1" style="width:60px;padding:5px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;text-align:center;font-family:inherit" oninput="saveGedrag()">
-            <span style="font-size:12px;color:#64748b">uur</span>
-          </div>
-        </div>
-        <div class="cfg-gedrag-subhead" style="margin-top:8px">Ronde-log</div>
-        <div class="cfg-gedrag-row">
-          <div><div class="cfg-gedrag-label">Ronde-log bewaar-duur</div><div class="cfg-gedrag-sub">Hoe lang gelopen rondes bewaard blijven (auto-opruiming elke 30 min). Minimaal 25 uur wordt altijd bewaard voor de 24u-tijdlijn.</div></div>
-          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-            <input type="number" id="inp-log-retention" min="1" max="30" step="1" style="width:60px;padding:5px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;text-align:center;font-family:inherit" oninput="saveGedrag()">
-            <span style="font-size:12px;color:#64748b">dagen</span>
+          <div class="cfg-stepper">
+            <button type="button" class="cfg-stepper-btn" onclick="gedragStep('inp-rewarn-hours',-1)" aria-label="Verlagen">−</button>
+            <div class="cfg-stepper-val"><input type="number" id="inp-rewarn-hours" min="1" max="24" step="1" class="cfg-stepper-input" oninput="saveGedrag()"><span class="cfg-stepper-unit">uur</span></div>
+            <button type="button" class="cfg-stepper-btn" onclick="gedragStep('inp-rewarn-hours',1)" aria-label="Verhogen">+</button>
           </div>
         </div>
         <div class="cfg-gedrag-row" style="border-bottom:none">
-          <div><div class="cfg-gedrag-label">Ronde-log wissen</div><div class="cfg-gedrag-sub">Verwijdert alle gelopen rondes en actieve rondes direct uit Firebase</div></div>
+          <div><div class="cfg-gedrag-label">Melding duur</div><div class="cfg-gedrag-sub">Hoe lang gedeelde meldingen zichtbaar blijven voor alle apparaten</div></div>
+          <div class="cfg-stepper">
+            <button type="button" class="cfg-stepper-btn" onclick="gedragStep('inp-melding-ttl',-1)" aria-label="Verlagen">−</button>
+            <div class="cfg-stepper-val"><input type="number" id="inp-melding-ttl" min="1" max="72" step="1" class="cfg-stepper-input" oninput="saveGedrag()"><span class="cfg-stepper-unit">uur</span></div>
+            <button type="button" class="cfg-stepper-btn" onclick="gedragStep('inp-melding-ttl',1)" aria-label="Verhogen">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cfg-card">
+        <div class="cfg-card-header">
+          <div class="cfg-card-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5z"/><path d="M14 2v6h6"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg></div>
+          <div class="cfg-card-title">Ronde-log</div>
+        </div>
+        <div class="cfg-gedrag-row" style="border-bottom:none">
+          <div><div class="cfg-gedrag-label">Bewaar-duur</div><div class="cfg-gedrag-sub">Hoe lang gelopen rondes bewaard blijven (auto-opruiming elke 30 min). Minimaal 25 uur wordt altijd bewaard voor de 24u-tijdlijn.</div></div>
+          <div class="cfg-stepper">
+            <button type="button" class="cfg-stepper-btn" onclick="gedragStep('inp-log-retention',-1)" aria-label="Verlagen">−</button>
+            <div class="cfg-stepper-val"><input type="number" id="inp-log-retention" min="1" max="30" step="1" class="cfg-stepper-input" oninput="saveGedrag()"><span class="cfg-stepper-unit">dagen</span></div>
+            <button type="button" class="cfg-stepper-btn" onclick="gedragStep('inp-log-retention',1)" aria-label="Verhogen">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cfg-card cfg-card-danger">
+        <div class="cfg-card-header">
+          <div class="cfg-card-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></div>
+          <div class="cfg-card-title">Gevaarlijke acties</div>
+        </div>
+        <div class="cfg-gedrag-row" style="border-bottom:none">
+          <div><div class="cfg-gedrag-label">Ronde-log wissen</div><div class="cfg-gedrag-sub">Verwijdert alle gelopen rondes en actieve rondes direct uit Firebase. Deze actie kan niet ongedaan worden gemaakt.</div></div>
           <button type="button" onclick="wisLog()" style="flex-shrink:0;padding:6px 14px;border:1.5px solid #ef4444;border-radius:6px;background:#fff;color:#ef4444;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .12s" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">Wis ronde-log</button>
         </div>
       </div>
@@ -1790,7 +1829,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.3.8';
+const APP_VERSION = '3.3.9';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -6250,6 +6289,23 @@ function cfgGoSection(id) {
 }
 
 // ── GEDRAG-INSTELLINGEN ────────────────────────────────────────────────────
+// Stepper-knoppen (−/+) voor de Gedrag-instellingen. Leest min/max van het
+// input-element zelf (geen losse limieten-tabel), klemt de waarde binnen dat
+// bereik en dispatcht een 'input'-event zodat de bestaande oninput-handlers
+// (saveGedrag op desktop, de rewired handlers op mobiel) ongewijzigd vuren.
+function gedragStep(id, delta) {
+  const inp = document.getElementById(id);
+  if (!inp) return;
+  const min = parseInt(inp.min, 10);
+  const max = parseInt(inp.max, 10);
+  let v = parseInt(inp.value, 10);
+  if (isNaN(v)) v = min;
+  v = Math.min(max, Math.max(min, v + delta));
+  if (v === parseInt(inp.value, 10)) return;
+  inp.value = v;
+  inp.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
 async function saveGedrag() {
   const tw  = parseInt(document.getElementById('inp-timeout-warn')?.value, 10);
   const mt  = parseInt(document.getElementById('inp-melding-ttl')?.value, 10);
