@@ -723,6 +723,13 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     for (const [id, v] of Object.entries(REG.medewerkers)) if (v && v.naam === naam) return id;
     return null;
   }
+  // Export: rolnaam → Firebase-id binnen config/rollen/{id}. Gebruikt door
+  // toggleRolVoorstel() in het hoofdscript om gericht config/rollen/{id}/voorstel
+  // te schrijven zonder de hele rollen-lijst opnieuw te diffen.
+  window._rolIdByNaam = function(naam) {
+    for (const [id, v] of Object.entries(REG.rollen)) if (v && v.naam === naam) return id;
+    return null;
+  };
   function sortedEntries(map, byVolgorde) {
     const e = Object.entries(map || {});
     if (byVolgorde) e.sort((a, b) => (a[1].volgorde ?? 0) - (b[1].volgorde ?? 0));
@@ -778,7 +785,14 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     for (let i = 0; i < Math.max(prev.length, n.length); i++) {
       if (i < n.length && i < prev.length) {
         const [id, v] = prev[i];
-        if (v.naam !== n[i] || (v.volgorde ?? 0) !== i) out['config/' + kind + '/' + id] = { naam: n[i], volgorde: i };
+        if (v.naam !== n[i] || (v.volgorde ?? 0) !== i) {
+          const stored = { naam: n[i], volgorde: i };
+          // Bij rollen: bestaand voorstel-veld (aan/uit-toggle) behouden — anders
+          // gaat de instelling verloren zodra de rol hernoemd of verplaatst wordt
+          // (deze write VERVANGT de hele node op dit pad).
+          if (kind === 'rollen' && v.voorstel !== undefined) stored.voorstel = v.voorstel;
+          out['config/' + kind + '/' + id] = stored;
+        }
       } else if (i < n.length) {
         out['config/' + kind + '/' + newId(kind.slice(0, 3))] = { naam: n[i], volgorde: i };
       } else {
@@ -867,9 +881,13 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     routes.sort((a, b) => a.naam.toLowerCase().localeCompare(b.naam.toLowerCase(), 'nl'));
     const cats   = sortedEntries(REG.routeCats, true).map(([, v]) => v.naam);
     const rollen = sortedEntries(REG.rollen, true).map(([, v]) => v.naam);
+    // Per rol: alleen expliciet uitgeschakelde rollen (voorstel===false) opnemen.
+    // Ontbrekend veld = aan (default) — zie ook rolIsVoorstel().
+    const rolVoorstel = {};
+    sortedEntries(REG.rollen, true).forEach(([, v]) => { if (v.voorstel === false) rolVoorstel[v.naam] = false; });
     const dagd   = sortedEntries(REG.dagdelen, true).map(([id, v]) => ({ _id: id, naam: v.naam, start: v.start, eind: v.eind, kleur: v.kleur }));
     const schema = sortedEntries(REG.schema, true).map(([id, v]) => { const o = { _id: id, h: v.h, m: v.m }; if (v.ronde) o.ronde = v.ronde; if (v.taak) o.taak = v.taak; if (v.dagen) o.dagen = v.dagen; if (v.weekdagsOnly !== undefined) o.weekdagsOnly = v.weekdagsOnly; return o; });
-    return { med, routes, cats, rollen, dagd, schema, gedrag: REG.gedrag };
+    return { med, routes, cats, rollen, rolVoorstel, dagd, schema, gedrag: REG.gedrag };
   }
   function naamByMedId(id, fallback) {
     const m = REG.medewerkers[id];
@@ -906,6 +924,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     };
     if (c.cats.length)   root.routeCats = c.cats;
     if (c.rollen.length) root.rollen = c.rollen;
+    if (Object.keys(c.rolVoorstel).length) root.rolVoorstel = c.rolVoorstel;
     if (c.dagd.length)   root.dagdelen = c.dagd;
     if (c.schema.length) root.schema = c.schema;
     return root;
@@ -1442,7 +1461,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.3.16</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.3.18</span>
     </div>
   </nav>
 
@@ -1844,7 +1863,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.3.16';
+const APP_VERSION = '3.3.18';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -2034,6 +2053,37 @@ function fbSaveDienst() {
   window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/dienst': [...S.dienst] })
     .then(() => setFbStatus('ok'))
     .catch(e => { logEvent('error', 'Dienst opslaan MISLUKT', { error: String(e) }); setFbStatus('error'); });
+}
+
+// Zet de "meenemen bij voorgestelde ronde"-toggle voor een rol om en slaat dit
+// direct op via config/rollen/{id}/voorstel — het bestaande per-rol record in
+// Firebase (zelfde id als naam/volgorde). Ontbrekend veld = aan (default), dus
+// uitzetten schrijft expliciet `false`, opnieuw aanzetten schrijft `null` (=
+// veld verwijderen, terug naar default) i.p.v. `true` — houdt records klein.
+function toggleRolVoorstel(rol) {
+  if (!S.rolVoorstel) S.rolVoorstel = {};
+  const huidigAan = S.rolVoorstel[rol] !== false;
+  if (huidigAan) {
+    S.rolVoorstel[rol] = false;
+  } else {
+    delete S.rolVoorstel[rol];
+  }
+  LS.set('rn_rolVoorstel', S.rolVoorstel);
+  renderRollenList();
+
+  if (!window.fbDb || window._appOutdated) return;
+  const id = window._rolIdByNaam ? window._rolIdByNaam(rol) : null;
+  if (!id) {
+    showToast('Kon ' + rol + ' niet vinden in Firebase — sla de rol eerst op');
+    return;
+  }
+  const val = (S.rolVoorstel[rol] === false) ? false : null; // null verwijdert het veld
+  window.fbUpdate(window.fbRef(window.fbDb), { ['config/rollen/' + id + '/voorstel']: val })
+    .then(() => setFbStatus('ok'))
+    .catch(e => {
+      logEvent('error', 'Rol-voorstel opslaan MISLUKT', { error: String(e) });
+      showToast('Opslaan mislukt — controleer Firebase Rules (voorstel-veld)');
+    });
 }
 
 // Writes active + log atomically to Firebase — this is the ONLY place these are saved
@@ -2543,6 +2593,19 @@ function fbListen() {
         LS.set('rn_rollen', S.rollen);
       }
     }
+    {
+      // rolVoorstel: object {rolnaam: true/false}. Alleen booleans overnemen;
+      // ontbrekende sleutel betekent "aan" (rolIsVoorstel() regelt de default).
+      const raw = (d.rolVoorstel && typeof d.rolVoorstel === 'object' && !Array.isArray(d.rolVoorstel)) ? d.rolVoorstel : {};
+      const fbRolVoorstel = {};
+      Object.keys(raw).forEach(k => {
+        if (typeof raw[k] === 'boolean') fbRolVoorstel[decodeEntities(sanitizeFromFirebase(String(k)))] = raw[k];
+      });
+      if (JSON.stringify(fbRolVoorstel) !== JSON.stringify(S.rolVoorstel || {})) {
+        S.rolVoorstel = fbRolVoorstel;
+        LS.set('rn_rolVoorstel', S.rolVoorstel);
+      }
+    }
     // Sync schema — ontbrekend/leeg = null (default SCHEMA is leeg, dus
     // gelijkwaardig). Genormaliseerd vergelijken zodat null en [] niet flappen.
     {
@@ -2585,6 +2648,7 @@ function fbListen() {
     LS.set('rn_routes',      S.routes);
     LS.set('rn_route_cats',  S.routeCats || ROUTE_CATEGORIEEN_DEFAULT);
   LS.set('rn_rollen', S.rollen || []);
+  LS.set('rn_rolVoorstel', S.rolVoorstel || {});
     LS.set('rn_medewerkers', S.medewerkers || []);
 
     setFbStatus('ok');
@@ -2644,6 +2708,9 @@ let S = {
   routes: sanitizeRoutes(LS.get('rn_routes') || DR),
   routeCats: (LS.get('rn_route_cats') || ROUTE_CATEGORIEEN_DEFAULT.slice()).map(c => c.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>')),
   rollen: (function() { var v = LS.get('rn_rollen'); return Array.isArray(v) ? v.map(function(r) { return typeof r === 'string' ? r.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>') : ''; }).filter(Boolean) : []; })(),
+  // Per rol: mag deze rol meegenomen worden bij "Voorgestelde ronde"? Ontbrekende
+  // sleutel = true (aan, standaardgedrag). false = uitgesloten van suggesties.
+  rolVoorstel: (function() { var v = LS.get('rn_rolVoorstel'); return (v && typeof v === 'object' && !Array.isArray(v)) ? v : {}; })(),
   schema: LS.get('rn_schema') || null, // null = use SCHEMA default (leeg; schema komt uit Firebase)
   dagdelen: LS.get('rn_dagdelen') || null, // null = use DAGDELEN_DEFAULT
   active: {},   // always loaded from Firebase — never from localStorage
@@ -4812,6 +4879,20 @@ function isWeekday() {
   return day >= 1 && day <= 5;
 }
 
+// Bepaalt of een medewerker (op naam) uitgesloten moet worden van "Voorgestelde
+// ronde" op basis van de per-rol "Voorstel"-toggle (S.rolVoorstel). Iemand
+// zonder rol wordt ALTIJD meegenomen. Iemand mét rol(len) wordt alleen
+// uitgesloten als ALLE rollen expliciet uitstaan (false) — zodra minstens één
+// rol aan staat, blijft de persoon meedoen (zie ook renderDienst-groepering).
+function rolUitgeschakeldVoorVoorstel(naam) {
+  const med = (S.medewerkers || []).find(m => m.naam === naam);
+  if (!med) return false;
+  const rollenVanMed = rolArray(med.rol);
+  if (!rollenVanMed.length) return false;
+  const rv = S.rolVoorstel || {};
+  return rollenVanMed.every(r => rv[r] === false);
+}
+
 function suggestSurveillant(ronde, alreadySuggested) {
   // Returns best available person for a ronde, or null
   // Criteria (in priority order):
@@ -4823,7 +4904,7 @@ function suggestSurveillant(ronde, alreadySuggested) {
   // If all available are already suggested, fall back and allow repeats
 
   if (!ronde) return null;
-  const candidates = activeNames(); // respects dienst filter
+  const candidates = activeNames().filter(n => !rolUitgeschakeldVoorVoorstel(n)); // respects dienst filter + rol-voorstel-toggle
   const now = Date.now();
   const h8  = now - 8  * 60 * 60 * 1000; // 8 hours ago
   const m30 = now - 30 * 60 * 1000;       // 30 minutes ago
@@ -6085,10 +6166,21 @@ function renderRollenList() {
   var html = '<div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:10px">';
   rollen.forEach(function(rol, i) {
     var count = (S.medewerkers || []).filter(function(m) { return rolArray(m.rol).includes(rol); }).length;
+    var aan = (S.rolVoorstel || {})[rol] !== false;
+    var toggle =
+      '<span onclick="toggleRolVoorstel(' + escHtml(JSON.stringify(rol)) + ')" ' +
+        'onkeydown="if(event.key===\' \'||event.key===\'Enter\'){event.preventDefault();toggleRolVoorstel(' + escHtml(JSON.stringify(rol)) + ')}" ' +
+        'role="switch" aria-checked="' + (aan ? 'true' : 'false') + '" tabindex="0" ' +
+        'title="Meenemen bij voorgestelde ronde" ' +
+        'style="display:inline-block;width:34px;height:19px;border-radius:99px;flex-shrink:0;cursor:pointer;position:relative;transition:background .15s;background:' + (aan ? '#2563eb' : '#e2e8f0') + '">' +
+        '<span style="position:absolute;top:2px;left:' + (aan ? '17px' : '2px') + ';width:15px;height:15px;border-radius:99px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .15s"></span>' +
+      '</span>';
     html +=
       '<div style="display:flex;align-items:center;padding:8px 14px;border-bottom:1px solid #f1f5f9;gap:6px">' +
         '<span style="flex:1;font-size:13px;color:#1e293b">' + escHtml(rol) + '</span>' +
         '<span style="background:#f1f5f9;color:#64748b;border-radius:99px;font-size:11px;font-weight:600;padding:1px 8px;flex-shrink:0">' + count + '</span>' +
+        '<span style="font-size:11px;color:#9ca3af;flex-shrink:0">Voorstel</span>' +
+        toggle +
         '<button type="button" onclick="openRolModal(' + i + ')" class="cfg-icon-btn" title="Wijzigen" aria-label="Wijzigen">✎</button>' +
         '<button type="button" onclick="rmRol(' + i + ')" class="cfg-icon-btn cfg-icon-btn-del" title="Verwijderen" aria-label="Verwijderen">✕</button>' +
       '</div>';
@@ -6123,6 +6215,14 @@ function saveRolEdit() {
     S.rollen[_rolEditIdx] = naam;
     // Update alle medewerkers met deze rol
     (S.medewerkers || []).forEach(function(m) { var arr = rolArray(m.rol); var idx2 = arr.indexOf(oud); if (idx2 !== -1) { arr[idx2] = naam; m.rol = arr.join(','); } });
+    // rolVoorstel-toggle (indien expliciet uitgezet) lokaal meeverhuizen naar
+    // nieuwe naam — het Firebase-veld config/rollen/{id}/voorstel blijft
+    // automatisch behouden via diffLabelList (zelfde id, alleen naam wijzigt).
+    if (S.rolVoorstel && Object.prototype.hasOwnProperty.call(S.rolVoorstel, oud)) {
+      S.rolVoorstel[naam] = S.rolVoorstel[oud];
+      delete S.rolVoorstel[oud];
+      LS.set('rn_rolVoorstel', S.rolVoorstel);
+    }
     save();
     logEvent('settings', 'Rol gewijzigd: ' + oud + ' → ' + naam);
     showToast(naam + ' bijgewerkt');
@@ -6144,6 +6244,12 @@ function rmRol(idx) {
     if (!ok) return;
     S.rollen.splice(idx, 1);
     (S.medewerkers || []).forEach(function(m) { var arr = rolArray(m.rol).filter(function(r) { return r !== naam; }); m.rol = arr.join(','); });
+    // Lokale rolVoorstel-sleutel opruimen — het Firebase-veld verdwijnt
+    // automatisch met de hele rol-node via diffLabelList.
+    if (S.rolVoorstel && Object.prototype.hasOwnProperty.call(S.rolVoorstel, naam)) {
+      delete S.rolVoorstel[naam];
+      LS.set('rn_rolVoorstel', S.rolVoorstel);
+    }
     save();
     logEvent('settings', 'Rol verwijderd: ' + naam);
     showToast(naam + ' verwijderd');
@@ -6763,10 +6869,15 @@ function renderDienst() {
     // verschijnt PRECIES ÉÉN keer: de eerste geldige rol = hoofdrol/functie
     // (zelfde volgorde die in Instellingen wordt ingesteld). Geen geldige rol → "Overig".
     const buckets = new Map(); // sleutel = rol-label (canonieke S.rollen-naam) of '' voor Overig
+    const rv = S.rolVoorstel || {};
     opDienst.forEach(med => {
-      const hoofdRol = rolArray(med.rol)
+      const rolMatches = rolArray(med.rol)
         .map(r => rolVolg.find(rr => rr.toLowerCase() === r.toLowerCase()))
-        .find(Boolean) || '';
+        .filter(Boolean);
+      // Voorkeur voor een rol die AAN staat bij "Voorgestelde ronde"; als alle
+      // rollen van deze persoon UIT staan (of er zijn geen matches), val terug
+      // op de eerste gekoppelde rol — zelfde gedrag als voorheen.
+      const hoofdRol = rolMatches.find(r => rv[r] !== false) || rolMatches[0] || '';
       if (!buckets.has(hoofdRol)) buckets.set(hoofdRol, []);
       buckets.get(hoofdRol).push(med.naam);
     });
