@@ -233,6 +233,14 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .hr{border:none;border-top:1px solid var(--c-border);margin:16px 0}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
 #all-active-cards,#live-cards-active{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;align-items:start}
+/* Tablet (iPad portrait/landscape e.d.): 4 actieve-ronde-kaarten naast elkaar
+   i.p.v. 2. Desktop (>1300px) houdt de huidige grote kaarten (300px-min via
+   de regel hierboven). Werkt voornamelijk op #all-active-cards (Registratie) —
+   #live-cards-active heeft in de Overzicht-tab al een eigen 2-koloms regel
+   (.live-col-onderweg #live-cards-active) met hogere specificiteit. */
+@media(min-width:701px) and (max-width:1300px){
+  #all-active-cards{grid-template-columns:repeat(4,1fr);gap:10px}
+}
 .cards-done{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
 .live-col-onderweg #live-cards-active{grid-template-columns:repeat(2,minmax(0,1fr))}
 .live-split{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(360px,1fr);gap:18px;align-items:start}
@@ -1461,7 +1469,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.3.23</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.3.24</span>
     </div>
   </nav>
 
@@ -1874,7 +1882,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.3.23';
+const APP_VERSION = '3.3.24';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
