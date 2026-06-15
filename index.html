@@ -1461,7 +1461,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.3.18</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.3.19</span>
     </div>
   </nav>
 
@@ -1784,6 +1784,17 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         <label for="inp-rol-naam">Naam</label>
         <input type="text" id="inp-rol-naam" maxlength="80" placeholder="bijv. Teamleider, Beveiliger…" onkeydown="if(event.key==='Enter')saveRolEdit()">
       </div>
+      <div id="rol-modal-voorstel-row" class="edit-modal-field" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid #f1f5f9">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+          <div style="min-width:0">
+            <label style="margin-bottom:2px">Voorgestelde ronde</label>
+            <div style="font-size:12px;color:#9ca3af;line-height:1.4">Medewerkers met deze rol meenemen als suggestie bij "Voorgestelde ronde". Heeft iemand ook een andere rol die wél aan staat, dan blijft die persoon meedoen.</div>
+          </div>
+          <span id="rol-modal-voorstel-toggle" onclick="toggleRolModalVoorstel()" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();toggleRolModalVoorstel()}" role="switch" aria-checked="true" tabindex="0" title="Meenemen bij voorgestelde ronde" style="display:inline-block;width:34px;height:19px;border-radius:99px;flex-shrink:0;cursor:pointer;position:relative;transition:background .15s;background:#2563eb;margin-top:2px">
+            <span style="position:absolute;top:2px;left:17px;width:15px;height:15px;border-radius:99px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .15s"></span>
+          </span>
+        </div>
+      </div>
     </div>
     <div class="edit-modal-foot">
       <button type="button" class="edit-modal-btn edit-modal-btn-cancel" onclick="cancelRolEdit()">Annuleren</button>
@@ -1863,7 +1874,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.3.18';
+const APP_VERSION = '3.3.19';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -6166,21 +6177,17 @@ function renderRollenList() {
   var html = '<div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:10px">';
   rollen.forEach(function(rol, i) {
     var count = (S.medewerkers || []).filter(function(m) { return rolArray(m.rol).includes(rol); }).length;
-    var aan = (S.rolVoorstel || {})[rol] !== false;
-    var toggle =
-      '<span onclick="toggleRolVoorstel(' + escHtml(JSON.stringify(rol)) + ')" ' +
-        'onkeydown="if(event.key===\' \'||event.key===\'Enter\'){event.preventDefault();toggleRolVoorstel(' + escHtml(JSON.stringify(rol)) + ')}" ' +
-        'role="switch" aria-checked="' + (aan ? 'true' : 'false') + '" tabindex="0" ' +
-        'title="Meenemen bij voorgestelde ronde" ' +
-        'style="display:inline-block;width:34px;height:19px;border-radius:99px;flex-shrink:0;cursor:pointer;position:relative;transition:background .15s;background:' + (aan ? '#2563eb' : '#e2e8f0') + '">' +
-        '<span style="position:absolute;top:2px;left:' + (aan ? '17px' : '2px') + ';width:15px;height:15px;border-radius:99px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .15s"></span>' +
-      '</span>';
+    var uitgesloten = (S.rolVoorstel || {})[rol] === false;
+    // Puur informatief label — beheer van deze instelling gebeurt in de
+    // rol-modal (✎), waar ook uitleg staat over wat de toggle doet.
+    var badge = uitgesloten
+      ? '<span style="background:#fef3c7;color:#92400e;border-radius:99px;font-size:10.5px;font-weight:600;padding:1px 8px;flex-shrink:0;white-space:nowrap" title="Wordt niet meegenomen bij Voorgestelde ronde">Niet in voorstel</span>'
+      : '';
     html +=
       '<div style="display:flex;align-items:center;padding:8px 14px;border-bottom:1px solid #f1f5f9;gap:6px">' +
         '<span style="flex:1;font-size:13px;color:#1e293b">' + escHtml(rol) + '</span>' +
+        badge +
         '<span style="background:#f1f5f9;color:#64748b;border-radius:99px;font-size:11px;font-weight:600;padding:1px 8px;flex-shrink:0">' + count + '</span>' +
-        '<span style="font-size:11px;color:#9ca3af;flex-shrink:0">Voorstel</span>' +
-        toggle +
         '<button type="button" onclick="openRolModal(' + i + ')" class="cfg-icon-btn" title="Wijzigen" aria-label="Wijzigen">✎</button>' +
         '<button type="button" onclick="rmRol(' + i + ')" class="cfg-icon-btn cfg-icon-btn-del" title="Verwijderen" aria-label="Verwijderen">✕</button>' +
       '</div>';
@@ -6194,8 +6201,37 @@ function openRolModal(idx) {
   var isEdit = idx !== null;
   document.getElementById('rol-modal-title').textContent = isEdit ? 'Rol / Functie wijzigen' : 'Rol / Functie toevoegen';
   document.getElementById('inp-rol-naam').value = isEdit ? (S.rollen[idx] || '') : '';
+  // Voorstel-toggle: alleen relevant voor een bestaande rol (heeft al een
+  // Firebase-record om config/rollen/{id}/voorstel op te schrijven).
+  var voorstelRow = document.getElementById('rol-modal-voorstel-row');
+  if (voorstelRow) {
+    voorstelRow.style.display = isEdit ? '' : 'none';
+    if (isEdit) _renderRolModalVoorstelToggle(S.rollen[idx]);
+  }
   document.getElementById('rol-modal-overlay').style.display = 'flex';
   setTimeout(function() { document.getElementById('inp-rol-naam').focus(); }, 50);
+}
+
+// Werkt de visuele staat van de voorstel-toggle in de rol-modal bij.
+function _renderRolModalVoorstelToggle(rol) {
+  var el = document.getElementById('rol-modal-voorstel-toggle');
+  if (!el) return;
+  var aan = (S.rolVoorstel || {})[rol] !== false;
+  el.setAttribute('aria-checked', aan ? 'true' : 'false');
+  el.style.background = aan ? '#2563eb' : '#e2e8f0';
+  var thumb = el.firstElementChild;
+  if (thumb) thumb.style.left = aan ? '17px' : '2px';
+}
+
+// Klik op de voorstel-toggle in de rol-modal: gebruikt de bestaande
+// toggleRolVoorstel() (schrijft direct naar config/rollen/{id}/voorstel en
+// herrendert de rollenlijst), en werkt daarna de modal-weergave bij.
+function toggleRolModalVoorstel() {
+  if (_rolEditIdx === null) return;
+  var rol = S.rollen[_rolEditIdx];
+  if (!rol) return;
+  toggleRolVoorstel(rol);
+  _renderRolModalVoorstelToggle(rol);
 }
 
 function cancelRolEdit() {
