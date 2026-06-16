@@ -106,7 +106,7 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .content:has(#pane-live.on),
 .content:has(#pane-reg.on),
 .content:has(#pane-plan.on),
-.content:has(#pane-dienst.on){max-width:1400px !important}
+.content:has(#pane-dienst.on){max-width:100% !important;padding:0 !important}
 .cfg-layout{display:flex;min-height:calc(100vh - var(--topbar-h, 110px))}
 .cfg-rail{width:220px;flex-shrink:0;background:#fff;border-right:1px solid var(--c-border);display:flex;flex-direction:column;padding:20px 0 0;gap:2px;position:sticky;top:var(--topbar-h, 110px);align-self:flex-start;height:calc(100vh - var(--topbar-h, 110px));overflow-y:auto}
 .cfg-rail-title{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--c-muted-2);padding:0 18px 10px;text-transform:uppercase}
@@ -358,52 +358,84 @@ input[type=text]:focus{outline:none;border-color:var(--c-primary);box-shadow:0 0
   .toast-action-msg{white-space:normal;text-align:center}
   .toast-action-btn{width:100%;padding:9px 12px}
 }
-/* ── Op dienst-tab (v2.3.13) ───────────────────────────────────────── */
-#dienst-layout{display:flex;align-items:flex-start;gap:18px}
-#dienst-selectiebalk{background:#fff;border:1px solid #dce3ec;border-radius:11px;box-shadow:0 1px 2px rgba(17,42,68,.04),0 4px 16px rgba(17,42,68,.05);padding:13px 15px;flex:0 0 280px;order:1}
-#dienst-grid{flex:1;min-width:0}
-@media(max-width:700px){
-  #dienst-layout{display:block}
-  #dienst-selectiebalk{margin-bottom:18px}
-}
-#dienst-selectiebalk-top{display:flex;align-items:center;gap:9px}
-#dienst-teller{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 7px;border-radius:7px;background:var(--c-brand-dark);color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
-#dienst-teller-label{font-size:13px;font-weight:600;color:#18283a}
-#dienst-wis{margin-left:auto;border:none;background:none;color:#5d6e80;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;padding:4px 6px;border-radius:6px}
-#dienst-wis:hover{color:var(--c-brand-dark);background:#eaf0f7}
-#dienst-chips{margin-top:2px}
-.dienst-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 9px 4px 4px;border-radius:999px;background:#eaf0f7;border:1px solid #cdd9e8;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;color:var(--c-brand-dark);flex-shrink:0;transition:background .12s}
-.dienst-chip:hover{background:#dde7f3}
-.dienst-chip .dienst-av{width:22px;height:22px;font-size:9px}
-.dienst-chip .x{font-size:14px;line-height:1;color:#5d6e80;margin-left:1px}
-.dienst-rolegroep{margin-top:12px}
-.dienst-rolegroep:first-of-type{margin-top:11px}
-.dienst-rolelabel{display:flex;align-items:center;gap:7px;margin-bottom:7px}
-.rol-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
-.dienst-rolnaam{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#5d6e80}
-.dienst-rolcount{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#eef2f7;color:#5d6e80;font-size:11px;font-weight:700}
-#dienst-leeg{font-size:13px;color:#5d6e80;margin-top:9px}
+/* ── Op dienst-tab — redesign (v3.4.0) ─────────────────────────────── */
+/* Twee panelen vullen samen de viewport; geen paginascroll, elk paneel
+   scrollt onafhankelijk. Hoogte via --topbar-h (zelfde patroon als cfg-tab). */
+body:has(#pane-dienst.on){overflow:hidden}
+#dienst-layout{display:grid;grid-template-columns:1fr 258px;gap:0;height:calc(100vh - var(--topbar-h,110px));height:calc(100dvh - var(--topbar-h,110px));overflow:hidden}
+/* Roster-paneel (links) */
+#dienst-roster{display:flex;flex-direction:column;overflow:hidden;min-width:0}
+#dienst-toolbar{flex-shrink:0;display:flex;flex-direction:column;gap:10px;padding:14px 18px 12px}
+#dienst-zoekwrap{position:relative;display:flex;align-items:center}
+#dienst-zoekwrap>svg{position:absolute;left:12px;color:#94a3b8;pointer-events:none}
+#dienst-zoek{width:100%;box-sizing:border-box;padding:10px 12px 10px 36px;border:1px solid #dce3ec;border-radius:10px;background:#f8fafc;font-family:inherit;color:#18283a;transition:border-color .12s,background .12s,box-shadow .12s}
+#dienst-zoek:focus{outline:none;border-color:var(--c-brand-dark);background:#fff;box-shadow:0 0 0 3px rgba(22,58,92,.10)}
+#dienst-toolbar-rij{display:flex;align-items:center;gap:10px}
+#dienst-totaal{font-size:12.5px;color:#5d6e80;font-weight:500}
+#dienst-segment{margin-left:auto;display:inline-flex;background:#eef2f7;border-radius:9px;padding:3px;gap:2px}
+.dienst-seg-btn{border:none;background:none;font-family:inherit;font-size:12.5px;font-weight:600;color:#5d6e80;padding:5px 13px;border-radius:7px;cursor:pointer;transition:background .12s,color .12s}
+.dienst-seg-btn.on{background:var(--c-brand-dark);color:#fff}
+#dienst-grid{flex:1;min-height:0;overflow-y:auto;padding:0 18px 24px;-webkit-overflow-scrolling:touch}
+/* Op rol: rolkop boven een grid van kaarten */
+.dienst-rolkop{display:flex;align-items:center;gap:8px;margin:18px 0 9px}
+.dienst-rolkop:first-child{margin-top:4px}
+.dienst-rolkop .dienst-rolnaam{font-size:11px}
+.dienst-rolkop .dienst-rolcount{margin-left:auto}
+.dienst-rolgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:7px}
+/* A–Z: letter links, grid rechts */
 .dienst-groep{display:flex;align-items:flex-start;gap:10px;margin-bottom:9px}
-.dienst-letter{font-size:11px;font-weight:700;letter-spacing:.06em;color:#5d6e80;width:14px;flex-shrink:0;padding-top:10px;position:sticky;top:64px}
-.dienst-rij{display:grid;grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:6px;flex:1}
-.dienst-kaart{display:flex;align-items:center;gap:7px;padding:5px 9px;border-radius:8px;border:1px solid #dce3ec;background:#fff;cursor:pointer;font-family:inherit;text-align:left;min-height:36px;transition:background .12s,border-color .12s;width:100%}
-.dienst-kaart:hover{border-color:#b9c6d8}
+.dienst-letter{font-size:11px;font-weight:700;letter-spacing:.06em;color:#5d6e80;width:14px;flex-shrink:0;padding-top:11px}
+.dienst-rij{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:7px;flex:1}
+/* Naamkaart */
+.dienst-kaart{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:9px;border:1px solid #dce3ec;background:#fff;cursor:pointer;font-family:inherit;text-align:left;min-height:44px;transition:background .12s,border-color .12s;width:100%}
 .dienst-kaart.on{background:#eaf0f7;border-color:var(--c-brand-dark)}
-.dienst-av{width:23px;height:23px;border-radius:50%;background:#cdd6e2;color:#445;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;letter-spacing:.02em}
+.dienst-av{width:27px;height:27px;border-radius:50%;background:#e2e8f0;color:#475569;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;flex-shrink:0;letter-spacing:.02em}
 .dienst-kaart.on .dienst-av{background:var(--c-brand-dark);color:#fff}
-.dienst-naam{flex:1;font-size:12.5px;color:#18283a;font-weight:500;line-height:1.2}
-.dienst-kaart.on .dienst-naam{color:var(--c-brand-dark);font-weight:600}
-.dienst-check{width:17px;height:17px;border-radius:50%;border:1.5px solid var(--c-border-2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:opacity .12s,background .12s,border-color .12s;opacity:0}
-.dienst-kaart:hover .dienst-check{opacity:1}
+.dienst-naam{flex:1;min-width:0;font-size:12.5px;color:#18283a;font-weight:600;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dienst-kaart.on .dienst-naam{color:var(--c-brand-dark)}
+.dienst-check{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--c-border-2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:opacity .12s,background .12s,border-color .12s;opacity:0}
 .dienst-kaart.on .dienst-check{opacity:1;border-color:var(--c-brand-dark);background:var(--c-brand-dark)}
 .dienst-check svg{display:none}
 .dienst-kaart.on .dienst-check svg{display:block}
 .dienst-kaart:focus,.dienst-kaart:focus-visible{outline:none;box-shadow:none}
-@media(max-width:720px){
-  .dienst-groep{display:block;margin-bottom:14px}
-  .dienst-letter{width:auto;padding:0 0 5px;position:static;top:auto}
-  .dienst-rij{grid-template-columns:1fr}
-  .dienst-rolegroep .dienst-chips-rij{flex-wrap:wrap}
+@media(hover:hover) and (pointer:fine){
+  .dienst-kaart:hover{border-color:#b9c6d8}
+  .dienst-kaart:hover .dienst-check{opacity:1}
+}
+/* Sidebar (rechts) */
+#dienst-selectiebalk{display:flex;flex-direction:column;overflow:hidden;border-left:1px solid #dce3ec;background:#fff;padding:0}
+#dienst-selectiebalk-top{flex-shrink:0;display:flex;align-items:center;gap:9px;padding:16px 16px 12px}
+#dienst-teller{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 7px;border-radius:7px;background:var(--c-brand-dark);color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
+#dienst-teller-label{font-size:13px;font-weight:600;color:#18283a;line-height:1.2}
+#dienst-wis{margin-left:auto;border:none;background:none;color:#5d6e80;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;padding:4px 6px;border-radius:6px;flex-shrink:0}
+#dienst-wis:hover{color:var(--c-brand-dark);background:#eaf0f7}
+#dienst-chips{flex:1;min-height:0;overflow-y:auto;padding:0 12px 18px;-webkit-overflow-scrolling:touch}
+#dienst-leeg{font-size:13px;color:#5d6e80;padding:4px 16px;line-height:1.45}
+.dienst-rolegroep{margin-top:14px}
+.dienst-rolegroep:first-of-type{margin-top:6px}
+.dienst-rolelabel{display:flex;align-items:center;gap:7px;margin-bottom:5px;padding:0 4px}
+.rol-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.dienst-rolnaam{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#5d6e80}
+.dienst-rolcount{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#eef2f7;color:#5d6e80;font-size:11px;font-weight:700}
+.sb-rij{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;padding:5px 6px 5px 4px;border:none;background:none;border-radius:8px;cursor:pointer;font-family:inherit;text-align:left;transition:background .12s}
+.sb-rij .dienst-av{width:26px;height:26px}
+.sb-naam{flex:1;min-width:0;font-size:12.5px;font-weight:600;color:#18283a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-x{flex-shrink:0;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#9aa7b6;font-size:17px;line-height:1;transition:background .12s,color .12s}
+@media(hover:hover) and (pointer:fine){
+  .sb-rij:hover{background:#fdeaea}
+  .sb-rij:hover .sb-x{background:#f7d4d4;color:#c0392b}
+}
+/* Mobiel: paginascroll terug, één kolom, sidebar boven het roster */
+@media(max-width:700px){
+  body:has(#pane-dienst.on){overflow:auto}
+  #dienst-layout{display:flex;flex-direction:column;height:auto;overflow:visible}
+  #dienst-selectiebalk{order:-1;border-left:none;border:1px solid #dce3ec;border-radius:11px;margin-bottom:14px}
+  #dienst-chips{overflow:visible}
+  #dienst-grid{overflow:visible;padding:0 2px 24px}
+  #dienst-toolbar{padding:0 2px 12px}
+  .dienst-rolgrid,.dienst-rij{grid-template-columns:1fr}
+  .dienst-groep{display:block}
+  .dienst-letter{width:auto;padding:0 0 5px}
 }
 @media(max-width:600px){
   .content{padding:12px 10px}
@@ -1305,18 +1337,32 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 
   <!-- OP DIENST -->
   <div id="pane-dienst" class="pane" role="tabpanel" tabindex="0" aria-labelledby="tab-dienst">
-    <p class="lbl">Wie zijn er vandaag op dienst?</p>
     <div id="dienst-layout">
+      <div id="dienst-roster">
+        <div id="dienst-toolbar">
+          <div id="dienst-zoekwrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input id="dienst-zoek" type="text" inputmode="search" autocomplete="off" placeholder="Naam zoeken…" maxlength="40" oninput="dienstZoekInput(this.value)" aria-label="Zoek collega op naam">
+          </div>
+          <div id="dienst-toolbar-rij">
+            <span id="dienst-totaal"></span>
+            <div id="dienst-segment" role="group" aria-label="Groepering">
+              <button type="button" id="dienst-seg-rol" class="dienst-seg-btn on" onclick="dienstZetGroep('rol')">Op rol</button>
+              <button type="button" id="dienst-seg-az" class="dienst-seg-btn" onclick="dienstZetGroep('az')">A–Z</button>
+            </div>
+          </div>
+        </div>
+        <div id="dienst-grid"></div>
+      </div>
       <div id="dienst-selectiebalk">
         <div id="dienst-selectiebalk-top">
           <span id="dienst-teller">0</span>
           <span id="dienst-teller-label">collega's op dienst</span>
-          <button type="button" id="dienst-wis" onclick="dienstLeeg()" style="display:none">Selectie wissen</button>
+          <button type="button" id="dienst-wis" onclick="dienstLeeg()" style="display:none">Wissen</button>
         </div>
         <div id="dienst-chips"></div>
-        <div id="dienst-leeg">Nog niemand geselecteerd — tik hieronder op een naam.</div>
+        <div id="dienst-leeg">Tik links op een naam om iemand op dienst te zetten.</div>
       </div>
-      <div id="dienst-grid"></div>
     </div>
   </div>
 
@@ -1469,7 +1515,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.3.24</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.4.0</span>
     </div>
   </nav>
 
@@ -1882,7 +1928,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.3.24';
+const APP_VERSION = '3.4.0';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -6926,56 +6972,141 @@ function herstelDienst(n) {
   showToast(n.split(' ')[0] + ' weer op dienst');
 }
 
+// Groeperings-/zoekstatus voor het roster. Zoekterm is vluchtig (niet bewaard);
+// groeperingsmodus onthouden we lokaal per apparaat.
+let _dienstZoek = '';
+let _dienstGroep = (LS.get('rn_dienst_groep') === 'az') ? 'az' : 'rol';
+
+// Live-filter op naam. Herrendert roster + sidebar; het zoekveld zelf is een los
+// DOM-element buiten #dienst-grid, dus focus/cursor gaat niet verloren.
+function dienstZoekInput(v) {
+  _dienstZoek = String(v || '').toLowerCase().trim();
+  renderDienst();
+}
+
+// Wissel de roster-groepering (rol <-> alfabetisch) en onthoud de keuze lokaal.
+function dienstZetGroep(modus) {
+  const m = (modus === 'az') ? 'az' : 'rol';
+  if (m === _dienstGroep) return;
+  _dienstGroep = m;
+  LS.set('rn_dienst_groep', m);
+  renderDienst();
+}
+
+// Hoofdrol van een medewerker: eerste geldige rol uit S.rollen-volgorde, met
+// voorkeur voor een rol die AAN staat bij "Voorgestelde ronde". Geen match → ''
+// (== "Overig"). Identiek aan de sidebar-groepering zodat beide gelijk lopen.
+function dienstHoofdRol(med) {
+  const rolVolg = S.rollen || [];
+  const rv = S.rolVoorstel || {};
+  const matches = rolArray(med.rol)
+    .map(r => rolVolg.find(rr => rr.toLowerCase() === r.toLowerCase()))
+    .filter(Boolean);
+  return matches.find(r => rv[r] !== false) || matches[0] || '';
+}
+
+// Bouw één naamkaart-knop voor het roster. Behoudt de UI-lock-bescherming.
+function _dienstKaart(naam) {
+  const isOn = S.dienst.has(naam);
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'dienst-kaart' + (isOn ? ' on' : '');
+  btn.setAttribute('data-dienst-name', naam);
+  btn.setAttribute('aria-pressed', isOn ? 'true' : 'false');
+  if (_dienstUiLock.has(naam)) { btn.style.opacity = '0.55'; btn.style.pointerEvents = 'none'; }
+  btn.innerHTML =
+    '<span class="dienst-av">' + escHtml(dienstInitialen(naam)) + '</span>'
+    + '<span class="dienst-naam">' + escHtml(naam) + '</span>'
+    + '<span class="dienst-check">' + _CHECK_SVG + '</span>';
+  btn.addEventListener('click', () => dienstToggle(naam, btn));
+  return btn;
+}
+
+// Gedeelde rol-volgorde-index: bekende rollen op S.rollen-positie, rest erachter.
+function _dienstGroepIdx(rol) {
+  const rolVolg = S.rollen || [];
+  const i = rolVolg.findIndex(r => r.toLowerCase() === String(rol || '').toLowerCase());
+  return (rol && i !== -1) ? i : rolVolg.length;
+}
+
 function renderDienst() {
   const el = document.getElementById('dienst-grid');
+  if (!el) return;
   el.innerHTML = '';
 
-  // Group names by first letter
-  const groepen = {};
-  S.medewerkers.forEach(med => { const n = med.naam;
-    const l = n[0].toUpperCase();
-    if (!groepen[l]) groepen[l] = [];
-    groepen[l].push(n);
-  });
+  // ── Roster (links) ───────────────────────────────────────────────
+  const q = _dienstZoek;
+  const lijst = (S.medewerkers || []).filter(m => !q || String(m.naam || '').toLowerCase().includes(q));
 
-  Object.keys(groepen).sort().forEach(l => {
-    const groepEl = document.createElement('div');
-    groepEl.className = 'dienst-groep';
+  // Toolbar: totaalteller + actieve segment-knop.
+  const totaalEl = document.getElementById('dienst-totaal');
+  if (totaalEl) {
+    const t = lijst.length;
+    totaalEl.textContent = q
+      ? (t + ' van ' + (S.medewerkers || []).length)
+      : (t + (t === 1 ? ' collega' : " collega's"));
+  }
+  const segRol = document.getElementById('dienst-seg-rol');
+  const segAz  = document.getElementById('dienst-seg-az');
+  if (segRol) segRol.classList.toggle('on', _dienstGroep === 'rol');
+  if (segAz)  segAz.classList.toggle('on', _dienstGroep === 'az');
 
-    const letterEl = document.createElement('div');
-    letterEl.className = 'dienst-letter';
-    letterEl.textContent = l;
-    groepEl.appendChild(letterEl);
-
-    const rij = document.createElement('div');
-    rij.className = 'dienst-rij';
-
-    groepen[l].sort((a, b) => a.localeCompare(b, 'nl')).forEach(n => {
-      const isOn = S.dienst.has(n);
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'dienst-kaart' + (isOn ? ' on' : '');
-      btn.setAttribute('data-dienst-name', n);
-      btn.setAttribute('aria-pressed', isOn ? 'true' : 'false');
-      // Alleen visueel vergrendelen tijdens de korte UI-lock (~800ms), niet de
-      // volledige 5s sync-pending — anders blijft de knop te lang grijs.
-      if (_dienstUiLock.has(n)) {
-        btn.style.opacity = '0.55';
-        btn.style.pointerEvents = 'none';
-      }
-      btn.innerHTML =
-        '<span class="dienst-av">' + escHtml(dienstInitialen(n)) + '</span>'
-        + '<span class="dienst-naam">' + escHtml(n) + '</span>'
-        + '<span class="dienst-check">' + _CHECK_SVG + '</span>';
-      btn.addEventListener('click', () => dienstToggle(n, btn));
-      rij.appendChild(btn);
+  if (!lijst.length) {
+    const leeg = document.createElement('div');
+    leeg.style.cssText = 'padding:18px 4px;color:#5d6e80;font-size:13px';
+    leeg.textContent = q ? ('Geen collega gevonden voor "' + _dienstZoek + '".') : 'Nog geen medewerkers ingesteld.';
+    el.appendChild(leeg);
+  } else if (_dienstGroep === 'az') {
+    // Groepeer op eerste letter; letter links, kaartgrid rechts.
+    const groepen = {};
+    lijst.forEach(med => {
+      const l = (String(med.naam || '?')[0] || '?').toUpperCase();
+      (groepen[l] = groepen[l] || []).push(med.naam);
     });
+    Object.keys(groepen).sort((a, b) => a.localeCompare(b, 'nl')).forEach(l => {
+      const groepEl = document.createElement('div');
+      groepEl.className = 'dienst-groep';
+      const letterEl = document.createElement('div');
+      letterEl.className = 'dienst-letter';
+      letterEl.textContent = l;
+      groepEl.appendChild(letterEl);
+      const rij = document.createElement('div');
+      rij.className = 'dienst-rij';
+      groepen[l].sort((a, b) => a.localeCompare(b, 'nl')).forEach(n => rij.appendChild(_dienstKaart(n)));
+      groepEl.appendChild(rij);
+      el.appendChild(groepEl);
+    });
+  } else {
+    // Groepeer op hoofdrol; rolkop boven een kaartgrid.
+    const buckets = new Map();
+    lijst.forEach(med => {
+      const hoofd = dienstHoofdRol(med);
+      if (!buckets.has(hoofd)) buckets.set(hoofd, []);
+      buckets.get(hoofd).push(med.naam);
+    });
+    const keys = Array.from(buckets.keys()).sort((a, b) => {
+      const ga = _dienstGroepIdx(a), gb = _dienstGroepIdx(b);
+      if (ga !== gb) return ga - gb;
+      return a.localeCompare(b, 'nl');
+    });
+    keys.forEach(key => {
+      const namen = buckets.get(key).sort((a, b) => a.localeCompare(b, 'nl'));
+      const kop = document.createElement('div');
+      kop.className = 'dienst-rolkop';
+      kop.innerHTML =
+        '<span class="rol-dot" style="background:' + safeColor(rolKleur(key)) + '"></span>'
+        + '<span class="dienst-rolnaam">' + escHtml(key || 'Overig') + '</span>'
+        + '<span class="dienst-rolcount">' + namen.length + '</span>';
+      el.appendChild(kop);
+      const grid = document.createElement('div');
+      grid.className = 'dienst-rolgrid';
+      namen.forEach(n => grid.appendChild(_dienstKaart(n)));
+      el.appendChild(grid);
+    });
+  }
 
-    groepEl.appendChild(rij);
-    el.appendChild(groepEl);
-  });
-
-  // ── Selectiebalk ──────────────────────────────────────────────
+  // ── Sidebar (rechts): geselecteerden per rol als lijst-rijen ──────
+  // Altijd ALLE op-dienst collega's, onafhankelijk van het zoekfilter.
   const aantal = S.dienst.size;
   const tellerEl = document.getElementById('dienst-teller');
   const labelEl  = document.getElementById('dienst-teller-label');
@@ -6989,33 +7120,15 @@ function renderDienst() {
 
   if (chipsEl) {
     chipsEl.innerHTML = '';
-    // Geselecteerde medewerkers groeperen per rol. Volgorde: rollen zoals in
-    // S.rollen (instelbaar), dan "Overig" (geen/onbekende rol) onderaan.
-    // Binnen een groep vaste medewerker-volgorde voor stabiliteit.
-    const opDienst = S.medewerkers.filter(m => S.dienst.has(m.naam));
-    const rolVolg = (S.rollen || []).slice();
-    const groepIdx = rol => {
-      const i = rolVolg.findIndex(r => r.toLowerCase() === String(rol || '').toLowerCase());
-      return (rol && i !== -1) ? i : rolVolg.length; // onbekend/leeg → na alle bekende rollen
-    };
-    // med.rol kan meerdere komma-gescheiden rollen bevatten (rolArray). Iedereen
-    // verschijnt PRECIES ÉÉN keer: de eerste geldige rol = hoofdrol/functie
-    // (zelfde volgorde die in Instellingen wordt ingesteld). Geen geldige rol → "Overig".
-    const buckets = new Map(); // sleutel = rol-label (canonieke S.rollen-naam) of '' voor Overig
-    const rv = S.rolVoorstel || {};
+    const opDienst = (S.medewerkers || []).filter(m => S.dienst.has(m.naam));
+    const buckets = new Map();
     opDienst.forEach(med => {
-      const rolMatches = rolArray(med.rol)
-        .map(r => rolVolg.find(rr => rr.toLowerCase() === r.toLowerCase()))
-        .filter(Boolean);
-      // Voorkeur voor een rol die AAN staat bij "Voorgestelde ronde"; als alle
-      // rollen van deze persoon UIT staan (of er zijn geen matches), val terug
-      // op de eerste gekoppelde rol — zelfde gedrag als voorheen.
-      const hoofdRol = rolMatches.find(r => rv[r] !== false) || rolMatches[0] || '';
-      if (!buckets.has(hoofdRol)) buckets.set(hoofdRol, []);
-      buckets.get(hoofdRol).push(med.naam);
+      const hoofd = dienstHoofdRol(med);
+      if (!buckets.has(hoofd)) buckets.set(hoofd, []);
+      buckets.get(hoofd).push(med.naam);
     });
     const keys = Array.from(buckets.keys()).sort((a, b) => {
-      const ga = groepIdx(a), gb = groepIdx(b);
+      const ga = _dienstGroepIdx(a), gb = _dienstGroepIdx(b);
       if (ga !== gb) return ga - gb;
       return a.localeCompare(b, 'nl');
     });
@@ -7023,40 +7136,33 @@ function renderDienst() {
       const namen = buckets.get(key);
       const groep = document.createElement('div');
       groep.className = 'dienst-rolegroep';
-      const label = key || 'Overig';
       const lbl = document.createElement('div');
       lbl.className = 'dienst-rolelabel';
       lbl.innerHTML =
         '<span class="rol-dot" style="background:' + safeColor(rolKleur(key)) + '"></span>'
-        + '<span class="dienst-rolnaam">' + escHtml(label) + '</span>'
+        + '<span class="dienst-rolnaam">' + escHtml(key || 'Overig') + '</span>'
         + '<span class="dienst-rolcount">' + namen.length + '</span>';
       groep.appendChild(lbl);
-      const rij = document.createElement('div');
-      rij.className = 'dienst-chips-rij';
-      rij.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px';
       namen.forEach(n => {
-        const chip = document.createElement('button');
-        chip.type = 'button';
-        chip.className = 'dienst-chip';
-        chip.setAttribute('data-dienst-name', n);
-        chip.setAttribute('aria-label', n + ' van dienst halen');
-        if (_dienstUiLock.has(n)) { chip.style.opacity = '0.55'; chip.style.pointerEvents = 'none'; }
-        chip.innerHTML =
+        const rij = document.createElement('button');
+        rij.type = 'button';
+        rij.className = 'sb-rij';
+        rij.setAttribute('data-dienst-name', n);
+        rij.setAttribute('aria-label', n + ' van dienst halen');
+        if (_dienstUiLock.has(n)) { rij.style.opacity = '0.55'; rij.style.pointerEvents = 'none'; }
+        rij.innerHTML =
           '<span class="dienst-av">' + escHtml(dienstInitialen(n)) + '</span>'
-          + '<span>' + escHtml(n) + '</span>'
-          + '<span class="x" aria-hidden="true">×</span>';
-        chip.addEventListener('click', () => dienstToggle(n, chip));
-        rij.appendChild(chip);
+          + '<span class="sb-naam">' + escHtml(n) + '</span>'
+          + '<span class="sb-x" aria-hidden="true">×</span>';
+        rij.addEventListener('click', () => dienstToggle(n, rij));
+        groep.appendChild(rij);
       });
-      groep.appendChild(rij);
       chipsEl.appendChild(groep);
     });
   }
   if (leegEl) leegEl.style.display = aantal > 0 ? 'none' : '';
 
-  // Houd de header-badge ("x van y op dienst") in sync. renderDienst() wordt door
-  // elke dienst-mutatie aangeroepen (toggle, leegmaken, medewerker verwijderen/
-  // hernoemen), dus dit dekt alle gevallen centraal.
+  // Header-badge ("x van y op dienst") centraal in sync houden.
   if (typeof updateHeader === 'function') updateHeader();
 }
 
