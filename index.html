@@ -358,11 +358,11 @@ input[type=text]:focus{outline:none;border-color:var(--c-primary);box-shadow:0 0
   .toast-action-msg{white-space:normal;text-align:center}
   .toast-action-btn{width:100%;padding:9px 12px}
 }
-/* ── Op dienst-tab — redesign (v3.4.2) ─────────────────────────────── */
+/* ── Op dienst-tab — redesign (v3.4.3) ─────────────────────────────── */
 /* Twee panelen vullen samen de viewport; geen paginascroll, elk paneel
    scrollt onafhankelijk. Hoogte via --topbar-h (zelfde patroon als cfg-tab). */
 body:has(#pane-dienst.on){overflow:hidden}
-#dienst-layout{display:grid;grid-template-columns:1fr 258px;gap:0;height:calc(100vh - var(--topbar-h,110px));height:calc(100dvh - var(--topbar-h,110px));overflow:hidden}
+#dienst-layout{display:grid;grid-template-columns:1fr 258px;gap:16px;height:calc(100vh - var(--topbar-h,110px));height:calc(100dvh - var(--topbar-h,110px));overflow:hidden}
 /* Roster-paneel (links) */
 #dienst-roster{display:flex;flex-direction:column;overflow:hidden;min-width:0}
 #dienst-toolbar{flex-shrink:0;display:flex;flex-direction:column;gap:10px;padding:14px 18px 12px}
@@ -403,7 +403,7 @@ body:has(#pane-dienst.on){overflow:hidden}
   .dienst-kaart:hover .dienst-check{opacity:1}
 }
 /* Sidebar (rechts) */
-#dienst-selectiebalk{display:flex;flex-direction:column;overflow:hidden;border-left:1px solid #dce3ec;background:#fff;padding:0}
+#dienst-selectiebalk{display:flex;flex-direction:column;overflow:hidden;background:#fff;border:1px solid #dce3ec;border-radius:12px;box-shadow:0 1px 2px rgba(17,42,68,.04),0 4px 16px rgba(17,42,68,.05);padding:0;margin:6px 0 14px}
 #dienst-selectiebalk-top{flex-shrink:0;display:flex;align-items:center;gap:9px;padding:16px 16px 12px}
 #dienst-teller{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 7px;border-radius:7px;background:var(--c-brand-dark);color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
 #dienst-teller-label{font-size:13px;font-weight:600;color:#18283a;line-height:1.2}
@@ -429,7 +429,7 @@ body:has(#pane-dienst.on){overflow:hidden}
 @media(max-width:700px){
   body:has(#pane-dienst.on){overflow:auto}
   #dienst-layout{display:flex;flex-direction:column;height:auto;overflow:visible}
-  #dienst-selectiebalk{order:-1;border-left:none;border:1px solid #dce3ec;border-radius:11px;margin-bottom:14px}
+  #dienst-selectiebalk{order:-1;border-radius:11px;margin:0 0 14px}
   #dienst-chips{overflow:visible}
   #dienst-grid{overflow:visible;padding:0 2px 24px}
   #dienst-toolbar{padding:0 2px 12px}
@@ -1515,7 +1515,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.4.2</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.4.3</span>
     </div>
   </nav>
 
@@ -1928,7 +1928,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.4.2';
+const APP_VERSION = '3.4.3';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
