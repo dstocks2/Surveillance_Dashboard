@@ -358,7 +358,7 @@ input[type=text]:focus{outline:none;border-color:var(--c-primary);box-shadow:0 0
   .toast-action-msg{white-space:normal;text-align:center}
   .toast-action-btn{width:100%;padding:9px 12px}
 }
-/* ── Op dienst-tab — redesign (v3.4.4) ─────────────────────────────── */
+/* ── Op dienst-tab — redesign (v3.5.0) ─────────────────────────────── */
 /* Twee panelen vullen samen de viewport; geen paginascroll, elk paneel
    scrollt onafhankelijk. Hoogte via --topbar-h (zelfde patroon als cfg-tab). */
 body:has(#pane-dienst.on){overflow:hidden}
@@ -422,9 +422,24 @@ body:has(#pane-dienst.on){overflow:hidden}
 .sb-naam{flex:1;min-width:0;font-size:12.5px;font-weight:600;color:#18283a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sb-x{flex-shrink:0;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#9aa7b6;font-size:17px;line-height:1;transition:background .12s,color .12s}
 @media(hover:hover) and (pointer:fine){
-  .sb-rij:hover{background:#fdeaea}
-  .sb-rij:hover .sb-x{background:#f7d4d4;color:#c0392b}
+  .sb-rij:hover{background:#eef2f7}
+  .sb-x:hover{background:#f7d4d4;color:#c0392b}
 }
+/* Tijdelijke rol-override: badge, sleep-feedback en rolmenu */
+.sb-rij{cursor:pointer;user-select:none}
+.sb-rij--drag{opacity:.5}
+.sb-tijdelijk{display:inline-block;margin-left:6px;font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#92400e;background:#fef3c7;border-radius:99px;padding:1px 6px;vertical-align:middle}
+.sb-x{border:none;background:none;cursor:pointer;font-family:inherit;padding:0}
+.dienst-rolegroep--over{background:#eaf0f7;border-radius:10px;outline:2px dashed var(--c-brand-dark);outline-offset:-2px}
+.dienst-rolmenu{position:fixed;z-index:9000;min-width:190px;max-width:240px;background:#fff;border:1px solid #dce3ec;border-radius:11px;box-shadow:0 6px 28px rgba(17,42,68,.18);padding:6px;font-family:inherit}
+.dienst-rolmenu-kop{font-size:11px;font-weight:700;color:#5d6e80;letter-spacing:.02em;padding:6px 8px 7px}
+.dienst-rolmenu-item{display:flex;align-items:center;gap:8px;width:100%;border:none;background:none;font-family:inherit;font-size:13px;color:#18283a;text-align:left;padding:8px;border-radius:8px;cursor:pointer}
+.dienst-rolmenu-item:hover{background:#eef2f7}
+.dienst-rolmenu-item.on{background:#eaf0f7;font-weight:600}
+.dienst-rolmenu-item .drm-naam{flex:1;min-width:0}
+.dienst-rolmenu-item .drm-thuis{font-size:10px;color:#5d6e80;font-weight:500}
+.dienst-rolmenu-item .drm-check{width:16px;height:16px;color:var(--c-brand-dark);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.dienst-rolmenu-item.drm-reset{color:#5d6e80;margin-top:2px;border-top:1px solid #f1f5f9;border-radius:0 0 8px 8px}
 /* Tablet (701–1400px): vol-breed, sidebar vlak tegen de rand i.p.v. zwevende kaart */
 @media(min-width:701px) and (max-width:1400px){
   .content:has(#pane-dienst.on){max-width:100% !important;padding:0 !important}
@@ -951,6 +966,11 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     const _dienstTs = {};
     Object.entries(SNAP.dienst).forEach(([id, e]) => { const naam = naamByMedId(id); if (naam) _dienstTs[naam] = _tsOf(e); });
     window._dienstTsByNaam = _dienstTs;
+    const dienstRol = {};
+    Object.entries(SNAP.dienst).forEach(([id, e]) => {
+      if (_dienstIsOn(e) && e && typeof e.rol === 'string' && e.rol) { const naam = naamByMedId(id); if (naam) dienstRol[naam] = e.rol; }
+    });
+    window._dienstRolByNaam = dienstRol;
     const activeByName = {};
     Object.entries(SNAP.active).forEach(([id, a]) => {
       const naam = naamByMedId(id, a && a.naam);
@@ -971,6 +991,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     if (c.cats.length)   root.routeCats = c.cats;
     if (c.rollen.length) root.rollen = c.rollen;
     if (Object.keys(c.rolVoorstel).length) root.rolVoorstel = c.rolVoorstel;
+    if (Object.keys(dienstRol).length) root.dienstRol = dienstRol;
     if (c.dagd.length)   root.dagdelen = c.dagd;
     if (c.schema.length) root.schema = c.schema;
     return root;
@@ -1521,7 +1542,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.4.4</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.5.0</span>
     </div>
   </nav>
 
@@ -1934,7 +1955,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.4.4';
+const APP_VERSION = '3.5.0';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -2616,6 +2637,16 @@ function fbListen() {
       const remoteDienst = [...fbDienst].sort().join('|');
       if (remoteDienst !== localDienst)
         S.dienst = new Set(fbDienst);
+      // Tijdelijke rol-overrides (ops/dienst/{id}.rol). Server is leidend
+      // (last-write-wins); alleen geldige, bekende rollen overnemen.
+      const fbRolMap = (d.dienstRol && typeof d.dienstRol === 'object' && !Array.isArray(d.dienstRol)) ? d.dienstRol : {};
+      const schoonRol = {};
+      Object.keys(fbRolMap).forEach(k => {
+        const naam = decodeEntities(sanitizeFromFirebase(k));
+        const rol = String(fbRolMap[k] || '');
+        if (naam && rol && (S.rollen || []).some(r => r.toLowerCase() === rol.toLowerCase())) schoonRol[naam] = rol;
+      });
+      if (JSON.stringify(schoonRol) !== JSON.stringify(S.dienstRol || {})) { S.dienstRol = schoonRol; LS.set('rn_dienstRol', S.dienstRol); }
       // De invariant "active ⊆ dienst" (ronde-loper staat op dienst) wordt
       // centraal in reconcileState() afgedwongen, aangeroepen aan het eind van
       // deze snapshot. Hier alleen de Firebase→lokaal dienst-merge.
@@ -2782,6 +2813,7 @@ let S = {
   // Per rol: mag deze rol meegenomen worden bij "Voorgestelde ronde"? Ontbrekende
   // sleutel = true (aan, standaardgedrag). false = uitgesloten van suggesties.
   rolVoorstel: (function() { var v = LS.get('rn_rolVoorstel'); return (v && typeof v === 'object' && !Array.isArray(v)) ? v : {}; })(),
+  dienstRol: (function() { var v = LS.get('rn_dienstRol'); return (v && typeof v === 'object' && !Array.isArray(v)) ? v : {}; })(),
   schema: LS.get('rn_schema') || null, // null = use SCHEMA default (leeg; schema komt uit Firebase)
   dagdelen: LS.get('rn_dagdelen') || null, // null = use DAGDELEN_DEFAULT
   active: {},   // always loaded from Firebase — never from localStorage
@@ -4958,9 +4990,12 @@ function isWeekday() {
 function rolUitgeschakeldVoorVoorstel(naam) {
   const med = (S.medewerkers || []).find(m => m.naam === naam);
   if (!med) return false;
+  const rv = S.rolVoorstel || {};
+  // Tijdelijke rol-override is leidend: dan telt alleen die ene rol mee.
+  const ovr = dienstRolOverride(naam);
+  if (ovr) return rv[ovr] === false;
   const rollenVanMed = rolArray(med.rol);
   if (!rollenVanMed.length) return false;
-  const rv = S.rolVoorstel || {};
   return rollenVanMed.every(r => rv[r] === false);
 }
 
@@ -7002,13 +7037,142 @@ function dienstZetGroep(modus) {
 // Hoofdrol van een medewerker: eerste geldige rol uit S.rollen-volgorde, met
 // voorkeur voor een rol die AAN staat bij "Voorgestelde ronde". Geen match → ''
 // (== "Overig"). Identiek aan de sidebar-groepering zodat beide gelijk lopen.
-function dienstHoofdRol(med) {
+// ── Tijdelijke rol-override ("op dienst" naar andere rol schuiven) ──────────
+// Module-state voor desktop-sleep en het rolmenu.
+let _dienstDragNaam = null;
+let _dienstRolMenuEl = null;
+
+// Geldige tijdelijke override voor een op-dienst collega, anders ''. Geldt ALLEEN
+// voor wie nu op dienst is (vangt verouderde lokale entries na afmelden af) en
+// alleen als de rol nog bestaat in S.rollen.
+function dienstRolOverride(naam) {
+  if (!S.dienst.has(naam)) return '';
+  const r = (S.dienstRol || {})[naam];
+  if (!r) return '';
+  const match = (S.rollen || []).find(rr => rr.toLowerCase() === String(r).toLowerCase());
+  return match || '';
+}
+
+// Natuurlijke hoofdrol (thuisrol): eerste geldige rol uit S.rollen-volgorde, met
+// voorkeur voor een rol die AAN staat bij Voorgestelde ronde. Geen match → ''.
+// Gebruikt voor de roster-groepering links (die toont altijd de thuisrol).
+function dienstNatuurlijkeHoofdRol(med) {
   const rolVolg = S.rollen || [];
   const rv = S.rolVoorstel || {};
   const matches = rolArray(med.rol)
     .map(r => rolVolg.find(rr => rr.toLowerCase() === r.toLowerCase()))
     .filter(Boolean);
   return matches.find(r => rv[r] !== false) || matches[0] || '';
+}
+
+// Effectieve hoofdrol: tijdelijke override als die er is, anders de thuisrol.
+// Gebruikt voor de sidebar-groepering rechts.
+function dienstHoofdRol(med) {
+  return dienstRolOverride(med.naam) || dienstNatuurlijkeHoofdRol(med);
+}
+
+// Zet (of wis) de tijdelijke rol-override en schrijft rechtstreeks naar
+// ops/dienst/{medId}/rol — net zoals toggleRolVoorstel config/rollen/.../voorstel
+// schrijft. rol === '' of gelijk aan de eigen thuisrol → override wissen.
+function setDienstRol(naam, rol) {
+  const med = (S.medewerkers || []).find(m => m.naam === naam);
+  if (!med) return;
+  if (!S.dienst.has(naam)) return; // alleen voor wie op dienst is
+  if (!S.dienstRol) S.dienstRol = {};
+
+  // Normaliseer naar canonieke S.rollen-spelling; onbekende rol → wissen.
+  let doel = '';
+  if (rol) {
+    const match = (S.rollen || []).find(r => r.toLowerCase() === String(rol).toLowerCase());
+    doel = match || '';
+  }
+  // Naar eigen thuisrol verplaatsen = override wissen.
+  if (doel && doel === dienstNatuurlijkeHoofdRol(med)) doel = '';
+
+  const huidig = S.dienstRol[naam] || '';
+  if (doel === huidig) { closeDienstRolMenu(); return; }
+
+  // Optimistisch lokaal bijwerken + hertekenen.
+  if (doel) S.dienstRol[naam] = doel; else delete S.dienstRol[naam];
+  LS.set('rn_dienstRol', S.dienstRol);
+  closeDienstRolMenu();
+  renderDienst();
+  try { if (document.getElementById('pane-plan') && document.getElementById('pane-plan').classList.contains('on')) renderPlan(); } catch (e) {}
+
+  // Syncen naar Firebase; bij fout lokaal terugdraaien.
+  if (window.fbDb && !window._appOutdated) {
+    const medId = med._id;
+    if (!medId) { showToast('Kon rol niet opslaan (geen id)'); return; }
+    window.fbUpdate(window.fbRef(window.fbDb), { ['ops/dienst/' + medId + '/rol']: (doel || null) })
+      .then(() => setFbStatus('ok'))
+      .catch(e => {
+        logEvent('error', 'Tijdelijke rol opslaan MISLUKT', { naam: naam, error: String(e) });
+        showToast('Rol verplaatsen mislukt — controleer verbinding');
+        if (huidig) S.dienstRol[naam] = huidig; else delete S.dienstRol[naam];
+        LS.set('rn_dienstRol', S.dienstRol);
+        renderDienst();
+      });
+  }
+  const vn = naam.split(' ')[0];
+  if (doel) { logEvent('dienst', naam + ' tijdelijk ingepland als ' + doel); showToast(vn + ' staat nu als ' + doel); }
+  else      { logEvent('dienst', naam + ' terug naar eigen rol'); showToast(vn + ' terug op eigen rol'); }
+}
+
+function closeDienstRolMenu() {
+  if (_dienstRolMenuEl) { _dienstRolMenuEl.remove(); _dienstRolMenuEl = null; }
+  document.removeEventListener('pointerdown', _dienstRolMenuOutside, true);
+  window.removeEventListener('resize', closeDienstRolMenu);
+  window.removeEventListener('scroll', closeDienstRolMenu, true);
+}
+function _dienstRolMenuOutside(ev) {
+  if (_dienstRolMenuEl && !_dienstRolMenuEl.contains(ev.target)) closeDienstRolMenu();
+}
+
+// Klein popover-menu om een op-dienst collega naar een andere rol te zetten.
+function openDienstRolMenu(naam, anchorEl) {
+  closeDienstRolMenu();
+  const med = (S.medewerkers || []).find(m => m.naam === naam);
+  if (!med) return;
+  const effectief  = dienstHoofdRol(med);
+  const natuurlijk = dienstNatuurlijkeHoofdRol(med);
+  const overridden = !!dienstRolOverride(naam);
+  const CHK = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+
+  const menu = document.createElement('div');
+  menu.className = 'dienst-rolmenu';
+  menu.setAttribute('role', 'menu');
+  let html = '<div class="dienst-rolmenu-kop">' + escHtml(naam.split(' ')[0]) + ' inplannen als</div>';
+  (S.rollen || []).forEach(r => {
+    const aan = (r === effectief);
+    const isThuis = (r === natuurlijk);
+    html += '<button type="button" class="dienst-rolmenu-item' + (aan ? ' on' : '') + '" data-rol="' + escHtml(r) + '">'
+      + '<span class="rol-dot" style="background:' + safeColor(rolKleur(r)) + '"></span>'
+      + '<span class="drm-naam">' + escHtml(r) + (isThuis ? ' <span class="drm-thuis">eigen rol</span>' : '') + '</span>'
+      + (aan ? '<span class="drm-check">' + CHK + '</span>' : '')
+      + '</button>';
+  });
+  if (overridden) html += '<button type="button" class="dienst-rolmenu-item drm-reset" data-rol="">↩ Terug naar eigen rol</button>';
+  menu.innerHTML = html;
+  document.body.appendChild(menu);
+  _dienstRolMenuEl = menu;
+
+  const rc = anchorEl.getBoundingClientRect();
+  const mw = menu.offsetWidth, mh = menu.offsetHeight;
+  let left = rc.left, top = rc.bottom + 4;
+  if (left + mw > window.innerWidth - 8) left = window.innerWidth - 8 - mw;
+  if (left < 8) left = 8;
+  if (top + mh > window.innerHeight - 8) top = Math.max(8, rc.top - 4 - mh);
+  menu.style.left = Math.round(left) + 'px';
+  menu.style.top  = Math.round(top) + 'px';
+
+  menu.querySelectorAll('.dienst-rolmenu-item').forEach(btn => {
+    btn.addEventListener('click', () => setDienstRol(naam, btn.getAttribute('data-rol') || ''));
+  });
+  setTimeout(() => {
+    document.addEventListener('pointerdown', _dienstRolMenuOutside, true);
+    window.addEventListener('resize', closeDienstRolMenu);
+    window.addEventListener('scroll', closeDienstRolMenu, true);
+  }, 0);
 }
 
 // Bouw één naamkaart-knop voor het roster. Behoudt de UI-lock-bescherming.
@@ -7086,7 +7250,7 @@ function renderDienst() {
     // Groepeer op hoofdrol; rolkop boven een kaartgrid.
     const buckets = new Map();
     lijst.forEach(med => {
-      const hoofd = dienstHoofdRol(med);
+      const hoofd = dienstNatuurlijkeHoofdRol(med);
       if (!buckets.has(hoofd)) buckets.set(hoofd, []);
       buckets.get(hoofd).push(med.naam);
     });
@@ -7142,6 +7306,7 @@ function renderDienst() {
       const namen = buckets.get(key);
       const groep = document.createElement('div');
       groep.className = 'dienst-rolegroep';
+      groep.setAttribute('data-rol', key);
       const lbl = document.createElement('div');
       lbl.className = 'dienst-rolelabel';
       lbl.innerHTML =
@@ -7150,18 +7315,50 @@ function renderDienst() {
         + '<span class="dienst-rolcount">' + namen.length + '</span>';
       groep.appendChild(lbl);
       namen.forEach(n => {
-        const rij = document.createElement('button');
-        rij.type = 'button';
-        rij.className = 'sb-rij';
+        const tijdelijk = !!dienstRolOverride(n);
+        const rij = document.createElement('div');
+        rij.className = 'sb-rij' + (tijdelijk ? ' sb-rij--tijdelijk' : '');
         rij.setAttribute('data-dienst-name', n);
-        rij.setAttribute('aria-label', n + ' van dienst halen');
+        rij.setAttribute('draggable', 'true');
+        rij.setAttribute('role', 'button');
+        rij.setAttribute('tabindex', '0');
+        rij.setAttribute('aria-label', n + ' — tik om naar een andere rol te verplaatsen');
         if (_dienstUiLock.has(n)) { rij.style.opacity = '0.55'; rij.style.pointerEvents = 'none'; }
         rij.innerHTML =
           '<span class="dienst-av">' + escHtml(dienstInitialen(n)) + '</span>'
-          + '<span class="sb-naam">' + escHtml(n) + '</span>'
-          + '<span class="sb-x" aria-hidden="true">×</span>';
-        rij.addEventListener('click', () => dienstToggle(n, rij));
+          + '<span class="sb-naam">' + escHtml(n)
+          + (tijdelijk ? '<span class="sb-tijdelijk" title="Tijdelijk onder deze rol">tijdelijk</span>' : '')
+          + '</span>'
+          + '<button type="button" class="sb-x" aria-label="' + escHtml(n) + ' van dienst halen">×</button>';
+        // Naam/avatar tikken → rolmenu; alleen de × haalt van dienst.
+        rij.addEventListener('click', (ev) => {
+          if (ev.target.closest('.sb-x')) { dienstToggle(n, rij); return; }
+          openDienstRolMenu(n, rij);
+        });
+        rij.addEventListener('keydown', (ev) => {
+          if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openDienstRolMenu(n, rij); }
+        });
+        rij.addEventListener('dragstart', (ev) => {
+          _dienstDragNaam = n; rij.classList.add('sb-rij--drag');
+          try { ev.dataTransfer.setData('text/plain', n); ev.dataTransfer.effectAllowed = 'move'; } catch (e) {}
+        });
+        rij.addEventListener('dragend', () => {
+          _dienstDragNaam = null; rij.classList.remove('sb-rij--drag');
+          document.querySelectorAll('.dienst-rolegroep--over').forEach(g => g.classList.remove('dienst-rolegroep--over'));
+        });
         groep.appendChild(rij);
+      });
+      // Drop-zone (desktop-sleep): laat een collega hier vallen om 'm onder deze rol te zetten.
+      groep.addEventListener('dragover', (ev) => {
+        if (!_dienstDragNaam) return;
+        ev.preventDefault(); ev.dataTransfer.dropEffect = 'move'; groep.classList.add('dienst-rolegroep--over');
+      });
+      groep.addEventListener('dragleave', (ev) => { if (!groep.contains(ev.relatedTarget)) groep.classList.remove('dienst-rolegroep--over'); });
+      groep.addEventListener('drop', (ev) => {
+        ev.preventDefault(); groep.classList.remove('dienst-rolegroep--over');
+        const naam = _dienstDragNaam || (ev.dataTransfer ? ev.dataTransfer.getData('text/plain') : '');
+        _dienstDragNaam = null;
+        if (naam) setDienstRol(naam, key);
       });
       chipsEl.appendChild(groep);
     });
