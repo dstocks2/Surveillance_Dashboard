@@ -358,7 +358,7 @@ input[type=text]:focus{outline:none;border-color:var(--c-primary);box-shadow:0 0
   .toast-action-msg{white-space:normal;text-align:center}
   .toast-action-btn{width:100%;padding:9px 12px}
 }
-/* ── Op dienst-tab — redesign (v3.5.1) ─────────────────────────────── */
+/* ── Op dienst-tab — redesign (v3.5.2) ─────────────────────────────── */
 /* Twee panelen vullen samen de viewport; geen paginascroll, elk paneel
    scrollt onafhankelijk. Hoogte via --topbar-h (zelfde patroon als cfg-tab). */
 body:has(#pane-dienst.on){overflow:hidden}
@@ -434,11 +434,9 @@ body:has(#pane-dienst.on){overflow:hidden}
 .dienst-rolmenu-kop{font-size:11px;font-weight:700;color:#5d6e80;letter-spacing:.02em;padding:6px 8px 7px}
 .dienst-rolmenu-item{display:flex;align-items:center;gap:8px;width:100%;border:none;background:none;font-family:inherit;font-size:13px;color:#18283a;text-align:left;padding:8px;border-radius:8px;cursor:pointer}
 .dienst-rolmenu-item:hover{background:#eef2f7}
-.dienst-rolmenu-item.on{background:#eaf0f7;font-weight:600}
 .dienst-rolmenu-item .drm-naam{flex:1;min-width:0}
 .dienst-rolmenu-item .drm-thuis{font-size:10px;color:#5d6e80;font-weight:500}
-.dienst-rolmenu-item .drm-check{width:16px;height:16px;color:var(--c-brand-dark);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.dienst-rolmenu-item.drm-reset{color:#5d6e80;margin-top:2px;border-top:1px solid #f1f5f9;border-radius:0 0 8px 8px}
+.dienst-rolmenu-leeg{font-size:12px;color:#5d6e80;padding:8px;text-align:center}
 /* Tablet (701–1400px): vol-breed, sidebar vlak tegen de rand i.p.v. zwevende kaart */
 @media(min-width:701px) and (max-width:1400px){
   .content:has(#pane-dienst.on){max-width:100% !important;padding:0 !important}
@@ -1094,7 +1092,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.5.1</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.5.2</span></span>
     </div>
   </div>
 
@@ -1541,7 +1539,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.5.1</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.5.2</span>
     </div>
   </nav>
 
@@ -1954,7 +1952,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.5.1';
+const APP_VERSION = '3.5.2';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -7134,23 +7132,22 @@ function openDienstRolMenu(naam, anchorEl) {
   if (!med) return;
   const effectief  = dienstHoofdRol(med);
   const natuurlijk = dienstNatuurlijkeHoofdRol(med);
-  const overridden = !!dienstRolOverride(naam);
-  const CHK = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
 
   const menu = document.createElement('div');
   menu.className = 'dienst-rolmenu';
   menu.setAttribute('role', 'menu');
   let html = '<div class="dienst-rolmenu-kop">' + escHtml(naam.split(' ')[0]) + ' inplannen als</div>';
+  let aantalOpties = 0;
   (S.rollen || []).forEach(r => {
-    const aan = (r === effectief);
+    if (r === effectief) return; // huidige rol niet tonen — je kiest hier een andere
     const isThuis = (r === natuurlijk);
-    html += '<button type="button" class="dienst-rolmenu-item' + (aan ? ' on' : '') + '" data-rol="' + escHtml(r) + '">'
+    aantalOpties++;
+    html += '<button type="button" class="dienst-rolmenu-item" data-rol="' + escHtml(r) + '">'
       + '<span class="rol-dot" style="background:' + safeColor(rolKleur(r)) + '"></span>'
       + '<span class="drm-naam">' + escHtml(r) + (isThuis ? ' <span class="drm-thuis">eigen rol</span>' : '') + '</span>'
-      + (aan ? '<span class="drm-check">' + CHK + '</span>' : '')
       + '</button>';
   });
-  if (overridden) html += '<button type="button" class="dienst-rolmenu-item drm-reset" data-rol="">↩ Terug naar eigen rol</button>';
+  if (!aantalOpties) html += '<div class="dienst-rolmenu-leeg">Geen andere rol beschikbaar</div>';
   menu.innerHTML = html;
   document.body.appendChild(menu);
   _dienstRolMenuEl = menu;
