@@ -358,7 +358,7 @@ input[type=text]:focus{outline:none;border-color:var(--c-primary);box-shadow:0 0
   .toast-action-msg{white-space:normal;text-align:center}
   .toast-action-btn{width:100%;padding:9px 12px}
 }
-/* ── Op dienst-tab — redesign (v3.5.0) ─────────────────────────────── */
+/* ── Op dienst-tab — redesign (v3.5.1) ─────────────────────────────── */
 /* Twee panelen vullen samen de viewport; geen paginascroll, elk paneel
    scrollt onafhankelijk. Hoogte via --topbar-h (zelfde patroon als cfg-tab). */
 body:has(#pane-dienst.on){overflow:hidden}
@@ -428,7 +428,6 @@ body:has(#pane-dienst.on){overflow:hidden}
 /* Tijdelijke rol-override: badge, sleep-feedback en rolmenu */
 .sb-rij{cursor:pointer;user-select:none}
 .sb-rij--drag{opacity:.5}
-.sb-tijdelijk{display:inline-block;margin-left:6px;font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#92400e;background:#fef3c7;border-radius:99px;padding:1px 6px;vertical-align:middle}
 .sb-x{border:none;background:none;cursor:pointer;font-family:inherit;padding:0}
 .dienst-rolegroep--over{background:#eaf0f7;border-radius:10px;outline:2px dashed var(--c-brand-dark);outline-offset:-2px}
 .dienst-rolmenu{position:fixed;z-index:9000;min-width:190px;max-width:240px;background:#fff;border:1px solid #dce3ec;border-radius:11px;box-shadow:0 6px 28px rgba(17,42,68,.18);padding:6px;font-family:inherit}
@@ -1095,7 +1094,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v2.4</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.5.1</span></span>
     </div>
   </div>
 
@@ -1542,7 +1541,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.5.0</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.5.1</span>
     </div>
   </nav>
 
@@ -1955,7 +1954,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.5.0';
+const APP_VERSION = '3.5.1';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -7315,9 +7314,8 @@ function renderDienst() {
         + '<span class="dienst-rolcount">' + namen.length + '</span>';
       groep.appendChild(lbl);
       namen.forEach(n => {
-        const tijdelijk = !!dienstRolOverride(n);
         const rij = document.createElement('div');
-        rij.className = 'sb-rij' + (tijdelijk ? ' sb-rij--tijdelijk' : '');
+        rij.className = 'sb-rij';
         rij.setAttribute('data-dienst-name', n);
         rij.setAttribute('draggable', 'true');
         rij.setAttribute('role', 'button');
@@ -7326,9 +7324,7 @@ function renderDienst() {
         if (_dienstUiLock.has(n)) { rij.style.opacity = '0.55'; rij.style.pointerEvents = 'none'; }
         rij.innerHTML =
           '<span class="dienst-av">' + escHtml(dienstInitialen(n)) + '</span>'
-          + '<span class="sb-naam">' + escHtml(n)
-          + (tijdelijk ? '<span class="sb-tijdelijk" title="Tijdelijk onder deze rol">tijdelijk</span>' : '')
-          + '</span>'
+          + '<span class="sb-naam">' + escHtml(n) + '</span>'
           + '<button type="button" class="sb-x" aria-label="' + escHtml(n) + ' van dienst halen">×</button>';
         // Naam/avatar tikken → rolmenu; alleen de × haalt van dienst.
         rij.addEventListener('click', (ev) => {
