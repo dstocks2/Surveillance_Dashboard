@@ -358,7 +358,7 @@ input[type=text]:focus{outline:none;border-color:var(--c-primary);box-shadow:0 0
   .toast-action-msg{white-space:normal;text-align:center}
   .toast-action-btn{width:100%;padding:9px 12px}
 }
-/* ── Op dienst-tab — redesign (v3.4.3) ─────────────────────────────── */
+/* ── Op dienst-tab — redesign (v3.4.4) ─────────────────────────────── */
 /* Twee panelen vullen samen de viewport; geen paginascroll, elk paneel
    scrollt onafhankelijk. Hoogte via --topbar-h (zelfde patroon als cfg-tab). */
 body:has(#pane-dienst.on){overflow:hidden}
@@ -424,6 +424,12 @@ body:has(#pane-dienst.on){overflow:hidden}
 @media(hover:hover) and (pointer:fine){
   .sb-rij:hover{background:#fdeaea}
   .sb-rij:hover .sb-x{background:#f7d4d4;color:#c0392b}
+}
+/* Tablet (701–1400px): vol-breed, sidebar vlak tegen de rand i.p.v. zwevende kaart */
+@media(min-width:701px) and (max-width:1400px){
+  .content:has(#pane-dienst.on){max-width:100% !important;padding:0 !important}
+  #dienst-layout{gap:0}
+  #dienst-selectiebalk{border:none;border-left:1px solid #dce3ec;border-radius:0;box-shadow:none;margin:0}
 }
 /* Mobiel: paginascroll terug, één kolom, sidebar boven het roster */
 @media(max-width:700px){
@@ -1515,7 +1521,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.4.3</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.4.4</span>
     </div>
   </nav>
 
@@ -1928,7 +1934,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.4.3';
+const APP_VERSION = '3.4.4';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
