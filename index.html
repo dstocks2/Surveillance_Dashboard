@@ -231,6 +231,13 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .abtn-w{background:var(--c-bg);color:var(--c-muted);border:1px solid var(--c-border-2)}
 .abtn-w:not(:disabled):hover{background:var(--c-border)}
 .hr{border:none;border-top:1px solid var(--c-border);margin:16px 0}
+.reg-step{display:flex;align-items:center;gap:9px;margin-bottom:14px;flex-wrap:wrap}
+.reg-step-num{width:22px;height:22px;border-radius:50%;background:var(--c-brand-dark);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.reg-step-title{font-size:15px;font-weight:700;color:var(--c-text)}
+.reg-step-sub{font-size:11px;font-weight:400;color:var(--c-muted-2)}
+.reg-cat{margin-top:16px}
+.reg-cat:first-child{margin-top:0}
+.reg-cat-lbl{margin:0 0 8px}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
 #live-cards-active{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;align-items:start}
 /* ── Registratie-tab — sidebar met actieve rondes (v3.5.7) ────────────
@@ -1113,7 +1120,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.5.8</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.5.9</span></span>
     </div>
   </div>
 
@@ -1307,15 +1314,25 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   <div id="pane-reg" class="pane on" role="tabpanel" tabindex="0" aria-labelledby="tab-reg">
     <div id="reg-layout">
       <div id="reg-main">
-        <p class="lbl">Stap 1 &mdash; Kies een persoon <span style="font-weight:400;color:#5b6b7f;font-size:11px">(meerdere mogelijk)</span></p>
+        <div class="reg-step">
+          <span class="reg-step-num">1</span>
+          <span class="reg-step-title">Wie loopt de ronde?</span>
+          <span class="reg-step-sub" id="reg-step1-sub">meerdere mogelijk</span>
+        </div>
         <div class="btn-row" id="name-btns"></div>
         <div class="hr"></div>
 
-        <p class="lbl">Stap 2 &mdash; Klik op de ronde</p>
-        <div class="btn-row" id="route-btns"></div>
+        <div class="reg-step">
+          <span class="reg-step-num">2</span>
+          <span class="reg-step-title">Welke ronde?</span>
+        </div>
+        <div id="route-btns"></div>
         <div class="hr"></div>
 
-        <p class="lbl">Stap 3 &mdash; Actie</p>
+        <div class="reg-step">
+          <span class="reg-step-num">3</span>
+          <span class="reg-step-title">Actie</span>
+        </div>
         <div class="act-row">
           <button type="button" class="abtn abtn-s" id="btn-start" onclick="doStart()" disabled>
             <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M3 2l7 4-7 4V2z"/></svg>
@@ -1569,7 +1586,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.5.8</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.5.9</span>
     </div>
   </nav>
 
@@ -1982,7 +1999,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.5.8';
+const APP_VERSION = '3.5.9';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -3096,6 +3113,8 @@ function renderNameBtns() {
   const el = document.getElementById('name-btns');
   el.innerHTML = '';
   const namen = activeNames();
+  const subEl = document.getElementById('reg-step1-sub');
+  if (subEl) subEl.textContent = 'meerdere mogelijk \u00b7 ' + namen.length + ' op dienst';
   // Opschonen: verwijder geselecteerde namen (stap 1) die niet langer zichtbaar
   // zijn — bv. iemand is op een andere sessie van dienst gehaald of verwijderd
   // terwijl die hier nog aangevinkt stond. Anders blijft S.sns een "spook"-naam
@@ -3135,14 +3154,46 @@ function renderRouteBtns() {
     const elVal = document.getElementById('sr-val');
     if (elVal) { elVal.className = 'ph'; elVal.textContent = 'selecteer een ronde…'; }
   }
+  // Groeperen op categorie — zelfde indeling als Instellingen (catOrder uit
+  // S.routeCats, daarna categorieën buiten die lijst, daarna ongecategoriseerd).
+  const catOrder = S.routeCats || [];
+  const grouped = {};
+  const ungrouped = [];
   S.routes.forEach(r => {
+    const c = r.categorie || '';
+    if (c) { (grouped[c] = grouped[c] || []).push(r); }
+    else ungrouped.push(r);
+  });
+  const makeBtn = r => {
     const btn = document.createElement('button');
     btn.className = 'nbtn' + (S.sr === r.naam ? ' sel' : '');
     btn.tabIndex = -1;
     btn.textContent = r.naam;
     btn.addEventListener('click', () => { btn.blur(); selR(r.naam); });
-    el.appendChild(btn);
+    return btn;
+  };
+  const renderGroup = (naam, routes) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'reg-cat';
+    if (naam) {
+      const lbl = document.createElement('p');
+      lbl.className = 'lbl reg-cat-lbl';
+      lbl.textContent = naam;
+      wrap.appendChild(lbl);
+    }
+    const row = document.createElement('div');
+    row.className = 'btn-row';
+    routes.forEach(r => row.appendChild(makeBtn(r)));
+    wrap.appendChild(row);
+    el.appendChild(wrap);
+  };
+  catOrder.forEach(cat => {
+    if (grouped[cat] && grouped[cat].length) renderGroup(cat, grouped[cat]);
   });
+  Object.keys(grouped).filter(c => !catOrder.includes(c)).forEach(cat => {
+    renderGroup(cat, grouped[cat]);
+  });
+  if (ungrouped.length) renderGroup('Geen categorie', ungrouped);
 }
 
 function selN(n) {
