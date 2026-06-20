@@ -104,9 +104,9 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .content:has(#pane-cfg.on){max-width:100% !important;padding:0 !important}
 /* Overzicht-tab op volle breedte zodat actieve kaarten meegroeien (bv. 4 naast elkaar) */
 .content:has(#pane-live.on),
-.content:has(#pane-reg.on),
 .content:has(#pane-plan.on){max-width:1400px !important}
 .content:has(#pane-dienst.on){max-width:1400px !important;padding:0 24px !important}
+.content:has(#pane-reg.on){max-width:1400px !important;padding:0 24px !important}
 .cfg-layout{display:flex;min-height:calc(100vh - var(--topbar-h, 110px))}
 .cfg-rail{width:220px;flex-shrink:0;background:#fff;border-right:1px solid var(--c-border);display:flex;flex-direction:column;padding:20px 0 0;gap:2px;position:sticky;top:var(--topbar-h, 110px);align-self:flex-start;height:calc(100vh - var(--topbar-h, 110px));overflow-y:auto}
 .cfg-rail-title{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--c-muted-2);padding:0 18px 10px;text-transform:uppercase}
@@ -241,7 +241,7 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
    maar altijd één kolom breed i.p.v. de auto-fill grid van .cards. */
 body:has(#pane-reg.on){overflow:hidden}
 #reg-layout{display:grid;grid-template-columns:1fr 258px;gap:16px;height:calc(100vh - var(--topbar-h,110px));height:calc(100dvh - var(--topbar-h,110px));overflow:hidden}
-#reg-main{display:flex;flex-direction:column;overflow-y:auto;min-width:0;-webkit-overflow-scrolling:touch}
+#reg-main{display:flex;flex-direction:column;overflow-y:auto;min-width:0;padding:14px 18px 24px;-webkit-overflow-scrolling:touch}
 #reg-sidebar{display:flex;flex-direction:column;overflow:hidden;background:#fff;border:1px solid #dce3ec;border-radius:12px;box-shadow:0 1px 2px rgba(17,42,68,.04),0 4px 16px rgba(17,42,68,.05);padding:0;margin:6px 0 14px}
 #reg-sidebar-head{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:16px 16px 12px}
 #reg-sidebar-title{font-size:14px;font-weight:700;color:#18283a}
@@ -260,7 +260,7 @@ body:has(#pane-reg.on){overflow:hidden}
   #reg-layout{display:flex;flex-direction:column;height:auto;overflow:visible}
   #reg-sidebar{order:-1;border-radius:11px;margin:0 0 14px}
   #reg-sidebar-body{overflow:visible}
-  #reg-main{overflow:visible}
+  #reg-main{overflow:visible;padding:0 2px 24px}
 }
 .cards-done{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
 .live-col-onderweg #live-cards-active{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -1113,7 +1113,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.5.7</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.5.8</span></span>
     </div>
   </div>
 
@@ -1569,7 +1569,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.5.7</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.5.8</span>
     </div>
   </nav>
 
@@ -1982,7 +1982,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.5.7';
+const APP_VERSION = '3.5.8';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
