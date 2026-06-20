@@ -218,8 +218,8 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 @media(hover:hover) and (pointer:fine){.nbtn:hover{border-color:var(--c-primary);color:var(--c-brand);background:var(--c-primary-tint)}}
 .nbtn.sel{background:var(--c-brand);border-color:var(--c-brand);color:#fff;font-weight:600}
 .nbtn-av{display:inline-flex;align-items:center;gap:7px}
-.nbtn-avatar{width:22px;height:22px;border-radius:50%;background:#cdd6e2;color:#445;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;letter-spacing:.02em;line-height:1}
-.nbtn-av.sel .nbtn-avatar{background:#fff;color:var(--c-brand)}
+.nbtn-avatar{width:27px;height:27px;border-radius:50%;background:#e2e8f0;color:#475569;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;flex-shrink:0;letter-spacing:.02em;line-height:1}
+.nbtn-av.sel .nbtn-avatar{background:#fff;color:var(--c-brand-dark)}
 
 .act-row{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:20px}
 .abtn{padding:11px 22px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:7px;transition:all .13s}
@@ -325,7 +325,11 @@ body:has(#pane-reg.on){overflow:hidden}
 .card.ca{position:relative;border-color:var(--c-border);border-width:1px;background:#fff;border-left:2px solid var(--c-danger);display:flex;flex-direction:column}
 .lc-rij{display:flex;align-items:center;gap:8px}
 .lc-ronde{font-size:15px;font-weight:700;color:var(--c-text);line-height:1.2}
-.lc-mw{margin-top:5px;font-size:14px;font-weight:500;color:var(--c-text-2)}
+.lc-mw{margin-top:5px;display:flex;align-items:center;gap:8px}
+.ak-namen{font-size:14px;font-weight:500;color:var(--c-text-2);min-width:0}
+.ak-avs{display:flex;flex-shrink:0}
+.ak-avs .av{width:22px;height:22px;border-radius:50%;background:#eaeef3;color:#5a6b7d;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;letter-spacing:.2px;flex-shrink:0;box-shadow:0 0 0 2px #fff}
+.ak-avs .av+.av{margin-left:-7px}
 .lc-meta{margin-top:4px;font-size:11px;color:var(--c-placeholder);font-variant-numeric:tabular-nums}
 .lc-over{color:var(--c-danger);font-weight:600}
 /* Notitie-blok */
@@ -1120,7 +1124,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.5.11</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.5.14</span></span>
     </div>
   </div>
 
@@ -1586,7 +1590,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.5.11</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.5.14</span>
     </div>
   </nav>
 
@@ -1999,7 +2003,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.5.11';
+const APP_VERSION = '3.5.14';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -3113,8 +3117,6 @@ function renderNameBtns() {
   const el = document.getElementById('name-btns');
   el.innerHTML = '';
   const namen = activeNames();
-  const subEl = document.getElementById('reg-step1-sub');
-  if (subEl) subEl.textContent = 'meerdere mogelijk \u00b7 ' + namen.length + ' op dienst';
   // Opschonen: verwijder geselecteerde namen (stap 1) die niet langer zichtbaar
   // zijn — bv. iemand is op een andere sessie van dienst gehaald of verwijderd
   // terwijl die hier nog aangevinkt stond. Anders blijft S.sns een "spook"-naam
@@ -3752,7 +3754,7 @@ function groupCardHTML(route, start, members, btn) {
 
   return `<div class="card ca" data-rkey="${rkey}" data-start="${start}" data-groupid="${escHtml(groupId)}">
     <div class="lc-rij"><span class="dot dot-r"></span><span class="lc-ronde">${escHtml(route)}</span></div>
-    <div class="lc-mw"${mwTitle}>${joinNamen(names.map(escHtml))}</div>
+    <div class="lc-mw"${mwTitle}><span class="ak-avs">${names.map(n => '<span class="av">' + escHtml(dienstInitialen(n)) + '</span>').join('')}</span><span class="ak-namen">${joinNamen(names.map(escHtml))}</span></div>
     <div class="lc-meta">gestart ${fmtT(start)} &middot; loopt <span class="cel">${elaps(start)}</span>${over}</div>
     ${noteBlock}
     ${addBlock}
