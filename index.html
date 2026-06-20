@@ -247,9 +247,9 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
    kaart-component als #live-cards-active (groupCardHTML/renderAllActive),
    maar altijd één kolom breed i.p.v. de auto-fill grid van .cards. */
 body:has(#pane-reg.on){overflow:hidden}
-#reg-layout{display:grid;grid-template-columns:1fr 258px;gap:16px;height:calc(100vh - var(--topbar-h,110px));height:calc(100dvh - var(--topbar-h,110px));overflow:hidden}
+#reg-layout{display:grid;grid-template-columns:1fr 322px;gap:16px;height:calc(100vh - var(--topbar-h,110px));height:calc(100dvh - var(--topbar-h,110px));overflow:hidden}
 #reg-main{display:flex;flex-direction:column;overflow-y:auto;min-width:0;padding:14px 18px 24px;-webkit-overflow-scrolling:touch}
-#reg-sidebar{display:flex;flex-direction:column;overflow:hidden;background:#fff;border:1px solid #dce3ec;border-radius:12px;box-shadow:0 1px 2px rgba(17,42,68,.04),0 4px 16px rgba(17,42,68,.05);padding:0;margin:6px 0 14px}
+#reg-sidebar{display:flex;flex-direction:column;overflow:hidden;background:#fff;border:1px solid #dce3ec;border-radius:12px;box-shadow:0 1px 2px rgba(17,42,68,.04),0 4px 16px rgba(17,42,68,.05);padding:0;margin:6px 16px 14px 6px}
 #reg-sidebar-head{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:16px 16px 12px}
 #reg-sidebar-title{font-size:14px;font-weight:700;color:#18283a}
 #reg-sidebar-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#eef2f7;color:#5d6e80;font-size:11px;font-weight:700}
@@ -1120,7 +1120,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.5.9</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.5.10</span></span>
     </div>
   </div>
 
@@ -1586,7 +1586,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.5.9</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.5.10</span>
     </div>
   </nav>
 
@@ -1999,7 +1999,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.5.9';
+const APP_VERSION = '3.5.10';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
