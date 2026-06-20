@@ -223,15 +223,13 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .nbtn-avatar{width:27px;height:27px;border-radius:50%;background:#e2e8f0;color:#475569;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;flex-shrink:0;letter-spacing:.02em;line-height:1}
 .nbtn-av.sel .nbtn-avatar{background:#fff;color:var(--c-brand-dark)}
 
-.act-row{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:20px}
 .abtn{padding:11px 22px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:7px;transition:all .13s}
 .abtn:not(:disabled):hover{opacity:.88;transform:translateY(-1px)}
 .abtn:not(:disabled):active{transform:scale(0.97)}
 .abtn:disabled{opacity:.35;cursor:not-allowed;transform:none;pointer-events:none}
-.abtn-s{background:var(--c-primary-hover);color:#fff}
-.abtn-r{background:var(--c-success);color:#fff}
-.abtn-w{background:var(--c-bg);color:var(--c-muted);border:1px solid var(--c-border-2)}
-.abtn-w:not(:disabled):hover{background:var(--c-border)}
+.abtn-s{background:var(--c-brand-dark);color:#fff}
+.abtn-w{background:none;color:var(--c-muted-2);border:none;font-weight:500;padding:9px 6px}
+.abtn-w:not(:disabled):hover{color:var(--c-text);text-decoration:underline;background:none}
 .hr{border:none;border-top:1px solid var(--c-border);margin:16px 0}
 .reg-step{display:flex;align-items:center;gap:9px;margin-bottom:14px;flex-wrap:wrap}
 .reg-step-num{width:22px;height:22px;border-radius:50%;background:var(--c-brand-dark);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -251,23 +249,42 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 body:has(#pane-reg.on){overflow:hidden}
 #reg-layout{display:grid;grid-template-columns:1fr 322px;gap:16px;height:calc(100vh - var(--topbar-h,110px));height:calc(100dvh - var(--topbar-h,110px));overflow:hidden}
 #reg-main{display:flex;flex-direction:column;overflow-y:auto;min-width:0;padding:14px 18px 24px;-webkit-overflow-scrolling:touch}
-#reg-sidebar{display:flex;flex-direction:column;overflow:hidden;background:#fff;border:1px solid #dce3ec;border-radius:12px;box-shadow:0 1px 2px rgba(17,42,68,.04),0 4px 16px rgba(17,42,68,.05);padding:0;margin:6px 16px 14px 6px}
+/* Sidebar = twee gestapelde kaarten: selectie (persoon/ronde/start) boven,
+   onderweg-lijst (actieve rondes) eronder, vult de resterende hoogte. */
+#reg-sidebar{display:flex;flex-direction:column;gap:10px;margin:6px 16px 14px 6px;min-height:0}
+#reg-selectie-kaart,#reg-onderweg-kaart{background:#fff;border:1px solid #dce3ec;border-radius:12px;box-shadow:0 1px 2px rgba(17,42,68,.04),0 4px 16px rgba(17,42,68,.05)}
+#reg-selectie-kaart{flex-shrink:0;padding:16px;overflow:hidden}
+#reg-onderweg-kaart{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.reg-sel-rij{padding:8px 0;border-bottom:1px solid var(--c-border)}
+.reg-sel-rij:first-child{padding-top:0}
+.reg-sel-lbl{display:block;font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--c-muted);margin-bottom:7px}
+.reg-sel-val{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:13.5px;font-weight:700;color:#18283a;min-height:24px}
+.reg-sel-leeg{font-weight:500;color:var(--c-placeholder)}
+.reg-sel-chip{display:inline-flex;align-items:center;gap:6px;background:#eef2f7;border-radius:999px;padding:3px 10px 3px 3px}
+.reg-sel-chip-av{width:20px;height:20px;border-radius:50%;background:#e2e8f0;color:#475569;display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:700;flex-shrink:0}
+.reg-sel-chip-naam{font-size:12.5px;font-weight:600;color:#18283a}
+#reg-selectie-kaart .abtn-s{width:100%;justify-content:center;margin-top:14px}
+#reg-selectie-kaart .abtn-w{width:100%;justify-content:center;margin-top:6px}
+#reg-selectie-kaart .abtn-w:disabled{display:none}
 #reg-sidebar-head{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:16px 16px 12px}
 #reg-sidebar-title{font-size:14px;font-weight:700;color:#18283a}
 #reg-sidebar-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#eef2f7;color:#5d6e80;font-size:11px;font-weight:700}
 #reg-sidebar-body{flex:1;min-height:0;overflow-y:auto;padding:0 14px 18px;-webkit-overflow-scrolling:touch}
 #all-active-cards{grid-template-columns:1fr !important;gap:10px}
-/* Tablet (701–1400px): vol-breed, sidebar vlak tegen de rand i.p.v. zwevende kaart */
+/* Tablet (701–1400px): vol-breed, kaarten vlak tegen de rand i.p.v. zwevend */
 @media(min-width:701px) and (max-width:1400px){
   .content:has(#pane-reg.on){max-width:100% !important;padding:0 !important}
   #reg-layout{gap:0}
-  #reg-sidebar{border:none;border-left:1px solid #dce3ec;border-radius:0;box-shadow:none;margin:0}
+  #reg-sidebar{margin:0;gap:0}
+  #reg-selectie-kaart{border:none;border-left:1px solid #dce3ec;border-bottom:1px solid #dce3ec;border-radius:0;box-shadow:none}
+  #reg-onderweg-kaart{border:none;border-left:1px solid #dce3ec;border-radius:0;box-shadow:none}
 }
 /* Mobiel: paginascroll terug, één kolom, sidebar boven de stappen */
 @media(max-width:700px){
   body:has(#pane-reg.on){overflow:auto}
   #reg-layout{display:flex;flex-direction:column;height:auto;overflow:visible}
-  #reg-sidebar{order:-1;border-radius:11px;margin:0 0 14px}
+  #reg-sidebar{order:-1;margin:0 0 14px}
+  #reg-selectie-kaart,#reg-onderweg-kaart{border-radius:11px}
   #reg-sidebar-body{overflow:visible}
   #reg-main{overflow:visible;padding:0 2px 24px}
 }
@@ -499,7 +516,6 @@ body:has(#pane-dienst.on){overflow:hidden}
   #header-dienst{font-size:11px;padding:2px 7px}
   #header-clock{font-size:15px;min-width:34px;font-weight:700}
   .abtn{padding:13px 16px;font-size:13px;min-height:48px;flex:1}
-  .act-row{flex-direction:row;gap:6px}
   .nbtn{padding:11px 12px;font-size:13px;min-height:44px}
   .btn-row{gap:6px}
   .cards{grid-template-columns:1fr}
@@ -563,7 +579,6 @@ body:has(#pane-dienst.on){overflow:hidden}
   .cn { font-size: 16px; }
   .rbtn { padding: 10px; font-size: 13px; min-height: 44px; border-radius: 8px; }
   .btn-row { gap: 9px; }
-  .act-row { gap: 10px; }
   table { font-size: 13px; }
   th, td { padding: 11px 12px; }
   .inp-row input[type=text] { padding: 12px 14px; font-size: 14px; min-height: 48px; }
@@ -1126,7 +1141,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.5.15</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.6.0</span></span>
     </div>
   </div>
 
@@ -1333,31 +1348,31 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
           <span class="reg-step-title">Welke ronde?</span>
         </div>
         <div id="route-btns"></div>
-        <div class="hr"></div>
-
-        <div class="reg-step">
-          <span class="reg-step-num">3</span>
-          <span class="reg-step-title">Actie</span>
-        </div>
-        <div class="act-row">
+      </div>
+      <div id="reg-sidebar">
+        <div id="reg-selectie-kaart">
+          <div class="reg-sel-rij">
+            <span class="reg-sel-lbl">Persoon</span>
+            <span class="reg-sel-val" id="reg-sel-persoon"><span class="reg-sel-leeg">— nog niemand —</span></span>
+          </div>
+          <div class="reg-sel-rij">
+            <span class="reg-sel-lbl">Ronde</span>
+            <span class="reg-sel-val" id="reg-sel-ronde"><span class="reg-sel-leeg">— nog geen —</span></span>
+          </div>
           <button type="button" class="abtn abtn-s" id="btn-start" onclick="doStart()" disabled>
             <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M3 2l7 4-7 4V2z"/></svg>
             Ronde starten
           </button>
-          <button type="button" class="abtn abtn-r" id="btn-retour" onclick="doRetour(null)" disabled>
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="2,6 5,9 10,3"/></svg>
-            Retour melden
-          </button>
-          <button type="button" class="abtn abtn-w" id="btn-wis" onclick="resetSel()" disabled>&#x2715; Wissen</button>
+          <button type="button" class="abtn abtn-w" id="btn-wis" onclick="resetSel()" disabled>Selectie wissen</button>
         </div>
-      </div>
-      <div id="reg-sidebar">
-        <div id="reg-sidebar-head">
-          <span id="reg-sidebar-title">Onderweg</span>
-          <span id="reg-sidebar-count">0</span>
-        </div>
-        <div id="reg-sidebar-body">
-          <div class="cards" id="all-active-cards"><div class="empty">Geen actieve rondes</div></div>
+        <div id="reg-onderweg-kaart">
+          <div id="reg-sidebar-head">
+            <span id="reg-sidebar-title">Onderweg</span>
+            <span id="reg-sidebar-count">0</span>
+          </div>
+          <div id="reg-sidebar-body">
+            <div class="cards" id="all-active-cards"><div class="empty">Geen actieve rondes</div></div>
+          </div>
         </div>
       </div>
     </div>
@@ -1592,7 +1607,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.5.15</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.6.0</span>
     </div>
   </nav>
 
@@ -2005,7 +2020,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.5.15';
+const APP_VERSION = '3.6.0';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -3288,12 +3303,23 @@ function updateTlVensterUI() {
 function updBtn() {
   const hasName  = S.sns.size > 0;
   const hasRoute = !!S.sr;
+  const namesArr = [...S.sns];
   // Disable only if ALL selected names are already active
-  const allActive = hasName && [...S.sns].every(n => !!S.active[n]);
+  const allActive = hasName && namesArr.every(n => !!S.active[n]);
   document.getElementById('btn-start').disabled = !hasName || !hasRoute || allActive;
-  const anyActive = hasName && [...S.sns].some(n => !!S.active[n]);
-  document.getElementById('btn-retour').disabled = !anyActive;
   document.getElementById('btn-wis').disabled = !hasName && !hasRoute;
+
+  // Selectie-kaart in de sidebar bijwerken — persoon-chips + ronde-tekst.
+  const persoonEl = document.getElementById('reg-sel-persoon');
+  if (persoonEl) {
+    persoonEl.innerHTML = hasName
+      ? namesArr.map(n => '<span class="reg-sel-chip"><span class="reg-sel-chip-av">'
+          + escHtml(dienstInitialen(n)) + '</span><span class="reg-sel-chip-naam">'
+          + escHtml(n) + '</span></span>').join('')
+      : '<span class="reg-sel-leeg">\u2014 nog niemand \u2014</span>';
+  }
+  const ronEl = document.getElementById('reg-sel-ronde');
+  if (ronEl) ronEl.innerHTML = hasRoute ? escHtml(S.sr) : '<span class="reg-sel-leeg">\u2014 nog geen \u2014</span>';
 }
 
 function resetSel() {
