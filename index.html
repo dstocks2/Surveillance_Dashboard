@@ -732,7 +732,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
    velden een inline font-size hebben die anders wint van deze regel. */
 @media(max-width:600px){
   input[type=text],input[type=number],input[type=tel],input[type=search],
-  input[type=password],input[type=email],select,textarea{font-size:16px !important}
+  input[type=text],input[type=search],input[type=password],input[type=email],input[type=number],input[type=time],select,textarea{font-size:16px !important}
 }
 </style>
 
@@ -1092,7 +1092,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.5.2</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.5.5</span></span>
     </div>
   </div>
 
@@ -1539,7 +1539,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.5.2</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.5.5</span>
     </div>
   </nav>
 
@@ -1952,7 +1952,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.5.2';
+const APP_VERSION = '3.5.5';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -2036,8 +2036,8 @@ function logEvent(type, msg, detail) {
   const evt = {
     ts: Date.now(),
     type: String(type || 'system'),
-    msg: String(msg || ''),
-    detail: detail !== undefined && detail !== null ? (typeof detail === 'string' ? detail : JSON.stringify(detail).slice(0, 500)) : '',
+    msg: String(msg || '').slice(0, 500),
+    detail: detail !== undefined && detail !== null ? (typeof detail === 'string' ? detail.slice(0, 4000) : JSON.stringify(detail).slice(0, 4000)) : '',
     deviceId: DEVICE_ID,
     userEmail: _u && _u.email ? String(_u.email) : '',
     appVersion: typeof APP_VERSION === 'string' ? APP_VERSION : ''
@@ -3222,28 +3222,32 @@ function doStart() {
   const startTime = Date.now();
   const route = S.sr;
   const groupId = startTime.toString(); // gedeelde id voor alle in deze start-actie
+  // started/skipped houden VOLLEDIGE namen bij. Voornaam alleen op het
+  // weergavemoment via voornamen(). Eerder werd hier de voornaam opgeslagen en
+  // later teruggezocht met m.naam.split(' ')[0] === s — dat matcht bij twee
+  // collega's met dezelfde voornaam (bv. twee Dennissen) altijd de EERSTE,
+  // waardoor pending-markers en active-entries op de verkeerde persoon kwamen
+  // en de dienst-sync tussen sessies uit de pas liep.
   const started = [], skipped = [];
   [...S.sns].forEach(n => {
-    if (S.active[n]) { skipped.push(n.split(' ')[0]); return; }
+    if (S.active[n]) { skipped.push(n); return; }
     S.active[n] = { route, start: startTime, groupId };
-    started.push(n.split(' ')[0]);
+    started.push(n);
   });
+  const voornamen = arr => joinNamen(arr.map(n => n.split(' ')[0]));
 
   if (!started.length) {
-    if (skipped.length) showToast(skipped.join(', ') + ' al onderweg, overgeslagen');
+    if (skipped.length) showToast(skipped.map(n => n.split(' ')[0]).join(', ') + ' al onderweg, overgeslagen');
     return;
   }
 
   // Optimistic UI: reset selection immediately
   S.sns = new Set(); S.sr = null;
   renderNameBtns(); renderRouteBtns(); updBtn(); renderAllActive();
-  if (skipped.length) setTimeout(() => showToast(skipped.join(', ') + ' al onderweg, overgeslagen'), 2800);
+  if (skipped.length) setTimeout(() => showToast(skipped.map(n => n.split(' ')[0]).join(', ') + ' al onderweg, overgeslagen'), 2800);
 
   // Mark pending so fbListen doesn't clobber these entries while write is in flight
-  started.forEach(s => {
-    const fullName = (S.medewerkers.find(m => m.naam.split(' ')[0] === s) || {naam: s}).naam;
-    markActivePending(fullName, 'add', { route, start: startTime });
-  });
+  started.forEach(fullName => markActivePending(fullName, 'add', { route, start: startTime }));
 
   // Write to Firebase — active only, log gaat niet meer als array
   if (window.fbDb) {
@@ -3254,44 +3258,36 @@ function doStart() {
       .then(() => {
         setFbStatus('ok');
         // Clear pending markers — Firebase now has our writes
-        started.forEach(s => {
-          const fullName = (S.medewerkers.find(m => m.naam.split(' ')[0] === s) || {naam: s}).naam;
-          clearActivePending(fullName);
-        });
-        logEvent('start', joinNamen(started) + ' gestart op ' + route, { names: started, route, ts: startTime });
-        showToast(joinNamen(started) + ' gestart — ' + route);
-        schrijfGedeeldeMelding('grijs', joinNamen(started) + ' gestart', route);
+        started.forEach(fullName => clearActivePending(fullName));
+        logEvent('start', voornamen(started) + ' gestart op ' + route, { names: started, route, ts: startTime });
+        showToast(voornamen(started) + ' gestart — ' + route);
+        schrijfGedeeldeMelding('grijs', route, voornamen(started) + ' gestart');
         // Duplicate route check only after confirmed write — tenzij route dubbel mag
         const routeObj = S.routes.find(r => r.naam === route);
         const dubbelToegestaan = routeObj && routeObj.dubbelOk === true;
         if (!dubbelToegestaan) {
-          const startedFull = started.map(s => (S.medewerkers.find(m => m.naam.split(' ')[0] === s) || {naam: s}).naam);
           const sameRoute = Object.entries(S.active)
-            .filter(([nm, a]) => a.route === route && !startedFull.includes(nm) && a.start !== startTime);
+            .filter(([nm, a]) => a.route === route && !started.includes(nm) && a.start !== startTime);
           if (sameRoute.length > 0) {
             const anderen = joinNamen(sameRoute.map(([nm]) => nm.split(' ')[0]));
-            schrijfGedeeldeMelding('oranje', 'Dubbele ronde — ' + route, joinNamen(started) + ' gestart, maar ' + anderen + ' loopt deze ronde al.');
-            voegMeldingToe('oranje', 'Dubbele ronde — ' + route, joinNamen(started) + ' gestart, maar ' + anderen + ' loopt deze ronde al.', null, null);
+            schrijfGedeeldeMelding('oranje', 'Dubbele ronde — ' + route, voornamen(started) + ' gestart, maar ' + anderen + ' loopt deze ronde al.');
+            voegMeldingToe('oranje', 'Dubbele ronde — ' + route, voornamen(started) + ' gestart, maar ' + anderen + ' loopt deze ronde al.', null, null);
           }
         }
       })
       .catch(e => {
         
         // Rollback: clear pending markers AND remove optimistically added active entries
-        started.forEach(s => {
-          const fullName = (S.medewerkers.find(m => m.naam.split(' ')[0] === s) || {naam: s}).naam;
+        started.forEach(fullName => {
           clearActivePending(fullName);
           if (S.active[fullName] && S.active[fullName].start === startTime) delete S.active[fullName];
         });
         setFbStatus('error');
         renderNameBtns(); renderRouteBtns(); updBtn(); renderAllActive();
-        logEvent('error', 'Start MISLUKT — ' + joinNamen(started) + ' op ' + route, { error: String(e), names: started, route });
-        voegMeldingToe('rood', 'Start mislukt — ' + joinNamen(started), route + ' kon niet worden opgeslagen. Controleer de verbinding.', 'Opnieuw proberen', () => {
+        logEvent('error', 'Start MISLUKT — ' + voornamen(started) + ' op ' + route, { error: String(e), names: started, route });
+        voegMeldingToe('rood', 'Start mislukt — ' + voornamen(started), route + ' kon niet worden opgeslagen. Controleer de verbinding.', 'Opnieuw proberen', () => {
           // Restore selection so user can retry
-          started.forEach(s => {
-            const fullName = (S.medewerkers.find(m => m.naam.split(' ')[0] === s) || {naam: s}).naam;
-            S.sns.add(fullName);
-          });
+          started.forEach(fullName => S.sns.add(fullName));
           S.sr = route;
           renderNameBtns(); renderRouteBtns(); updBtn();
         });
@@ -3299,8 +3295,8 @@ function doStart() {
       });
   } else {
     // No Firebase — local only
-    showToast(joinNamen(started) + ' gestart — ' + route);
-    schrijfGedeeldeMelding('grijs', joinNamen(started) + ' gestart', route);
+    showToast(voornamen(started) + ' gestart — ' + route);
+    schrijfGedeeldeMelding('grijs', route, voornamen(started) + ' gestart');
   }
 }
 
@@ -3379,7 +3375,7 @@ async function doRetour(name, _opts) {
       opruimStaleLangeRondeMeldingen();
       logEvent('retour', n.split(' ')[0] + ' retour van ' + a.route + ' (' + dur + ' min)', { name: n, route: a.route, start: a.start, end, dur, logId: logEntry.id });
       if (!skipMelding) {
-        schrijfGedeeldeMelding('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.');
+        schrijfGedeeldeMelding('grijs', a.route, n.split(' ')[0] + ' retour \u2014 ' + dur + ' min.');
         // Undo alleen bij losse retour (niet bij groepsretour, die skipt de melding):
         // zet de ronde terug naar actief en verwijder de zojuist gemaakte log-entry.
         showActionToast(n.split(' ')[0] + ' terug \u2014 ' + dur + ' min', 'Ongedaan maken',
@@ -3407,7 +3403,7 @@ async function doRetour(name, _opts) {
     }
   } else {
     showToast(n.split(' ')[0] + ' terug! \u2014 ' + dur + ' min');
-    if (!skipMelding) schrijfGedeeldeMelding('grijs', n.split(' ')[0] + ' retour', a.route + ' \u2014 ' + dur + ' min.');
+    if (!skipMelding) schrijfGedeeldeMelding('grijs', a.route, n.split(' ')[0] + ' retour \u2014 ' + dur + ' min.');
     return true;
   }
 }
@@ -3502,7 +3498,7 @@ async function doRetourAllen(names) {
   const durs   = okInfo.map(x => Math.max(0, Math.round((now - x.start) / 60000)));
   const minD = Math.min(...durs), maxD = Math.max(...durs);
   const durStr = (minD === maxD) ? (minD + ' min.') : (minD + '\u2013' + maxD + ' min.');
-  schrijfGedeeldeMelding('grijs', labels + ' retour', route + ' \u2014 ' + durStr);
+  schrijfGedeeldeMelding('grijs', route, labels + ' retour \u2014 ' + durStr);
 }
 
 // Voegt geselecteerde namen toe aan een bestaande actieve kaart (groupId).
@@ -3535,7 +3531,7 @@ function voegToeAanGroep(groupId, route) {
   if (!window.fbDb) {
     const labels = joinNamen(added.map(n => n.split(' ')[0]));
     showToast(labels + ' toegevoegd — ' + route);
-    schrijfGedeeldeMelding('grijs', labels + ' toegevoegd', route);
+    schrijfGedeeldeMelding('grijs', route, labels + ' toegevoegd');
     return;
   }
 
@@ -3547,7 +3543,7 @@ function voegToeAanGroep(groupId, route) {
       const labels = joinNamen(added.map(n => n.split(' ')[0]));
       logEvent('start', labels + ' toegevoegd aan ' + route, { names: added.map(n => n.split(' ')[0]), route, groupId, ts: startTime });
       showToast(labels + ' toegevoegd — ' + route);
-      schrijfGedeeldeMelding('grijs', labels + ' toegevoegd', route);
+      schrijfGedeeldeMelding('grijs', route, labels + ' toegevoegd');
     })
     .catch(e => {
       // Rollback
@@ -8070,7 +8066,12 @@ function schrijfGedeeldeMelding(type, naam, sub) {
   const nu = new Date();
   const tijdStr = String(nu.getHours()).padStart(2,'0') + ':' + String(nu.getMinutes()).padStart(2,'0');
   const ref = window.fbPush(window.fbRef(window.fbDb, 'dashboard/meldingen'));
-  window.fbSet(ref, { type, naam, sub, tijdStr, ts: Date.now() }).catch(e => logEvent('error', 'Melding schrijven MISLUKT', { error: String(e) }));
+  // Kappen op de Firebase-rules-limieten (naam<=120, sub<=200). Zonder cap
+  // wordt de hele melding-write stil geweigerd bij lange concatenaties
+  // (bv. groepsstart met meerdere volledige namen via joinNamen).
+  const naamSafe = String(naam || '').slice(0, 120);
+  const subSafe  = String(sub  || '').slice(0, 200);
+  window.fbSet(ref, { type, naam: naamSafe, sub: subSafe, tijdStr, ts: Date.now() }).catch(e => logEvent('error', 'Melding schrijven MISLUKT', { error: String(e) }));
 }
 
 // Clear any stale active/log from localStorage on startup
