@@ -214,13 +214,13 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .lbl{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--c-muted);margin-bottom:8px}
 .btn-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
 .nbtn{padding:9px 15px;border-radius:8px;border:1.5px solid var(--c-border-2);background:#fff;color:var(--c-text-2);font-size:13px;cursor:pointer;transition:all .13s;font-family:inherit;-webkit-tap-highlight-color:transparent}
-#route-btns .nbtn{padding:6px 10px;min-height:44px;font-size:12.5px;display:flex;align-items:center;text-align:left;border-radius:9px}
+#route-btns .nbtn{padding:6px 10px;min-height:44px;font-size:12.5px;font-weight:600;display:flex;align-items:center;text-align:left;border-radius:9px}
 .nbtn:focus,.nbtn:focus-visible{outline:none;box-shadow:none}
 @media(hover:hover) and (pointer:fine){.nbtn:hover{border-color:var(--c-primary);color:var(--c-brand);background:var(--c-primary-tint)}}
 .nbtn.sel{background:var(--c-brand);border-color:var(--c-brand);color:#fff;font-weight:600}
 .nbtn-av{display:inline-flex;align-items:center;gap:7px}
 .nbtn.nbtn-av{padding:6px 10px}
-.nbtn-av .nbtn-naam{font-size:12.5px}
+.nbtn-av .nbtn-naam{font-size:12.5px;font-weight:600}
 .nbtn-avatar{width:27px;height:27px;border-radius:50%;background:#e2e8f0;color:#475569;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;flex-shrink:0;letter-spacing:.02em;line-height:1}
 .nbtn-av.sel .nbtn-avatar{background:#fff;color:var(--c-brand-dark)}
 
@@ -521,8 +521,6 @@ body:has(#pane-dienst.on){overflow:hidden}
   .cards-done .cr{font-size:13px}
   .cards-done .ct{font-size:11px}
   .cards-done .cst{font-size:10px}
-  /* Actieve rondes (reg-tab) op mobiel: gestapeld, volle breedte */
-  #all-active-cards{grid-template-columns:1fr !important;gap:10px}
   /* Onderweg-kaarten (overzicht) op mobiel: 2 naast elkaar */
   #live-cards-active{grid-template-columns:repeat(2,1fr) !important;gap:8px}
   #all-active-cards .card.ca,#live-cards-active .card.ca{padding:12px 14px}
@@ -1137,7 +1135,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.6.6</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.6.8</span></span>
     </div>
   </div>
 
@@ -1334,7 +1332,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         <div class="reg-step">
           <span class="reg-step-num">1</span>
           <span class="reg-step-title">Wie loopt de ronde?</span>
-          <span class="reg-step-sub" id="reg-step1-sub">meerdere mogelijk</span>
+          <span class="reg-step-sub">meerdere mogelijk</span>
         </div>
         <div class="btn-row" id="name-btns"></div>
         <div class="hr"></div>
@@ -1601,7 +1599,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.6.6</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.6.8</span>
     </div>
   </nav>
 
@@ -2014,7 +2012,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.6.6';
+const APP_VERSION = '3.6.8';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -3137,13 +3135,9 @@ function renderNameBtns() {
     const zichtbaar = new Set(namen);
     let veranderd = false;
     [...S.sns].forEach(n => { if (!zichtbaar.has(n)) { S.sns.delete(n); veranderd = true; } });
-    if (veranderd) {
-      const elVal = document.getElementById('sn-val');
-      if (elVal) {
-        if (S.sns.size === 0) { elVal.className = 'ph'; elVal.textContent = 'selecteer een naam…'; }
-        else { elVal.className = 'v'; elVal.textContent = [...S.sns].join(', '); }
-      }
-    }
+    // Bij verwijderde spook-naam: sidebar-selectiekaart bijwerken via updBtn.
+    // (updBtn is veilig her-aanroepbaar; werkt persoon-chips + start-knop bij.)
+    if (veranderd && typeof updBtn === 'function') updBtn();
   }
   namen.forEach(n => {
     const btn = document.createElement('button');
@@ -3161,11 +3155,10 @@ function renderRouteBtns() {
   el.innerHTML = '';
   // Opschonen: als de geselecteerde ronde (S.sr) op een andere sessie verwijderd
   // is, de selectie loslaten zodat er geen ronde gestart wordt met een naam die
-  // niet meer bestaat.
+  // niet meer bestaat. Sidebar-selectiekaart wordt door updBtn() bijgewerkt.
   if (S.sr && !S.routes.some(r => r.naam === S.sr)) {
     S.sr = null;
-    const elVal = document.getElementById('sr-val');
-    if (elVal) { elVal.className = 'ph'; elVal.textContent = 'selecteer een ronde…'; }
+    if (typeof updBtn === 'function') updBtn();
   }
   // Groeperen op categorie — zelfde indeling als Instellingen (catOrder uit
   // S.routeCats, daarna categorieën buiten die lijst, daarna ongecategoriseerd).
@@ -3215,12 +3208,6 @@ function selN(n) {
   } else {
     S.sns.add(n);
   }
-  const el = document.getElementById('sn-val');
-  if (S.sns.size === 0) {
-    if (el) { el.className = 'ph'; el.textContent = 'selecteer een naam…'; }
-  } else {
-    if (el) { el.className = 'v'; el.textContent = [...S.sns].join(', '); }
-  }
   renderNameBtns(); updBtn();
   // "+ toevoegen" knop op actieve kaarten reageert op S.sns; her-renderen.
   renderAllActive();
@@ -3232,12 +3219,8 @@ function selR(r) {
   // Toggle: click same route again to deselect
   if (S.sr === r) {
     S.sr = null;
-    const el = document.getElementById('sr-val');
-    if (el) { el.className = 'ph'; el.textContent = 'selecteer een ronde…'; }
   } else {
     S.sr = r;
-    const el = document.getElementById('sr-val');
-    if (el) { el.className = 'v'; el.textContent = r; }
   }
   renderRouteBtns(); updBtn();
   if (document.activeElement) document.activeElement.blur();
