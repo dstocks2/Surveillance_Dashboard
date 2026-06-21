@@ -266,9 +266,9 @@ body:has(#pane-reg.on){overflow:hidden}
 #reg-selectie-kaart .abtn-s{width:100%;justify-content:center;margin-top:14px}
 #reg-selectie-kaart .abtn-w{width:100%;justify-content:center;margin-top:6px}
 #reg-selectie-kaart .abtn-w:disabled{display:none}
-#reg-sidebar-head{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:18px 16px 12px}
+#reg-sidebar-head{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:18px 16px 12px;border-top:1px solid #dce3ec}
 #reg-sidebar-title{font-size:14px;font-weight:700;color:#18283a}
-#reg-sidebar-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#eef2f7;color:#5d6e80;font-size:11px;font-weight:700}
+#reg-sidebar-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#eef2f7;color:#5d6e80;font-size:11px;font-weight:700;margin-left:auto}
 #reg-sidebar-chevron{display:none}
 #reg-sidebar-body{flex:1;min-height:0;overflow-y:auto;padding:0 14px 18px;-webkit-overflow-scrolling:touch}
 /* Mobiele sticky footer (.rmf) — bestaat alleen voor mobiel; op desktop/tablet
@@ -303,7 +303,7 @@ body:has(#pane-reg.on){overflow:hidden}
   #reg-sidebar{margin:14px 0 calc(66px + env(safe-area-inset-bottom) + 120px);border-radius:11px}
   #reg-sidebar-body{overflow:visible}
   #reg-sidebar-head{cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
-  #reg-sidebar-chevron{display:block;margin-left:auto;color:#5d6e80;transition:transform .18s;flex-shrink:0}
+  #reg-sidebar-chevron{display:block;color:#5d6e80;transition:transform .18s;flex-shrink:0}
   #reg-sidebar.open #reg-sidebar-chevron{transform:rotate(180deg)}
   #reg-sidebar-body{display:none}
   #reg-sidebar.open #reg-sidebar-body{display:block}
@@ -581,8 +581,8 @@ body:has(#pane-dienst.on){overflow:hidden}
   #dienst-chips{overflow:visible}
   #dienst-grid{overflow:visible;padding:0 2px 24px}
   #dienst-toolbar{padding:0 2px 12px}
-  .dienst-rolgrid,.dienst-rij{grid-template-columns:1fr 1fr;gap:8px}
-  .dienst-kaart{min-height:48px}
+  .dienst-rolgrid,.dienst-rij{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .dienst-kaart{min-height:48px;min-width:0}
   .dienst-groep{display:block}
   .dienst-letter{width:auto;padding:0 0 5px}
 }
@@ -1702,7 +1702,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.7.12</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.7.14</span>
     </div>
   </nav>
 
@@ -2115,7 +2115,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.7.12';
+const APP_VERSION = '3.7.14';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
