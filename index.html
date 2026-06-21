@@ -581,7 +581,8 @@ body:has(#pane-dienst.on){overflow:hidden}
   #dienst-chips{overflow:visible}
   #dienst-grid{overflow:visible;padding:0 2px 24px}
   #dienst-toolbar{padding:0 2px 12px}
-  .dienst-rolgrid,.dienst-rij{grid-template-columns:1fr}
+  .dienst-rolgrid,.dienst-rij{grid-template-columns:1fr 1fr;gap:8px}
+  .dienst-kaart{min-height:48px}
   .dienst-groep{display:block}
   .dienst-letter{width:auto;padding:0 0 5px}
 }
@@ -1701,7 +1702,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.7.11</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.7.12</span>
     </div>
   </nav>
 
@@ -2114,7 +2115,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.7.11';
+const APP_VERSION = '3.7.12';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
