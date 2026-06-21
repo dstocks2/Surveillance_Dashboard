@@ -276,7 +276,7 @@ body:has(#pane-reg.on){overflow:hidden}
   #reg-layout{gap:0}
   #reg-sidebar{border:none;border-left:1px solid #dce3ec;border-radius:0;box-shadow:none;margin:0}
 }
-/* Mobiel (v3.7.0): paginascroll, 2-koloms personen-grid, volle-breedte
+/* Mobiel (v3.7.0/v3.7.2): paginascroll, 2-koloms personen-grid, volle-breedte
    ronde-pills, dichtgeklapte "Onderweg"-accordion, sticky footer met Start-knop. */
 @media(max-width:700px){
   body:has(#pane-reg.on){overflow:auto}
@@ -287,7 +287,12 @@ body:has(#pane-reg.on){overflow:hidden}
   #name-btns.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   #name-btns .nbtn{min-height:48px;width:100%}
 
-  /* 2. Rondes per categorie — volle-breedte pills, duimvriendelijk */
+  /* 2. Rondes — geen categorie-indeling op mobiel, gewoon één doorlopende lijst
+     (JS blijft per categorie renderen, alleen het label + de groep-marge
+     worden hier visueel weggehaald zodat het als platte lijst oogt). */
+  #route-btns .reg-cat-lbl{display:none}
+  #route-btns .reg-cat{margin-top:8px}
+  #route-btns .reg-cat:first-child{margin-top:0}
   #route-btns .btn-row{flex-direction:column;gap:8px}
   #route-btns .nbtn{width:100%;min-height:48px}
 
@@ -318,10 +323,19 @@ body:has(#pane-reg.on){overflow:hidden}
   #reg-selectie-kaart .abtn-s{grid-column:2;grid-row:1 / span 2;width:auto;margin:0;padding:0 22px;min-height:48px;align-self:stretch}
   #reg-selectie-kaart .abtn-w{grid-column:1 / span 2;grid-row:3;width:auto;justify-self:start;margin:2px 0 0;padding:2px 0;font-size:11px}
 
-  /* Toast moet boven tabbar + sticky footer blijven zweven op de Registratie-tab */
+  /* Toast moet boven tabbar + sticky footer blijven zweven op de Registratie-tab.
+     LET OP: de verborgen stand verschuift met translateY(120px) t.o.v. de
+     'bottom'-positie — die was berekend voor de oorspronkelijke (lagere) bottom.
+     Nu bottom hoger ligt, moet de verberg-afstand mee omhoog, anders blijft er
+     een randje van de toast zichtbaar boven de sticky footer. */
   body:has(#pane-reg.on) .toast,
   body:has(#pane-reg.on) .toast-action{
     bottom:calc(66px + env(safe-area-inset-bottom) + 96px) !important;
+    transform:translateX(-50%) translateY(220px);
+  }
+  body:has(#pane-reg.on) .toast.show,
+  body:has(#pane-reg.on) .toast-action.show{
+    transform:translateX(-50%) translateY(0);
   }
 }
 .cards-done{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
@@ -1175,7 +1189,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.7.0</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.7.2</span></span>
     </div>
   </div>
 
@@ -1640,7 +1654,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.7.0</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.7.2</span>
     </div>
   </nav>
 
@@ -2053,7 +2067,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.7.0';
+const APP_VERSION = '3.7.2';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
