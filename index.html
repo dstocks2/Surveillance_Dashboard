@@ -230,7 +230,6 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 .abtn:disabled{opacity:.35;cursor:not-allowed;transform:none;pointer-events:none}
 .abtn-s{background:var(--c-brand-dark);color:#fff}
 .abtn-w{background:none;color:var(--c-muted-2);border:none;font-weight:500;padding:9px 6px}
-.abtn-w-icon{display:none}
 .abtn-w:not(:disabled):hover{color:var(--c-text);text-decoration:underline;background:none}
 .hr{border:none;border-top:1px solid var(--c-border);margin:16px 0}
 .reg-step{display:flex;align-items:center;gap:9px;margin-bottom:14px;flex-wrap:wrap}
@@ -277,7 +276,7 @@ body:has(#pane-reg.on){overflow:hidden}
   #reg-layout{gap:0}
   #reg-sidebar{border:none;border-left:1px solid #dce3ec;border-radius:0;box-shadow:none;margin:0}
 }
-/* Mobiel (v3.7.0/v3.7.3): paginascroll, 2-koloms personen-grid, volle-breedte
+/* Mobiel (v3.7.0/v3.7.4): paginascroll, 2-koloms personen-grid, volle-breedte
    ronde-pills, dichtgeklapte "Onderweg"-accordion, sticky footer met Start-knop. */
 @media(max-width:700px){
   body:has(#pane-reg.on){overflow:auto}
@@ -300,7 +299,7 @@ body:has(#pane-reg.on){overflow:hidden}
   /* 3. "Onderweg"-accordion: dichtgeklapt, opent met volledige kaartfunctionaliteit
      (notities, retour per persoon, meerdere mensen op één ronde — ongewijzigd via
      renderAllActive/groupCardHTML; alleen het in/uitklappen is nieuw). */
-  #reg-sidebar{margin:14px 0 calc(66px + env(safe-area-inset-bottom) + 110px);border-radius:11px}
+  #reg-sidebar{margin:14px 0 calc(66px + env(safe-area-inset-bottom) + 120px);border-radius:11px}
   #reg-sidebar-body{overflow:visible}
   #reg-sidebar-head{cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
   #reg-sidebar-chevron{margin-left:auto;color:#5d6e80;transition:transform .18s;flex-shrink:0}
@@ -308,29 +307,47 @@ body:has(#pane-reg.on){overflow:hidden}
   #reg-sidebar-body{display:none}
   #reg-sidebar.open #reg-sidebar-body{display:block}
 
-  /* 4. Sticky footer: alleen zichtbaar bij selectie (naam en/of ronde). Avatar+naam
-     linksboven, X rechtsboven (i.p.v. "Selectie wissen"), ronde eronder, grote
-     Start-knop onderaan — zie mockup van D. */
-  #reg-selectie-kaart{
-    display:none;
-    position:fixed;left:0;right:0;bottom:calc(66px + env(safe-area-inset-bottom));
-    margin:0;border-radius:14px 14px 0 0;background:#fff;
-    border-top:1px solid #dce3ec;box-shadow:0 -6px 20px rgba(17,42,68,.10);
-    padding:12px 14px;z-index:600;
-    grid-template-columns:1fr auto;column-gap:10px;row-gap:6px;align-items:start;
+  /* 4. Sticky footer (rmf-*): los element, alleen voor mobiel. #reg-selectie-kaart
+     blijft de desktop-sidebarkaart en wordt hier uitgeschakeld. */
+  #reg-selectie-kaart{display:none}
+
+  .rmf{
+    position:fixed;left:0;right:0;bottom:66px;
+    background:#fff;border-top:1px solid var(--c-border);
+    z-index:600;flex-shrink:0;
+    transition:border-color .15s;
   }
-  #reg-selectie-kaart.show-footer{display:grid}
-  #reg-selectie-kaart .reg-sel-rij{padding:0;border-bottom:none}
-  #reg-selectie-kaart .reg-sel-rij:nth-child(1){grid-column:1;grid-row:1}
-  #reg-selectie-kaart .reg-sel-rij:nth-child(2){grid-column:1;grid-row:2}
-  #reg-selectie-kaart .reg-sel-lbl{display:none}
-  #reg-selectie-kaart .reg-sel-val{font-size:12.5px;min-height:0}
-  #reg-selectie-kaart #reg-sel-ronde{font-size:12.5px;color:#5d6e80;font-weight:500}
-  #reg-selectie-kaart .abtn-s{grid-column:1 / span 2;grid-row:3;width:auto;margin-top:4px;padding:0;min-height:48px;justify-content:center}
-  #reg-selectie-kaart .abtn-w{grid-column:2;grid-row:1;justify-self:end;width:28px;height:28px;border-radius:50%;background:#eef2f7;padding:0;margin:0}
-  #reg-selectie-kaart .abtn-w-tekst{display:none}
-  #reg-selectie-kaart .abtn-w-icon{display:block}
-  #reg-selectie-kaart .abtn-w:disabled{display:none}
+  .rmf-hint{display:none;text-align:center;color:var(--c-muted);font-size:13px;padding:16px 10px}
+  .rmf-empty .rmf-hint{display:block}
+  .rmf-info{display:none;align-items:center;gap:10px;padding:10px 10px 0}
+  .rmf-start{display:none}
+  .rmf:not(.rmf-empty) .rmf-info{display:flex}
+  .rmf:not(.rmf-empty) .rmf-start{display:flex}
+
+  .rmf-avatars{display:flex;flex-shrink:0}
+  .rmf-av{width:28px;height:28px;border-radius:50%;background:#e2e8f0;color:#475569;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;border:2px solid #fff;margin-left:-8px;flex-shrink:0}
+  .rmf-av:first-child{margin-left:0}
+
+  .rmf-mid{flex:1;min-width:0}
+  .rmf-namen{font-size:14px;font-weight:700;color:#18283a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rmf-ronde{font-size:12px;color:var(--c-muted);margin-top:2px;transition:color .15s,font-weight .15s}
+  .rmf-ready .rmf-ronde{color:var(--c-brand-dark);font-weight:600}
+  .rmf-ready{border-top-color:var(--c-brand-dark)}
+
+  .rmf-close{width:32px;height:32px;border-radius:50%;border:none;background:#eef2f7;color:#5d6e80;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent}
+
+  .rmf-start{
+    width:calc(100% - 20px);margin:10px 10px 0;min-height:52px;border-radius:12px;
+    font-size:15px;font-weight:700;border:none;font-family:inherit;
+    align-items:center;justify-content:center;gap:8px;
+    background:#e5e9ee;color:#94a3b8;cursor:not-allowed;
+    transition:background .15s,box-shadow .15s,color .15s;
+  }
+  .rmf-ready .rmf-start{
+    background:var(--c-brand-dark);color:#fff;cursor:pointer;
+    box-shadow:0 4px 14px -4px var(--c-brand-dark);
+  }
+  .rmf-start:last-child{margin-bottom:10px}
 
   /* Toast moet boven tabbar + sticky footer blijven zweven op de Registratie-tab.
      LET OP: de verborgen stand verschuift met translateY(120px) t.o.v. de
@@ -339,8 +356,8 @@ body:has(#pane-reg.on){overflow:hidden}
      een randje van de toast zichtbaar boven de sticky footer. */
   body:has(#pane-reg.on) .toast,
   body:has(#pane-reg.on) .toast-action{
-    bottom:calc(66px + env(safe-area-inset-bottom) + 96px) !important;
-    transform:translateX(-50%) translateY(220px);
+    bottom:calc(66px + env(safe-area-inset-bottom) + 130px) !important;
+    transform:translateX(-50%) translateY(260px);
   }
   body:has(#pane-reg.on) .toast.show,
   body:has(#pane-reg.on) .toast-action.show{
@@ -1198,7 +1215,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.7.3</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.7.4</span></span>
     </div>
   </div>
 
@@ -1420,10 +1437,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
             <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M3 2l7 4-7 4V2z"/></svg>
             <span id="btn-start-label">Ronde starten</span>
           </button>
-          <button type="button" class="abtn abtn-w" id="btn-wis" onclick="resetSel()" disabled aria-label="Selectie wissen">
-            <span class="abtn-w-tekst">Selectie wissen</span>
-            <svg class="abtn-w-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
+          <button type="button" class="abtn abtn-w" id="btn-wis" onclick="resetSel()" disabled>Selectie wissen</button>
         </div>
         <div id="reg-sidebar-head" onclick="toggleOnderwegAccordion()" role="button" tabindex="0" aria-expanded="false" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleOnderwegAccordion();}">
           <span id="reg-sidebar-title">Onderweg</span>
@@ -1434,6 +1448,25 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
           <div class="cards" id="all-active-cards"><div class="empty">Geen actieve rondes</div></div>
         </div>
       </div>
+    </div>
+
+    <!-- Mobiele sticky footer (3 toestanden: leeg/gedeeltelijk/klaar) — los element,
+         alleen zichtbaar op ≤700px (#reg-selectie-kaart blijft de desktop-variant). -->
+    <div id="rmf" class="rmf rmf-empty">
+      <div class="rmf-hint">Kies wie de ronde loopt om te beginnen</div>
+      <div class="rmf-info">
+        <div id="rmf-avatars" class="rmf-avatars"></div>
+        <div class="rmf-mid">
+          <div id="rmf-namen" class="rmf-namen">Nog niemand gekozen</div>
+          <div id="rmf-ronde" class="rmf-ronde">nog geen ronde gekozen</div>
+        </div>
+        <button type="button" id="rmf-wis" class="rmf-close" onclick="resetSel()" aria-label="Selectie wissen">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <button type="button" id="rmf-start" class="rmf-start" onclick="doStart()" disabled>
+        <span id="rmf-start-label">Ronde starten</span>
+      </button>
     </div>
   </div>
 
@@ -1666,7 +1699,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.7.3</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.7.4</span>
     </div>
   </nav>
 
@@ -2079,7 +2112,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.7.3';
+const APP_VERSION = '3.7.4';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -3365,16 +3398,33 @@ function updBtn() {
   const ronEl = document.getElementById('reg-sel-ronde');
   if (ronEl) ronEl.innerHTML = hasRoute ? escHtml(S.sr) : '<span class="reg-sel-leeg">\u2014 nog geen \u2014</span>';
 
-  // Mobiele sticky footer: alleen tonen zodra er een naam en/of ronde gekozen is
-  // (#reg-selectie-kaart is op desktop altijd zichtbaar; de class heeft daar geen
-  // effect, want display:none zit alleen in @media(max-width:700px)).
-  const kaartEl = document.getElementById('reg-selectie-kaart');
-  if (kaartEl) kaartEl.classList.toggle('show-footer', hasName || hasRoute);
+  // Mobiele sticky footer (3 toestanden) — los element (#rmf), onafhankelijk van
+  // de desktop-sidebarkaart hierboven.
+  const rmf = document.getElementById('rmf');
+  if (rmf) {
+    const ready = hasName && hasRoute;
+    rmf.classList.toggle('rmf-empty', !hasName && !hasRoute);
+    rmf.classList.toggle('rmf-ready', ready);
 
-  // Start-knop toont de gekozen ronde in het label ("Start Polironde") i.p.v.
-  // de generieke tekst, zodra een ronde is gekozen.
-  const startLbl = document.getElementById('btn-start-label');
-  if (startLbl) startLbl.textContent = hasRoute ? ('Start ' + S.sr) : 'Ronde starten';
+    const avEl = document.getElementById('rmf-avatars');
+    if (avEl) {
+      avEl.innerHTML = namesArr.map(n =>
+        '<span class="rmf-av">' + escHtml(dienstInitialen(n)) + '</span>').join('');
+    }
+    const namenEl = document.getElementById('rmf-namen');
+    if (namenEl) {
+      namenEl.textContent = hasName
+        ? joinNamen(namesArr.map(n => n.split(' ')[0]))
+        : 'Nog niemand gekozen';
+    }
+    const rondeEl = document.getElementById('rmf-ronde');
+    if (rondeEl) rondeEl.textContent = hasRoute ? S.sr : 'nog geen ronde gekozen';
+
+    const startBtn = document.getElementById('rmf-start');
+    if (startBtn) startBtn.disabled = !hasName || !hasRoute || allActive;
+    const startLblM = document.getElementById('rmf-start-label');
+    if (startLblM) startLblM.textContent = hasRoute ? ('Start ' + S.sr) : 'Ronde starten';
+  }
 }
 
 function resetSel() {
