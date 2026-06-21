@@ -276,11 +276,11 @@ body:has(#pane-reg.on){overflow:hidden}
   #reg-layout{gap:0}
   #reg-sidebar{border:none;border-left:1px solid #dce3ec;border-radius:0;box-shadow:none;margin:0}
 }
-/* Mobiel: paginascroll terug, één kolom, sidebar boven de stappen */
+/* Mobiel: paginascroll terug, één kolom, stappen eerst, sidebar daaronder */
 @media(max-width:700px){
   body:has(#pane-reg.on){overflow:auto}
   #reg-layout{display:flex;flex-direction:column;height:auto;overflow:visible}
-  #reg-sidebar{order:-1;margin:0 0 14px;border-radius:11px}
+  #reg-sidebar{margin:14px 0 0;border-radius:11px}
   #reg-sidebar-body{overflow:visible}
   #reg-main{overflow:visible;padding:0 2px 24px}
 }
@@ -1137,7 +1137,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.6.4</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.6.5</span></span>
     </div>
   </div>
 
@@ -1601,7 +1601,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.6.4</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.6.5</span>
     </div>
   </nav>
 
@@ -2014,7 +2014,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.6.4';
+const APP_VERSION = '3.6.5';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -6576,6 +6576,7 @@ var CFG_MOB_SECTIONS = {
   schema:      { title: 'Dagplanning', action: '+ Item / Dagdeel', fn: function() { schemaActionBtn(); } },
   gedrag:      { title: 'Gedrag',      action: null,           fn: null },
   auditlog:    { title: 'Audit log',   action: null,           fn: null },
+  beheerders:  { title: 'Beheerders',  action: '+ Beheerder',  fn: function() { openBeheerderModal(); } },
 };
 
 function isMobile() { return window.innerWidth <= 700; }
