@@ -276,13 +276,53 @@ body:has(#pane-reg.on){overflow:hidden}
   #reg-layout{gap:0}
   #reg-sidebar{border:none;border-left:1px solid #dce3ec;border-radius:0;box-shadow:none;margin:0}
 }
-/* Mobiel: paginascroll terug, één kolom, stappen eerst, sidebar daaronder */
+/* Mobiel (v3.7.0): paginascroll, 2-koloms personen-grid, volle-breedte
+   ronde-pills, dichtgeklapte "Onderweg"-accordion, sticky footer met Start-knop. */
 @media(max-width:700px){
   body:has(#pane-reg.on){overflow:auto}
   #reg-layout{display:flex;flex-direction:column;height:auto;overflow:visible}
-  #reg-sidebar{margin:14px 0 0;border-radius:11px}
-  #reg-sidebar-body{overflow:visible}
   #reg-main{overflow:visible;padding:0 2px 24px}
+
+  /* 1. Personen — 2-koloms grid, >=48px tap-targets, avatar + naam per chip */
+  #name-btns.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  #name-btns .nbtn{min-height:48px;width:100%}
+
+  /* 2. Rondes per categorie — volle-breedte pills, duimvriendelijk */
+  #route-btns .btn-row{flex-direction:column;gap:8px}
+  #route-btns .nbtn{width:100%;min-height:48px}
+
+  /* 3. "Onderweg"-accordion: dichtgeklapt, opent met volledige kaartfunctionaliteit
+     (notities, retour per persoon, meerdere mensen op één ronde — ongewijzigd via
+     renderAllActive/groupCardHTML; alleen het in/uitklappen is nieuw). */
+  #reg-sidebar{margin:14px 0 calc(66px + env(safe-area-inset-bottom) + 110px);border-radius:11px}
+  #reg-sidebar-body{overflow:visible}
+  #reg-sidebar-head{cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+  #reg-sidebar-chevron{margin-left:auto;color:#5d6e80;transition:transform .18s;flex-shrink:0}
+  #reg-sidebar.open #reg-sidebar-chevron{transform:rotate(180deg)}
+  #reg-sidebar-body{display:none}
+  #reg-sidebar.open #reg-sidebar-body{display:block}
+
+  /* 4. Sticky footer: wie + welke ronde + grote Start-knop, vast boven de tabbar */
+  #reg-selectie-kaart{
+    position:fixed;left:0;right:0;bottom:calc(66px + env(safe-area-inset-bottom));
+    margin:0;border-radius:14px 14px 0 0;background:#fff;
+    border-top:1px solid #dce3ec;box-shadow:0 -6px 20px rgba(17,42,68,.10);
+    padding:10px 14px;z-index:600;
+    display:grid;grid-template-columns:1fr auto;column-gap:10px;row-gap:4px;align-items:center;
+  }
+  #reg-selectie-kaart .reg-sel-rij{padding:0;border-bottom:none}
+  #reg-selectie-kaart .reg-sel-rij:nth-child(1){grid-column:1;grid-row:1}
+  #reg-selectie-kaart .reg-sel-rij:nth-child(2){grid-column:1;grid-row:2}
+  #reg-selectie-kaart .reg-sel-lbl{display:none}
+  #reg-selectie-kaart .reg-sel-val{font-size:12.5px;min-height:0}
+  #reg-selectie-kaart .abtn-s{grid-column:2;grid-row:1 / span 2;width:auto;margin:0;padding:0 22px;min-height:48px;align-self:stretch}
+  #reg-selectie-kaart .abtn-w{grid-column:1 / span 2;grid-row:3;width:auto;justify-self:start;margin:2px 0 0;padding:2px 0;font-size:11px}
+
+  /* Toast moet boven tabbar + sticky footer blijven zweven op de Registratie-tab */
+  body:has(#pane-reg.on) .toast,
+  body:has(#pane-reg.on) .toast-action{
+    bottom:calc(66px + env(safe-area-inset-bottom) + 96px) !important;
+  }
 }
 .cards-done{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
 .live-col-onderweg #live-cards-active{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -1135,7 +1175,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.6.8</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.7.0</span></span>
     </div>
   </div>
 
@@ -1359,9 +1399,10 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
           </button>
           <button type="button" class="abtn abtn-w" id="btn-wis" onclick="resetSel()" disabled>Selectie wissen</button>
         </div>
-        <div id="reg-sidebar-head">
+        <div id="reg-sidebar-head" onclick="toggleOnderwegAccordion()" role="button" tabindex="0" aria-expanded="false" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleOnderwegAccordion();}">
           <span id="reg-sidebar-title">Onderweg</span>
           <span id="reg-sidebar-count">0</span>
+          <svg id="reg-sidebar-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
         <div id="reg-sidebar-body">
           <div class="cards" id="all-active-cards"><div class="empty">Geen actieve rondes</div></div>
@@ -1599,7 +1640,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.6.8</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.7.0</span>
     </div>
   </nav>
 
@@ -2012,7 +2053,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.6.8';
+const APP_VERSION = '3.7.0';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -3305,6 +3346,16 @@ function resetSel() {
   renderAllActive();
 }
 
+// Mobiele "Onderweg"-accordion (Registratie-tab). Op desktop heeft de class
+// .open geen effect (CSS-regel zit alleen in @media(max-width:700px)).
+function toggleOnderwegAccordion() {
+  const sb = document.getElementById('reg-sidebar');
+  if (!sb) return;
+  const open = sb.classList.toggle('open');
+  const head = document.getElementById('reg-sidebar-head');
+  if (head) head.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+
 function doStart() {
   if (S.sns.size === 0 || !S.sr) return;
   const startTime = Date.now();
@@ -3348,7 +3399,7 @@ function doStart() {
         // Clear pending markers — Firebase now has our writes
         started.forEach(fullName => clearActivePending(fullName));
         logEvent('start', voornamen(started) + ' gestart op ' + route, { names: started, route, ts: startTime });
-        showToast(voornamen(started) + ' gestart — ' + route);
+        showActionToast(voornamen(started) + ' gestart — ' + route, 'Ongedaan maken', () => herstelStart(started, route, startTime), 4500);
         schrijfGedeeldeMelding('grijs', route, voornamen(started) + ' gestart');
         // Duplicate route check only after confirmed write — tenzij route dubbel mag
         const routeObj = S.routes.find(r => r.naam === route);
@@ -3383,9 +3434,30 @@ function doStart() {
       });
   } else {
     // No Firebase — local only
-    showToast(voornamen(started) + ' gestart — ' + route);
+    showActionToast(voornamen(started) + ' gestart — ' + route, 'Ongedaan maken', () => herstelStart(started, route, startTime), 4500);
     schrijfGedeeldeMelding('grijs', route, voornamen(started) + ' gestart');
   }
+}
+
+// Undo-helper voor een zojuist gestarte ronde (toast "Ongedaan maken", 4.5s).
+// Guard: alleen ongedaan maken als de betrokkenen nog exact op DEZE start staan —
+// als iemand intussen al retour heeft gemeld, blijft die buiten schot.
+function herstelStart(names, route, startTime) {
+  const stillActive = names.filter(n => S.active[n] && S.active[n].start === startTime);
+  if (!stillActive.length) { showToast('Kan niet ongedaan maken — al gewijzigd'); return; }
+  stillActive.forEach(n => {
+    delete S.active[n];
+    markActivePending(n, 'remove', { route, start: startTime });
+  });
+  renderAllActive(); updBtn();
+  if (typeof renderLive === 'function') renderLive();
+  if (window.fbDb) {
+    window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/active': cleanActiveForFirebase() })
+      .then(() => { setFbStatus('ok'); stillActive.forEach(n => clearActivePending(n)); })
+      .catch(e => { setFbStatus('error'); logEvent('error', 'Start ongedaan maken MISLUKT', { error: String(e), names: stillActive, route }); });
+  }
+  logEvent('start', joinNamen(stillActive.map(n => n.split(' ')[0])) + ' start ongedaan gemaakt — ' + route, { names: stillActive, route });
+  showToast(joinNamen(stillActive.map(n => n.split(' ')[0])) + ' start ongedaan gemaakt');
 }
 
 // ==============================================================================
