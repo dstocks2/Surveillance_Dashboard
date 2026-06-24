@@ -1251,7 +1251,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.8.6</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.8.7</span></span>
     </div>
   </div>
 
@@ -1742,7 +1742,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.8.6</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.8.7</span>
     </div>
   </nav>
 
@@ -2155,7 +2155,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.8.6';
+const APP_VERSION = '3.8.7';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -8244,8 +8244,10 @@ function initFirebase() {
   fbListenEventLog();  // listen for audit log
   logEvent('system', 'App geladen', { version: APP_VERSION, ua: navigator.userAgent.slice(0, 120) });
   if (!LS_OK) logEvent('system', 'localStorage niet beschikbaar — device-id en lokale cache zijn vluchtig (private mode of storage geblokkeerd)');
-  const fbSt = document.getElementById('fb-status');
-  if (fbSt) fbSt.textContent = '● gesynchroniseerd';
+  // Via setFbStatus zodat tekst én kleur consistent zijn; nooit los de tekst
+  // op 'gesynchroniseerd' zetten terwijl de kleur (van een eerdere error) rood
+  // bleef — dat gaf de tegenstrijdige 'rood + gesynchroniseerd'-status.
+  setFbStatus(_fbConnected ? 'ok' : 'error');
 
   // Stale-active cleanup 5s na init zodat fbListen tijd heeft S.active te vullen
   setTimeout(pruneStaleActive, 5000);
@@ -8397,16 +8399,37 @@ function toonOfflineBanner(show) {
 // een dode RTDB-socket (iOS heropent die niet altijd vanzelf na wifi-herstel)
 // automatisch opklaart zonder dat de bewaker iets hoeft te doen.
 const RECONNECT_WATCHDOG_MS = 15000;
+const RECONNECT_MAX_TRIES = 4; // ~60s socket-resets vóór harde reload als redmiddel
 let _reconnectWatchdog = null;
+let _reconnectTries = 0;
 function startReconnectWatchdog() {
   if (_reconnectWatchdog) return;
+  _reconnectTries = 0;
   _reconnectWatchdog = setInterval(() => {
     if (_fbConnected) { stopReconnectWatchdog(); return; }
+    _reconnectTries++;
+    // Eerst zacht proberen: socket-reset via goOffline()+goOnline().
     if (window.fbReconnect) window.fbReconnect();
+    // Laatste redmiddel: als de socket na meerdere resets nog steeds dood is,
+    // een harde reload — maar ALLEEN als niemand midden in een actie zit
+    // (geen actieve rondes, geen selectie), zodat er geen werk verloren gaat.
+    if (_reconnectTries >= RECONNECT_MAX_TRIES) {
+      const hasActive = Object.keys(S.active || {}).length > 0;
+      const hasSel = S.sns && S.sns.size > 0;
+      if (!hasActive && !hasSel && typeof forceReloadFresh === 'function') {
+        stopReconnectWatchdog();
+        logEvent('sync', 'Socket bleef dood na meerdere resets — harde reload als herstel');
+        forceReloadFresh();
+      } else {
+        // Iemand is bezig: niet reloaden, teller terugzetten en zacht blijven proberen.
+        _reconnectTries = 0;
+      }
+    }
   }, RECONNECT_WATCHDOG_MS);
 }
 function stopReconnectWatchdog() {
   if (_reconnectWatchdog) { clearInterval(_reconnectWatchdog); _reconnectWatchdog = null; }
+  _reconnectTries = 0;
 }
 
 function fbListenConnected() {
@@ -8542,15 +8565,18 @@ function _checkBeheerder(uid) {
   }
   window.fbGet(window.fbRef(window.fbDb, 'dashboard/beheerders/' + uid))
     .then(function(snap) {
+      // Alleen een GESLAAGDE read is gezaghebbend: dan pas mogen we de rol
+      // definitief vaststellen (incl. intrekken als de uid geen beheerder is).
       _isBeheerder = !!(snap && snap.exists());
       _beheerderChecked = true;
       applyBeheerderUI();
       if (_isBeheerder) fbListenBeheerders();
     })
     .catch(function() {
-      _isBeheerder = false;
-      _beheerderChecked = true;
-      applyBeheerderUI();
+      // Verbindingsfout (dode socket): NIET de beheerder-rol wegklappen — dat gaf
+      // het beeld 'ingelogd als beheerder maar bewaker-UI'. Rol behouden zoals hij
+      // was en het later opnieuw proberen zodra de verbinding terug is.
+      setTimeout(function() { _checkBeheerder(uid); }, 3000);
     });
 }
 
