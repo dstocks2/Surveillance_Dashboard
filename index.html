@@ -880,7 +880,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <script type="module">
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref as _ref, onValue as _onValue, get as _get, set as _set, update as _update, remove as _remove, push as _push, serverTimestamp as _serverTimestamp, goOffline as _goOffline, goOnline as _goOnline } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getDatabase, ref as _ref, onValue as _onValue, get as _get, set as _set, update as _update, remove as _remove, push as _push, serverTimestamp as _serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
   // ════════════════════════════════════════════════════════════════════════
@@ -1139,20 +1139,6 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   // ── publieke API (zelfde signatuur als voorheen) ──
   window.fbDb  = db;
   window.fbRef = (d, path) => ({ __p: path || '' });
-  // Forceer een socket-reset. iOS/Safari heropent de RTDB-socket na een
-  // wifi-onderbreking niet altijd vanzelf; .info/connected blijft dan op false
-  // plakken hoewel het internet weer werkt. goOffline()+goOnline() dwingt een
-  // schone herverbinding af. _reconnectBusy voorkomt overlappende resets.
-  let _reconnectBusy = false;
-  window.fbReconnect = () => {
-    if (_reconnectBusy) return;
-    _reconnectBusy = true;
-    try { _goOffline(db); } catch (e) {}
-    setTimeout(() => {
-      try { _goOnline(db); } catch (e) {}
-      _reconnectBusy = false;
-    }, 250);
-  };
   const realRef = (marker) => _ref(db, mapPath(marker.__p));
 
   window.fbSet    = (m, v) => _set(realRef(m), v);
@@ -1251,7 +1237,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.8.7</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.8.8</span></span>
     </div>
   </div>
 
@@ -1742,7 +1728,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.8.7</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.8.8</span>
     </div>
   </nav>
 
@@ -2155,7 +2141,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.8.7';
+const APP_VERSION = '3.8.8';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -8395,41 +8381,40 @@ function toonOfflineBanner(show) {
   }
 }
 
-// Watchdog: zolang we offline staan, periodiek een socket-reset forceren zodat
-// een dode RTDB-socket (iOS heropent die niet altijd vanzelf na wifi-herstel)
-// automatisch opklaart zonder dat de bewaker iets hoeft te doen.
+// Watchdog bij verbindingsverlies. We grijpen NIET in op de socket zelf —
+// goOffline()/goOnline() bleek op iOS Safari een herstellende verbinding juist
+// kapot te maken (de SDK reconnect zelf met exponential backoff; daar moeten we
+// vanaf blijven). De watchdog wacht passief; als de verbinding ~60s wegblijft
+// én niemand midden in een actie zit, doet hij één harde reload — een verse
+// page-load zet betrouwbaar een schone socket op, wat op iOS het enige is dat
+// consistent werkt. Zit iemand wél te werken, dan reloaden we niet en wachten af.
 const RECONNECT_WATCHDOG_MS = 15000;
-const RECONNECT_MAX_TRIES = 4; // ~60s socket-resets vóór harde reload als redmiddel
+const RECONNECT_MAX_TICKS = 4; // ~60s offline vóór harde reload als redmiddel
 let _reconnectWatchdog = null;
-let _reconnectTries = 0;
+let _reconnectTicks = 0;
 function startReconnectWatchdog() {
   if (_reconnectWatchdog) return;
-  _reconnectTries = 0;
+  _reconnectTicks = 0;
   _reconnectWatchdog = setInterval(() => {
     if (_fbConnected) { stopReconnectWatchdog(); return; }
-    _reconnectTries++;
-    // Eerst zacht proberen: socket-reset via goOffline()+goOnline().
-    if (window.fbReconnect) window.fbReconnect();
-    // Laatste redmiddel: als de socket na meerdere resets nog steeds dood is,
-    // een harde reload — maar ALLEEN als niemand midden in een actie zit
-    // (geen actieve rondes, geen selectie), zodat er geen werk verloren gaat.
-    if (_reconnectTries >= RECONNECT_MAX_TRIES) {
+    _reconnectTicks++;
+    if (_reconnectTicks >= RECONNECT_MAX_TICKS) {
       const hasActive = Object.keys(S.active || {}).length > 0;
       const hasSel = S.sns && S.sns.size > 0;
       if (!hasActive && !hasSel && typeof forceReloadFresh === 'function') {
         stopReconnectWatchdog();
-        logEvent('sync', 'Socket bleef dood na meerdere resets — harde reload als herstel');
+        logEvent('sync', 'Verbinding bleef ~60s weg — harde reload als herstel');
         forceReloadFresh();
       } else {
-        // Iemand is bezig: niet reloaden, teller terugzetten en zacht blijven proberen.
-        _reconnectTries = 0;
+        // Iemand is bezig: niet reloaden, teller terugzetten en blijven wachten.
+        _reconnectTicks = 0;
       }
     }
   }, RECONNECT_WATCHDOG_MS);
 }
 function stopReconnectWatchdog() {
   if (_reconnectWatchdog) { clearInterval(_reconnectWatchdog); _reconnectWatchdog = null; }
-  _reconnectTries = 0;
+  _reconnectTicks = 0;
 }
 
 function fbListenConnected() {
@@ -8459,14 +8444,6 @@ function fbListenConnected() {
     }
   });
 }
-
-// Direct een herverbinding proberen op momenten waarop het toestel weer 'leeft':
-// browser meldt netwerk terug, of de bewaker pakt de iPad weer op. Sneller dan
-// wachten op de watchdog-tick.
-window.addEventListener('online', () => { if (!_fbConnected && window.fbReconnect) window.fbReconnect(); });
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && !_fbConnected && window.fbReconnect) window.fbReconnect();
-});
 
 function schrijfGedeeldeMelding(type, naam, sub) {
   if (!window.fbDb || !window.fbPush || !window.fbRef) return;
