@@ -255,6 +255,7 @@ body:has(#pane-reg.on){overflow:hidden}
    onderweg-lijst (actieve rondes) eronder, samen in dezelfde scroll-context. */
 #reg-sidebar{display:flex;flex-direction:column;overflow:hidden;background:#fff;border:1px solid #dce3ec;border-radius:12px;box-shadow:0 1px 2px rgba(17,42,68,.04),0 4px 16px rgba(17,42,68,.05);margin:6px 16px 14px 6px}
 #reg-selectie-kaart{flex-shrink:0;margin:14px 14px 0}
+#reg-selectie-kaart.reg-sel-verborgen{display:none}
 #reg-sel-rows{padding:14px;border-radius:10px;background:#eef2f7}
 .reg-sel-rij{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #dce3ec}
 .reg-sel-rij:first-child{padding-top:0}
@@ -1227,7 +1228,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.8.0</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.8.1</span></span>
     </div>
   </div>
 
@@ -1435,7 +1436,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         <div id="route-btns"></div>
       </div>
       <div id="reg-sidebar">
-        <div id="reg-selectie-kaart">
+        <div id="reg-selectie-kaart" class="reg-sel-verborgen">
           <div id="reg-sel-rows">
             <div class="reg-sel-rij">
               <span class="reg-sel-lbl">Persoon</span>
@@ -1712,7 +1713,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.8.0</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.8.1</span>
     </div>
   </nav>
 
@@ -2125,7 +2126,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.8.0';
+const APP_VERSION = '3.8.1';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -3426,6 +3427,14 @@ function updBtn() {
   const allActive = hasName && namesArr.every(n => !!S.active[n]);
   document.getElementById('btn-start').disabled = !hasName || !hasRoute || allActive;
   document.getElementById('btn-wis').disabled = !hasName && !hasRoute;
+
+  // Selectie-kaart (desktop-sidebar) pas tonen zodra er íets gekozen is. Leeg =
+  // verborgen, zodat de Onderweg-sectie de volle hoogte krijgt. Toggle via class
+  // i.p.v. inline display: op mobiel staat #reg-selectie-kaart toch al op
+  // display:none (sticky footer doet daar het werk) en die media-query moet
+  // blijven winnen — een inline style zou dat overschrijven.
+  const selKaart = document.getElementById('reg-selectie-kaart');
+  if (selKaart) selKaart.classList.toggle('reg-sel-verborgen', !hasName && !hasRoute);
 
   // Selectie-kaart in de sidebar bijwerken — persoon-chips + ronde-tekst.
   const persoonEl = document.getElementById('reg-sel-persoon');
