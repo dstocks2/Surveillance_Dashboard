@@ -305,7 +305,7 @@ body:has(#pane-reg.on){overflow:hidden}
      renderAllActive/groupCardHTML; alleen het in/uitklappen is nieuw). */
   #reg-sidebar{margin:14px 0 calc(66px + env(safe-area-inset-bottom) + 120px);border-radius:11px}
   #reg-sidebar-body{overflow:visible}
-  #reg-sidebar-head{cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+  #reg-sidebar-head{cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;margin-top:0;border-top:none}
   #reg-sidebar-chevron{display:block;color:#5d6e80;transition:transform .18s;flex-shrink:0}
   #reg-sidebar.open #reg-sidebar-chevron{transform:rotate(180deg)}
   #reg-sidebar-body{display:none}
@@ -1153,14 +1153,19 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       // audit/log en ops/meldingen hebben eigen listeners en triggeren dit NIET.
       const parts = { config: undefined, dienst: undefined, active: undefined, log: undefined, notities: undefined, appVersion: undefined };
       let pending = 0;
+      const unsubs = [];
       const emit = () => {
         for (const k of ['config', 'dienst', 'active', 'log', 'notities', 'appVersion']) if (parts[k] === undefined) return;
         cb(snapLike(composeRoot(parts)));
       };
       const sub = (path, key) => {
         pending++;
-        _onValue(_ref(db, path), s => { parts[key] = s.val() ?? null; emit(); },
-          e => { console.error('v3 listener ' + path, e); if (errCb) errCb(e); });
+        // _onValue geeft een unsubscribe terug; bewaren zodat de teardown hieronder
+        // ALLE sub-listeners echt afmeldt. Voorheen returnde dit blok () => {} (no-op),
+        // wat geen lek is bij het huidige single-boot-model maar wél een valstrik
+        // zou zijn zodra er ooit een re-init/logout-herstart wordt toegevoegd.
+        unsubs.push(_onValue(_ref(db, path), s => { parts[key] = s.val() ?? null; emit(); },
+          e => { console.error('v3 listener ' + path, e); if (errCb) errCb(e); }));
       };
       sub('config', 'config');
       sub('ops/dienst', 'dienst');
@@ -1168,7 +1173,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       sub('ops/log', 'log');
       sub('ops/notities', 'notities');
       sub('meta/appVersion', 'appVersion');
-      return () => {};
+      return () => unsubs.forEach(u => { try { u(); } catch (e) {} });
     }
     return _onValue(realRef(m), s => cb(snapLike(s.val())), errCb);
   };
@@ -1222,7 +1227,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.7.10</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.8.0</span></span>
     </div>
   </div>
 
@@ -1707,7 +1712,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.7.17</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.8.0</span>
     </div>
   </nav>
 
@@ -2120,7 +2125,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.7.17';
+const APP_VERSION = '3.8.0';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -2176,6 +2181,16 @@ const LS = {
   get: k => { try { return JSON.parse(localStorage.getItem(k)) } catch(e) { return null } },
   set: (k, v) => localStorage.setItem(k, JSON.stringify(v))
 };
+
+// localStorage-beschikbaarheid. In private mode (oudere iOS Safari) of bij een
+// quota/storage-clear gooit localStorage en verliezen we stil het device-id en
+// de lokale cache. We detecteren dat één keer bij laden zodat init het kan loggen
+// — geen crash, maar wel zichtbaar in de audit-log waarom een toestel zich
+// "vergeetachtig" gedraagt (nieuw device-id elke sessie, voorkeuren weg).
+const LS_OK = (() => {
+  try { localStorage.setItem('__sd_test', '1'); localStorage.removeItem('__sd_test'); return true; }
+  catch (e) { return false; }
+})();
 
 // ── Event log (audit trail) ────────────────────────────────────────────────
 // Persistent device ID for distinguishing which client logged each event
@@ -2390,8 +2405,14 @@ function fbRemoveLogEntry(fbKey) {
 // Compares semver strings, returns true if remote > local
 function isNewerVersion(remote, local) {
   if (!remote || typeof remote !== 'string') return false;
-  const r = remote.split('.').map(Number);
-  const l = local.split('.').map(Number);
+  // Strip optionele v-prefix en negeer alles wat geen x.y.z-vorm heeft. Zonder
+  // deze guard gaf een rommelwaarde in de Firebase-console (bv. "v3.8" of "3.7")
+  // NaN-vergelijkingen die stilletjes false teruggeven — de updatebanner werd
+  // dan nooit getoond. parseInt i.p.v. Number: "3" uit "3-beta" telt als 3.
+  const clean = s => String(s || '').replace(/^v/i, '');
+  if (!/^\d+\.\d+\.\d+/.test(clean(remote))) return false;
+  const r = clean(remote).split('.').map(x => parseInt(x, 10) || 0);
+  const l = clean(local).split('.').map(x => parseInt(x, 10) || 0);
   for (let i = 0; i < 3; i++) {
     if ((r[i]||0) > (l[i]||0)) return true;
     if ((r[i]||0) < (l[i]||0)) return false;
@@ -8182,6 +8203,7 @@ function initFirebase() {
   fbListenConnected(); // listen for Firebase connectivity
   fbListenEventLog();  // listen for audit log
   logEvent('system', 'App geladen', { version: APP_VERSION, ua: navigator.userAgent.slice(0, 120) });
+  if (!LS_OK) logEvent('system', 'localStorage niet beschikbaar — device-id en lokale cache zijn vluchtig (private mode of storage geblokkeerd)');
   const fbSt = document.getElementById('fb-status');
   if (fbSt) fbSt.textContent = '● gesynchroniseerd';
 
