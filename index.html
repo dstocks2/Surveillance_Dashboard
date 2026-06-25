@@ -1338,7 +1338,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.9.5</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.9.6</span></span>
     </div>
   </div>
 
@@ -1832,7 +1832,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.9.5</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.9.6</span>
     </div>
   </nav>
 
@@ -2245,7 +2245,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.9.5';
+const APP_VERSION = '3.9.6';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -8532,6 +8532,9 @@ function fbListenConnected() {
       // Direct herstellen: timer annuleren, watchdog stoppen, topbar + banner weg.
       if (_offlineTimer) { clearTimeout(_offlineTimer); _offlineTimer = null; }
       stopReconnectWatchdog();
+      // Verbinding is goed → reset de auto-reload-teller. Een eerdere reeks
+      // reloads was blijkbaar succesvol (geen loop), dus de grendel mag leeg.
+      try { sessionStorage.removeItem('rn_auto_reloads'); } catch (e) {}
       setFbStatus('ok');
       toonOfflineBanner(false);
     } else {
@@ -8585,8 +8588,8 @@ window.herstelVerbinding = herstelVerbinding;
 // venster-focus, pageshow (terug uit de bfcache) en netwerk-terug (online). Op
 // elk van die momenten: nog steeds offline na een korte grace? → herstel.
 let _autoHerstelBezig = false;
-const AUTO_RELOAD_WINDOW_MS = 90000;  // venster waarin auto-reloads geteld worden
-const AUTO_RELOAD_MAX = 2;            // max auto-reloads in dat venster; daarna stoppen
+const AUTO_RELOAD_WINDOW_MS = 30000;  // kort venster: alleen snel-opeenvolgende reloads = echte loop
+const AUTO_RELOAD_MAX = 3;            // pas bij 3 reloads binnen 30s stoppen (geen internet)
 function autoReloadGeblokkeerd() {
   // True alleen als er al MAX auto-reloads binnen het venster zijn — dán is
   // herladen zinloos (structureel probleem) en stoppen we tot de knop gebruikt
