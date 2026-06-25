@@ -1338,7 +1338,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.9.4</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.9.5</span></span>
     </div>
   </div>
 
@@ -1832,7 +1832,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.9.4</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.9.5</span>
     </div>
   </nav>
 
@@ -2245,7 +2245,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.9.4';
+const APP_VERSION = '3.9.5';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -8492,8 +8492,8 @@ function toonOfflineBanner(show) {
 // én niemand midden in een actie zit, doet hij één harde reload — een verse
 // page-load zet betrouwbaar een schone socket op, wat op iOS het enige is dat
 // consistent werkt. Zit iemand wél te werken, dan reloaden we niet en wachten af.
-const RECONNECT_WATCHDOG_MS = 15000;
-const RECONNECT_MAX_TICKS = 4; // ~60s offline vóór harde reload als redmiddel
+const RECONNECT_WATCHDOG_MS = 10000;
+const RECONNECT_MAX_TICKS = 1; // ~10s offline vóór harde reload als redmiddel
 let _reconnectWatchdog = null;
 let _reconnectTicks = 0;
 function startReconnectWatchdog() {
@@ -8511,7 +8511,7 @@ function startReconnectWatchdog() {
         stopReconnectWatchdog();
       } else {
         stopReconnectWatchdog();
-        herstelVerbinding('~60s offline', true);
+        _doHerstelVerbinding('~60s offline', true);
       }
     }
   }, RECONNECT_WATCHDOG_MS);
@@ -8553,7 +8553,7 @@ function fbListenConnected() {
 // Herstel een vastgelopen verbinding: wis de RTDB-websocket-faalvlag (de iOS-
 // hangoorzaak) en herlaad vers, zodat de SDK schoon herstart en de websocket
 // opnieuw probeert. Dit is de geautomatiseerde versie van 'site-data wissen'.
-function herstelVerbinding(reden, isAuto) {
+function _doHerstelVerbinding(reden, isAuto) {
   try { if (window.dbgLog) window.dbgLog('herstel', 'RELOAD nu (' + (reden||'') + (isAuto?', auto':', handmatig') + ')'); } catch(e){}
   try { if (window.fbClearWsFailure) window.fbClearWsFailure(); } catch (e) {}
   // Alleen AUTO-reloads tellen mee voor de herlaadlus-grendel. Een handmatige
@@ -8572,7 +8572,11 @@ function herstelVerbinding(reden, isAuto) {
   if (typeof forceReloadFresh === 'function') forceReloadFresh();
   else location.reload();
 }
-window.herstelVerbinding = function(reden){ return herstelVerbinding(reden, false); };
+// Globale entrypoint voor de banner-knop (inline onclick). Wijst naar de
+// hernoemde kernfunctie zodat er geen zelf-referentie/recursie ontstaat
+// (window.herstelVerbinding mag NOOIT zichzelf aanroepen → stack overflow).
+function herstelVerbinding(reden){ return _doHerstelVerbinding(reden, false); }
+window.herstelVerbinding = herstelVerbinding;
 
 // Robuuste AUTO-herstel. iOS Safari bevriest setInterval/setTimeout zodra het
 // tabblad de focus verliest of het scherm dimt — daarom kan de timer-watchdog
@@ -8611,7 +8615,7 @@ function probeerAutoHerstel(reden) {
     // Geen actieve-ronde-guard: een verse reload laadt actieve rondes opnieuw
     // uit Firebase, dus er gaat geen bevestigde data verloren. De teller-grendel
     // (max auto-reloads per venster) is de enige rem tegen echte loops.
-    herstelVerbinding(reden || 'auto bij terugkeer', true);
+    _doHerstelVerbinding(reden || 'auto bij terugkeer', true);
   }, 3000);
 }
 ['visibilitychange', 'focus', 'pageshow', 'online'].forEach(evt => {
