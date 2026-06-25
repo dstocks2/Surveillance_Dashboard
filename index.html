@@ -1338,7 +1338,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.9.3</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.9.4</span></span>
     </div>
   </div>
 
@@ -1832,7 +1832,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.9.3</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.9.4</span>
     </div>
   </nav>
 
@@ -2245,7 +2245,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.9.3';
+const APP_VERSION = '3.9.4';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -8504,12 +8504,9 @@ function startReconnectWatchdog() {
     _reconnectTicks++;
     try { if (window.dbgLog) window.dbgLog('watchdog', 'tick ' + _reconnectTicks + '/' + RECONNECT_MAX_TICKS + ' (offline)'); } catch(e){}
     if (_reconnectTicks >= RECONNECT_MAX_TICKS) {
-      // Vangnet voor scherm-aan situaties (timer tikt dan door). Blokkeren bij
-      // een lopende actieve ronde, of als de auto-reload-grendel al getript is.
-      const hasActive = Object.keys(S.active || {}).length > 0;
-      if (hasActive) {
-        _reconnectTicks = 0; // ronde loopt: niet reloaden, blijven wachten
-      } else if (autoReloadGeblokkeerd()) {
+      // Vangnet voor scherm-aan situaties (timer tikt dan door). Enige rem is de
+      // teller-grendel; geen actieve-ronde-guard (data staat veilig in Firebase).
+      if (autoReloadGeblokkeerd()) {
         try { if (window.dbgLog) window.dbgLog('watchdog','geblokkeerd: auto-reload-grendel — gebruik de knop'); } catch(e){}
         stopReconnectWatchdog();
       } else {
@@ -8611,8 +8608,9 @@ function probeerAutoHerstel(reden) {
   setTimeout(() => {
     _autoHerstelBezig = false;
     if (_fbConnected) { try { if (window.dbgLog) window.dbgLog('auto','SDK herstelde zelf binnen grace'); } catch(e){} return; }
-    const hasActive = Object.keys(S.active || {}).length > 0;
-    if (hasActive) { try { if (window.dbgLog) window.dbgLog('auto','geblokkeerd: actieve ronde loopt'); } catch(e){} return; }
+    // Geen actieve-ronde-guard: een verse reload laadt actieve rondes opnieuw
+    // uit Firebase, dus er gaat geen bevestigde data verloren. De teller-grendel
+    // (max auto-reloads per venster) is de enige rem tegen echte loops.
     herstelVerbinding(reden || 'auto bij terugkeer', true);
   }, 3000);
 }
