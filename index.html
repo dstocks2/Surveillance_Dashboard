@@ -1338,7 +1338,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.9.2</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.9.3</span></span>
     </div>
   </div>
 
@@ -1832,7 +1832,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.9.2</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.9.3</span>
     </div>
   </nav>
 
@@ -2245,7 +2245,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.9.2';
+const APP_VERSION = '3.9.3';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -8504,14 +8504,17 @@ function startReconnectWatchdog() {
     _reconnectTicks++;
     try { if (window.dbgLog) window.dbgLog('watchdog', 'tick ' + _reconnectTicks + '/' + RECONNECT_MAX_TICKS + ' (offline)'); } catch(e){}
     if (_reconnectTicks >= RECONNECT_MAX_TICKS) {
-      // Vangnet voor scherm-aan situaties (timer tikt dan door). Consistent met
-      // probeerAutoHerstel: alleen blokkeren bij een lopende actieve ronde.
+      // Vangnet voor scherm-aan situaties (timer tikt dan door). Blokkeren bij
+      // een lopende actieve ronde, of als de auto-reload-grendel al getript is.
       const hasActive = Object.keys(S.active || {}).length > 0;
-      if (!hasActive) {
-        stopReconnectWatchdog();
-        herstelVerbinding('~60s offline');
-      } else {
+      if (hasActive) {
         _reconnectTicks = 0; // ronde loopt: niet reloaden, blijven wachten
+      } else if (autoReloadGeblokkeerd()) {
+        try { if (window.dbgLog) window.dbgLog('watchdog','geblokkeerd: auto-reload-grendel — gebruik de knop'); } catch(e){}
+        stopReconnectWatchdog();
+      } else {
+        stopReconnectWatchdog();
+        herstelVerbinding('~60s offline', true);
       }
     }
   }, RECONNECT_WATCHDOG_MS);
@@ -8553,18 +8556,26 @@ function fbListenConnected() {
 // Herstel een vastgelopen verbinding: wis de RTDB-websocket-faalvlag (de iOS-
 // hangoorzaak) en herlaad vers, zodat de SDK schoon herstart en de websocket
 // opnieuw probeert. Dit is de geautomatiseerde versie van 'site-data wissen'.
-function herstelVerbinding(reden) {
-  try { if (window.dbgLog) window.dbgLog('herstel', 'RELOAD nu (' + (reden||'') + ')'); } catch(e){}
+function herstelVerbinding(reden, isAuto) {
+  try { if (window.dbgLog) window.dbgLog('herstel', 'RELOAD nu (' + (reden||'') + (isAuto?', auto':', handmatig') + ')'); } catch(e){}
   try { if (window.fbClearWsFailure) window.fbClearWsFailure(); } catch (e) {}
-  // Markeer dat we zojuist een herstel-reload deden, zodat auto-herstel niet in
-  // een herlaadlus belandt als de verbinding écht weg blijft (geen internet).
-  // De handmatige knop omzeilt deze grendel altijd.
-  try { sessionStorage.setItem('rn_last_recovery', String(Date.now())); } catch (e) {}
+  // Alleen AUTO-reloads tellen mee voor de herlaadlus-grendel. Een handmatige
+  // reload of de knop telt NOOIT mee — die mogen auto-herstel nooit blokkeren.
+  if (isAuto) {
+    try {
+      const nu = Date.now();
+      let arr = [];
+      try { arr = JSON.parse(sessionStorage.getItem('rn_auto_reloads') || '[]'); } catch (e) {}
+      arr = arr.filter(t => (nu - t) < AUTO_RELOAD_WINDOW_MS);
+      arr.push(nu);
+      sessionStorage.setItem('rn_auto_reloads', JSON.stringify(arr));
+    } catch (e) {}
+  }
   logEvent('sync', 'Verbinding herstellen — websocket-faalvlag gewist + verse reload' + (reden ? ' (' + reden + ')' : ''));
   if (typeof forceReloadFresh === 'function') forceReloadFresh();
   else location.reload();
 }
-window.herstelVerbinding = herstelVerbinding;
+window.herstelVerbinding = function(reden){ return herstelVerbinding(reden, false); };
 
 // Robuuste AUTO-herstel. iOS Safari bevriest setInterval/setTimeout zodra het
 // tabblad de focus verliest of het scherm dimt — daarom kan de timer-watchdog
@@ -8573,20 +8584,27 @@ window.herstelVerbinding = herstelVerbinding;
 // venster-focus, pageshow (terug uit de bfcache) en netwerk-terug (online). Op
 // elk van die momenten: nog steeds offline na een korte grace? → herstel.
 let _autoHerstelBezig = false;
-const AUTO_HERSTEL_LOOP_GUARD_MS = 120000; // 2 min na een herstel-reload niet opnieuw
+const AUTO_RELOAD_WINDOW_MS = 90000;  // venster waarin auto-reloads geteld worden
+const AUTO_RELOAD_MAX = 2;            // max auto-reloads in dat venster; daarna stoppen
+function autoReloadGeblokkeerd() {
+  // True alleen als er al MAX auto-reloads binnen het venster zijn — dán is
+  // herladen zinloos (structureel probleem) en stoppen we tot de knop gebruikt
+  // wordt. Handmatige reloads tellen niet mee, dus die blokkeren dit nooit.
+  try {
+    const nu = Date.now();
+    let arr = JSON.parse(sessionStorage.getItem('rn_auto_reloads') || '[]');
+    arr = arr.filter(t => (nu - t) < AUTO_RELOAD_WINDOW_MS);
+    return arr.length >= AUTO_RELOAD_MAX;
+  } catch (e) { return false; }
+}
 function probeerAutoHerstel(reden) {
   try { if (window.dbgLog) window.dbgLog('auto', 'trigger=' + reden + ' connected=' + _fbConnected + ' bezig=' + _autoHerstelBezig); } catch(e){}
   if (_autoHerstelBezig) return;
   if (_fbConnected) return; // al verbonden, niets te doen
-  // Herlaadlus-grendel: deden we kort geleden al een herstel-reload, dan niet
-  // opnieuw automatisch — anders blijven we herladen zonder internet.
-  try {
-    const last = parseInt(sessionStorage.getItem('rn_last_recovery') || '0', 10);
-    if (last && (Date.now() - last) < AUTO_HERSTEL_LOOP_GUARD_MS) {
-      try { if (window.dbgLog) window.dbgLog('auto', 'geblokkeerd: loop-grendel (' + Math.round((Date.now()-last)/1000) + 's geleden hersteld)'); } catch(e){}
-      return;
-    }
-  } catch (e) {}
+  if (autoReloadGeblokkeerd()) {
+    try { if (window.dbgLog) window.dbgLog('auto', 'geblokkeerd: al ' + AUTO_RELOAD_MAX + ' auto-reloads binnen ' + (AUTO_RELOAD_WINDOW_MS/1000) + 's — gebruik de knop'); } catch(e){}
+    return;
+  }
   _autoHerstelBezig = true;
   // Gracetijd: geef de SDK eerst de kans om zelf te herstellen nu de app weer
   // actief is. Alleen als we ná de grace nóg offline zijn, forceren we herstel.
@@ -8595,7 +8613,7 @@ function probeerAutoHerstel(reden) {
     if (_fbConnected) { try { if (window.dbgLog) window.dbgLog('auto','SDK herstelde zelf binnen grace'); } catch(e){} return; }
     const hasActive = Object.keys(S.active || {}).length > 0;
     if (hasActive) { try { if (window.dbgLog) window.dbgLog('auto','geblokkeerd: actieve ronde loopt'); } catch(e){} return; }
-    herstelVerbinding(reden || 'auto bij terugkeer');
+    herstelVerbinding(reden || 'auto bij terugkeer', true);
   }, 3000);
 }
 ['visibilitychange', 'focus', 'pageshow', 'online'].forEach(evt => {
