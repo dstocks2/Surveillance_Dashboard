@@ -102,7 +102,7 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 #offline-banner-row{display:flex;align-items:center;justify-content:center;gap:9px;width:100%}
 #offline-banner-txt{max-width:560px}
 #offline-banner-btn{flex:0 0 auto;background:#fff;color:#b45309;border:none;border-radius:7px;padding:8px 16px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-/* ── Debug-overlay ─────────────────────────────────────────────────────── */
+/* ── Debug-overlay (verborgen gereedschap) ─────────────────────────────── */
 #dbg-fab{position:fixed;right:10px;bottom:calc(80px + env(safe-area-inset-bottom));z-index:9600;width:42px;height:42px;border-radius:50%;border:none;background:rgba(30,41,59,.82);color:#fff;font-size:20px;line-height:42px;text-align:center;padding:0;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3);-webkit-tap-highlight-color:transparent}
 #dbg-fab.has-err{box-shadow:0 0 0 3px #ef4444,0 2px 8px rgba(0,0,0,.3)}
 #dbg-panel{position:fixed;left:0;right:0;bottom:0;z-index:9700;display:none;flex-direction:column;max-height:70vh;background:#0b1220;color:#cbd5e1;box-shadow:0 -4px 20px rgba(0,0,0,.5);border-top:1px solid #1e293b}
@@ -938,11 +938,9 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   }
   clearWsFailureFlag();
   window.fbClearWsFailure = clearWsFailureFlag; // herbruikbaar voor herstel-acties
-  try { if (window.dbgLog) window.dbgLog('fb','ws-failure-vlag gewist + SDK init start'); } catch(e){}
 
   const app  = initializeApp(firebaseConfig);
   const db   = getDatabase(app);
-  try { if (window.dbgLog) window.dbgLog('fb','getDatabase ok: ' + (firebaseConfig.databaseURL||'?')); } catch(e){}
   const auth = getAuth(app);
 
   // ── ID-register: laatste /config-snapshot in ruwe id-vorm ──
@@ -1236,8 +1234,8 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </head>
 <body class="pre-auth">
 
-<!-- ══ DEBUG-OVERLAY (diagnose verbindingsproblemen) ══ -->
-<button type="button" id="dbg-fab" onclick="dbgToggle()" aria-label="Debug">🐞</button>
+<!-- ══ DEBUG-OVERLAY (verborgen gereedschap; activeer met ?debug=1) ══ -->
+<button type="button" id="dbg-fab" onclick="dbgToggle()" aria-label="Debug" style="display:none">🐞</button>
 <div id="dbg-panel">
   <div id="dbg-head">
     <span id="dbg-title">Debug log</span>
@@ -1249,59 +1247,59 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   <div id="dbg-log"></div>
 </div>
 <script>
-// Vroege globale logger: vangt fouten en gebeurtenissen vanaf de allereerste
-// milliseconde, vóór de module/app geladen is. Bewust géén module, geen imports.
+// Verborgen diagnosegereedschap. Standaard volledig inactief: geen knop, geen
+// logging-overhead. Activeren: open de app met ?debug=1 in de URL (vlag wordt
+// onthouden in localStorage). Uitzetten: ?debug=0. Bewust géén module.
 (function(){
+  var DBG = false;
+  try {
+    var u = new URL(location.href);
+    if (u.searchParams.has('debug')) {
+      DBG = u.searchParams.get('debug') !== '0';
+      try { localStorage.setItem('rn_debug', DBG ? '1' : '0'); } catch(e){}
+    } else {
+      DBG = (localStorage.getItem('rn_debug') === '1');
+    }
+  } catch(e){}
+  if (!DBG){
+    // Inactief: no-op logger zodat aanroepen elders veilig zijn, en stop.
+    window.dbgLog = function(){};
+    return;
+  }
+  var fab = document.getElementById('dbg-fab');
+  if (fab) fab.style.display = '';
   var START = Date.now();
   var BUF = [];
-  window.__dbgT0 = START;
   function ts(){ return ((Date.now()-START)/1000).toFixed(2)+'s'; }
   window.dbgLog = function(tag, msg){
     var line = ts()+'  ['+tag+']  '+msg;
     BUF.push(line);
     if (BUF.length > 300) BUF.shift();
     var el = document.getElementById('dbg-log');
-    if (el){
-      el.textContent = BUF.join('\n');
-      el.scrollTop = el.scrollHeight;
-    }
-    // Toon een rood stipje op de knop bij fouten
-    if (tag === 'ERROR' || tag === 'REJECT'){
-      var fab = document.getElementById('dbg-fab');
-      if (fab) fab.classList.add('has-err');
-    }
+    if (el){ el.textContent = BUF.join('\n'); el.scrollTop = el.scrollHeight; }
+    if (tag === 'ERROR' || tag === 'REJECT'){ var f=document.getElementById('dbg-fab'); if(f) f.classList.add('has-err'); }
   };
   window.dbgToggle = function(){
-    var p = document.getElementById('dbg-panel');
-    if (p) p.classList.toggle('on');
+    var pnl = document.getElementById('dbg-panel');
+    if (pnl) pnl.classList.toggle('on');
     var el = document.getElementById('dbg-log');
     if (el) el.textContent = BUF.join('\n');
   };
-  window.dbgClear = function(){ BUF = []; var el=document.getElementById('dbg-log'); if(el) el.textContent=''; var fab=document.getElementById('dbg-fab'); if(fab) fab.classList.remove('has-err'); };
+  window.dbgClear = function(){ BUF=[]; var el=document.getElementById('dbg-log'); if(el) el.textContent=''; var f=document.getElementById('dbg-fab'); if(f) f.classList.remove('has-err'); };
   window.dbgCopy = function(){
     var txt = BUF.join('\n');
     try { navigator.clipboard.writeText(txt); window.dbgLog('info','log gekopieerd'); }
-    catch(e){
-      // Fallback: selecteerbaar maken
-      var el = document.getElementById('dbg-log');
-      if (el){ var r=document.createRange(); r.selectNodeContents(el); var slc=getSelection(); slc.removeAllRanges(); slc.addRange(r); }
-    }
+    catch(e){ var el=document.getElementById('dbg-log'); if(el){ var r=document.createRange(); r.selectNodeContents(el); var slc=getSelection(); slc.removeAllRanges(); slc.addRange(r); } }
   };
-  // Globale foutopvang
-  window.addEventListener('error', function(e){
-    window.dbgLog('ERROR', (e.message||'?') + ' @ ' + (e.filename||'').split('/').pop() + ':' + (e.lineno||'?'));
-  });
-  window.addEventListener('unhandledrejection', function(e){
-    var r = e && e.reason; var m = (r && (r.message||r.code)) ? (r.code?('['+r.code+'] '):'')+(r.message||'') : String(r);
-    window.dbgLog('REJECT', m);
-  });
-  // Netwerk-events
+  window.addEventListener('error', function(e){ window.dbgLog('ERROR', (e.message||'?')+' @ '+(e.filename||'').split('/').pop()+':'+(e.lineno||'?')); });
+  window.addEventListener('unhandledrejection', function(e){ var r=e&&e.reason; var m=(r&&(r.message||r.code))?((r.code?'['+r.code+'] ':'')+(r.message||'')):String(r); window.dbgLog('REJECT', m); });
   window.addEventListener('online',  function(){ window.dbgLog('net','online'); });
   window.addEventListener('offline', function(){ window.dbgLog('net','offline'); });
   document.addEventListener('visibilitychange', function(){ window.dbgLog('vis', document.visibilityState); });
-  window.dbgLog('boot','pagina-start');
+  window.dbgLog('boot','pagina-start (debug actief)');
 })();
 </script>
+
 
 
 <noscript>
@@ -1338,7 +1336,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.9.6</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.9.8</span></span>
     </div>
   </div>
 
@@ -1832,7 +1830,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.9.6</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.9.8</span>
     </div>
   </nav>
 
@@ -2245,7 +2243,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.9.6';
+const APP_VERSION = '3.9.8';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -8502,12 +8500,11 @@ function startReconnectWatchdog() {
   _reconnectWatchdog = setInterval(() => {
     if (_fbConnected) { stopReconnectWatchdog(); return; }
     _reconnectTicks++;
-    try { if (window.dbgLog) window.dbgLog('watchdog', 'tick ' + _reconnectTicks + '/' + RECONNECT_MAX_TICKS + ' (offline)'); } catch(e){}
+    try { window.dbgLog('watchdog', 'tick ' + _reconnectTicks + '/' + RECONNECT_MAX_TICKS + ' (offline)'); } catch(e){}
     if (_reconnectTicks >= RECONNECT_MAX_TICKS) {
       // Vangnet voor scherm-aan situaties (timer tikt dan door). Enige rem is de
       // teller-grendel; geen actieve-ronde-guard (data staat veilig in Firebase).
       if (autoReloadGeblokkeerd()) {
-        try { if (window.dbgLog) window.dbgLog('watchdog','geblokkeerd: auto-reload-grendel — gebruik de knop'); } catch(e){}
         stopReconnectWatchdog();
       } else {
         stopReconnectWatchdog();
@@ -8521,11 +8518,12 @@ function stopReconnectWatchdog() {
   _reconnectTicks = 0;
 }
 
+let _offlineSince = 0; // ms-timestamp van wanneer de verbinding wegviel (0 = online)
 function fbListenConnected() {
   if (!window.fbDb) return;
   window.fbOnValue(window.fbRef(window.fbDb, '.info/connected'), snap => {
     const connected = !!snap.val();
-    try { if (window.dbgLog) window.dbgLog('conn', '.info/connected = ' + connected); } catch(e){}
+    try { window.dbgLog('conn', '.info/connected = ' + connected); } catch(e){}
     // Eén bron van waarheid: zet de centrale state en sync topbar direct mee.
     _fbConnected = connected;
     if (connected) {
@@ -8537,7 +8535,33 @@ function fbListenConnected() {
       try { sessionStorage.removeItem('rn_auto_reloads'); } catch (e) {}
       setFbStatus('ok');
       toonOfflineBanner(false);
+      // Auditlog-herstelentry: alleen bij een betekenisvolle onderbreking
+      // (langer dan de banner-debounce), zodat microhaperingen geen ruis geven.
+      // Schrijft nu de verbinding er wél is, dus betrouwbaar in Firebase.
+      if (_offlineSince) {
+        const duurSec = Math.round((Date.now() - _offlineSince) / 1000);
+        _offlineSince = 0;
+        try { sessionStorage.removeItem('rn_offline_since'); } catch (e) {}
+        // Reden uit sessionStorage (gezet vlak vóór een herstel-reload), anders 'vanzelf'.
+        let via = 'vanzelf';
+        try {
+          const r = sessionStorage.getItem('rn_recovery_via');
+          if (r) { via = r; sessionStorage.removeItem('rn_recovery_via'); }
+        } catch (e) {}
+        if (duurSec * 1000 >= OFFLINE_DEBOUNCE_MS) {
+          logEvent('sync', 'Verbinding hersteld na ' + duurSec + 's', { duurSec, via });
+          try { window.dbgLog('herstel', 'auditlog: hersteld na ' + duurSec + 's via ' + via); } catch(e){}
+        }
+      }
     } else {
+      // Markeer het moment van wegvallen (eerste keer dat we offline gaan).
+      // Na een herstel-reload kan het oorspronkelijke offline-moment in
+      // sessionStorage staan; gebruik dat zodat de gelogde duur klopt.
+      if (!_offlineSince) {
+        let parked = 0;
+        try { parked = parseInt(sessionStorage.getItem('rn_offline_since') || '0', 10); } catch (e) {}
+        _offlineSince = parked || Date.now();
+      }
       // Topbar mag direct 'geen verbinding' tonen; de prominente banner pas na
       // debounce zodat een microhapering (lift/kelder) niet knippert.
       setFbStatus('error');
@@ -8557,7 +8581,7 @@ function fbListenConnected() {
 // hangoorzaak) en herlaad vers, zodat de SDK schoon herstart en de websocket
 // opnieuw probeert. Dit is de geautomatiseerde versie van 'site-data wissen'.
 function _doHerstelVerbinding(reden, isAuto) {
-  try { if (window.dbgLog) window.dbgLog('herstel', 'RELOAD nu (' + (reden||'') + (isAuto?', auto':', handmatig') + ')'); } catch(e){}
+  try { window.dbgLog('herstel', 'RELOAD nu (' + (reden||'') + (isAuto?', auto':', handmatig') + ')'); } catch(e){}
   try { if (window.fbClearWsFailure) window.fbClearWsFailure(); } catch (e) {}
   // Alleen AUTO-reloads tellen mee voor de herlaadlus-grendel. Een handmatige
   // reload of de knop telt NOOIT mee — die mogen auto-herstel nooit blokkeren.
@@ -8571,6 +8595,12 @@ function _doHerstelVerbinding(reden, isAuto) {
       sessionStorage.setItem('rn_auto_reloads', JSON.stringify(arr));
     } catch (e) {}
   }
+  // Parkeer hoe + sinds wanneer voor de herstel-entry NA de reload (JS-state
+  // gaat verloren bij reload, dus via sessionStorage).
+  try {
+    sessionStorage.setItem('rn_recovery_via', isAuto ? 'auto-reload' : 'knop');
+    if (_offlineSince) sessionStorage.setItem('rn_offline_since', String(_offlineSince));
+  } catch (e) {}
   logEvent('sync', 'Verbinding herstellen — websocket-faalvlag gewist + verse reload' + (reden ? ' (' + reden + ')' : ''));
   if (typeof forceReloadFresh === 'function') forceReloadFresh();
   else location.reload();
@@ -8602,11 +8632,10 @@ function autoReloadGeblokkeerd() {
   } catch (e) { return false; }
 }
 function probeerAutoHerstel(reden) {
-  try { if (window.dbgLog) window.dbgLog('auto', 'trigger=' + reden + ' connected=' + _fbConnected + ' bezig=' + _autoHerstelBezig); } catch(e){}
+  try { window.dbgLog('auto', 'trigger=' + reden + ' connected=' + _fbConnected + ' bezig=' + _autoHerstelBezig); } catch(e){}
   if (_autoHerstelBezig) return;
   if (_fbConnected) return; // al verbonden, niets te doen
   if (autoReloadGeblokkeerd()) {
-    try { if (window.dbgLog) window.dbgLog('auto', 'geblokkeerd: al ' + AUTO_RELOAD_MAX + ' auto-reloads binnen ' + (AUTO_RELOAD_WINDOW_MS/1000) + 's — gebruik de knop'); } catch(e){}
     return;
   }
   _autoHerstelBezig = true;
@@ -8614,7 +8643,7 @@ function probeerAutoHerstel(reden) {
   // actief is. Alleen als we ná de grace nóg offline zijn, forceren we herstel.
   setTimeout(() => {
     _autoHerstelBezig = false;
-    if (_fbConnected) { try { if (window.dbgLog) window.dbgLog('auto','SDK herstelde zelf binnen grace'); } catch(e){} return; }
+    if (_fbConnected) return; // SDK herstelde zelf binnen grace
     // Geen actieve-ronde-guard: een verse reload laadt actieve rondes opnieuw
     // uit Firebase, dus er gaat geen bevestigde data verloren. De teller-grendel
     // (max auto-reloads per venster) is de enige rem tegen echte loops.
