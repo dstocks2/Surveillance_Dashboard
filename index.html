@@ -102,6 +102,15 @@ body.pre-auth .mobile-tabbar{visibility:hidden}
 #offline-banner-row{display:flex;align-items:center;justify-content:center;gap:9px;width:100%}
 #offline-banner-txt{max-width:560px}
 #offline-banner-btn{flex:0 0 auto;background:#fff;color:#b45309;border:none;border-radius:7px;padding:8px 16px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+/* ── Debug-overlay ─────────────────────────────────────────────────────── */
+#dbg-fab{position:fixed;right:10px;bottom:calc(80px + env(safe-area-inset-bottom));z-index:9600;width:42px;height:42px;border-radius:50%;border:none;background:rgba(30,41,59,.82);color:#fff;font-size:20px;line-height:42px;text-align:center;padding:0;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3);-webkit-tap-highlight-color:transparent}
+#dbg-fab.has-err{box-shadow:0 0 0 3px #ef4444,0 2px 8px rgba(0,0,0,.3)}
+#dbg-panel{position:fixed;left:0;right:0;bottom:0;z-index:9700;display:none;flex-direction:column;max-height:70vh;background:#0b1220;color:#cbd5e1;box-shadow:0 -4px 20px rgba(0,0,0,.5);border-top:1px solid #1e293b}
+#dbg-panel.on{display:flex}
+#dbg-head{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid #1e293b;background:#111a2e}
+#dbg-title{font-size:12px;font-weight:700;color:#e2e8f0;letter-spacing:.03em}
+.dbg-btn{background:#1e293b;color:#cbd5e1;border:none;border-radius:6px;padding:6px 10px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#dbg-log{flex:1;overflow:auto;padding:8px 10px calc(8px + env(safe-area-inset-bottom));font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;line-height:1.5;white-space:pre-wrap;word-break:break-word;-webkit-overflow-scrolling:touch}
 .mob-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;font-family:inherit;color:var(--c-muted-ios);font-size:10px;font-weight:500;padding:8px 2px 4px;-webkit-tap-highlight-color:transparent;transition:color .12s}
 .mob-tab.on{color:var(--c-primary-hover)}
 .mob-tab svg{flex-shrink:0}
@@ -929,9 +938,11 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   }
   clearWsFailureFlag();
   window.fbClearWsFailure = clearWsFailureFlag; // herbruikbaar voor herstel-acties
+  try { if (window.dbgLog) window.dbgLog('fb','ws-failure-vlag gewist + SDK init start'); } catch(e){}
 
   const app  = initializeApp(firebaseConfig);
   const db   = getDatabase(app);
+  try { if (window.dbgLog) window.dbgLog('fb','getDatabase ok: ' + (firebaseConfig.databaseURL||'?')); } catch(e){}
   const auth = getAuth(app);
 
   // ── ID-register: laatste /config-snapshot in ruwe id-vorm ──
@@ -1225,6 +1236,74 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </head>
 <body class="pre-auth">
 
+<!-- ══ DEBUG-OVERLAY (diagnose verbindingsproblemen) ══ -->
+<button type="button" id="dbg-fab" onclick="dbgToggle()" aria-label="Debug">🐞</button>
+<div id="dbg-panel">
+  <div id="dbg-head">
+    <span id="dbg-title">Debug log</span>
+    <span style="flex:1"></span>
+    <button type="button" class="dbg-btn" onclick="dbgCopy()">Kopieer</button>
+    <button type="button" class="dbg-btn" onclick="dbgClear()">Wis</button>
+    <button type="button" class="dbg-btn" onclick="dbgToggle()">Sluit</button>
+  </div>
+  <div id="dbg-log"></div>
+</div>
+<script>
+// Vroege globale logger: vangt fouten en gebeurtenissen vanaf de allereerste
+// milliseconde, vóór de module/app geladen is. Bewust géén module, geen imports.
+(function(){
+  var START = Date.now();
+  var BUF = [];
+  window.__dbgT0 = START;
+  function ts(){ return ((Date.now()-START)/1000).toFixed(2)+'s'; }
+  window.dbgLog = function(tag, msg){
+    var line = ts()+'  ['+tag+']  '+msg;
+    BUF.push(line);
+    if (BUF.length > 300) BUF.shift();
+    var el = document.getElementById('dbg-log');
+    if (el){
+      el.textContent = BUF.join('\n');
+      el.scrollTop = el.scrollHeight;
+    }
+    // Toon een rood stipje op de knop bij fouten
+    if (tag === 'ERROR' || tag === 'REJECT'){
+      var fab = document.getElementById('dbg-fab');
+      if (fab) fab.classList.add('has-err');
+    }
+  };
+  window.dbgToggle = function(){
+    var p = document.getElementById('dbg-panel');
+    if (p) p.classList.toggle('on');
+    var el = document.getElementById('dbg-log');
+    if (el) el.textContent = BUF.join('\n');
+  };
+  window.dbgClear = function(){ BUF = []; var el=document.getElementById('dbg-log'); if(el) el.textContent=''; var fab=document.getElementById('dbg-fab'); if(fab) fab.classList.remove('has-err'); };
+  window.dbgCopy = function(){
+    var txt = BUF.join('\n');
+    try { navigator.clipboard.writeText(txt); window.dbgLog('info','log gekopieerd'); }
+    catch(e){
+      // Fallback: selecteerbaar maken
+      var el = document.getElementById('dbg-log');
+      if (el){ var r=document.createRange(); r.selectNodeContents(el); var slc=getSelection(); slc.removeAllRanges(); slc.addRange(r); }
+    }
+  };
+  // Globale foutopvang
+  window.addEventListener('error', function(e){
+    window.dbgLog('ERROR', (e.message||'?') + ' @ ' + (e.filename||'').split('/').pop() + ':' + (e.lineno||'?'));
+  });
+  window.addEventListener('unhandledrejection', function(e){
+    var r = e && e.reason; var m = (r && (r.message||r.code)) ? (r.code?('['+r.code+'] '):'')+(r.message||'') : String(r);
+    window.dbgLog('REJECT', m);
+  });
+  // Netwerk-events
+  window.addEventListener('online',  function(){ window.dbgLog('net','online'); });
+  window.addEventListener('offline', function(){ window.dbgLog('net','offline'); });
+  document.addEventListener('visibilitychange', function(){ window.dbgLog('vis', document.visibilityState); });
+  window.dbgLog('boot','pagina-start');
+})();
+</script>
+
+
 <noscript>
   <div style="padding:40px 20px;text-align:center;font-family:'Segoe UI',system-ui,sans-serif;color:#1e293b;max-width:560px;margin:60px auto;background:#fff;border:1px solid #e2e8f0;border-radius:12px">
     <h2 style="font-size:18px;margin-bottom:10px">JavaScript vereist</h2>
@@ -1259,7 +1338,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.9.1</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.9.2</span></span>
     </div>
   </div>
 
@@ -1753,7 +1832,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" onclick="doLogout()">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.9.1</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.9.2</span>
     </div>
   </nav>
 
@@ -2166,7 +2245,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.9.1';
+const APP_VERSION = '3.9.2';
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -8423,6 +8502,7 @@ function startReconnectWatchdog() {
   _reconnectWatchdog = setInterval(() => {
     if (_fbConnected) { stopReconnectWatchdog(); return; }
     _reconnectTicks++;
+    try { if (window.dbgLog) window.dbgLog('watchdog', 'tick ' + _reconnectTicks + '/' + RECONNECT_MAX_TICKS + ' (offline)'); } catch(e){}
     if (_reconnectTicks >= RECONNECT_MAX_TICKS) {
       // Vangnet voor scherm-aan situaties (timer tikt dan door). Consistent met
       // probeerAutoHerstel: alleen blokkeren bij een lopende actieve ronde.
@@ -8445,6 +8525,7 @@ function fbListenConnected() {
   if (!window.fbDb) return;
   window.fbOnValue(window.fbRef(window.fbDb, '.info/connected'), snap => {
     const connected = !!snap.val();
+    try { if (window.dbgLog) window.dbgLog('conn', '.info/connected = ' + connected); } catch(e){}
     // Eén bron van waarheid: zet de centrale state en sync topbar direct mee.
     _fbConnected = connected;
     if (connected) {
@@ -8473,6 +8554,7 @@ function fbListenConnected() {
 // hangoorzaak) en herlaad vers, zodat de SDK schoon herstart en de websocket
 // opnieuw probeert. Dit is de geautomatiseerde versie van 'site-data wissen'.
 function herstelVerbinding(reden) {
+  try { if (window.dbgLog) window.dbgLog('herstel', 'RELOAD nu (' + (reden||'') + ')'); } catch(e){}
   try { if (window.fbClearWsFailure) window.fbClearWsFailure(); } catch (e) {}
   // Markeer dat we zojuist een herstel-reload deden, zodat auto-herstel niet in
   // een herlaadlus belandt als de verbinding écht weg blijft (geen internet).
@@ -8493,25 +8575,26 @@ window.herstelVerbinding = herstelVerbinding;
 let _autoHerstelBezig = false;
 const AUTO_HERSTEL_LOOP_GUARD_MS = 120000; // 2 min na een herstel-reload niet opnieuw
 function probeerAutoHerstel(reden) {
+  try { if (window.dbgLog) window.dbgLog('auto', 'trigger=' + reden + ' connected=' + _fbConnected + ' bezig=' + _autoHerstelBezig); } catch(e){}
   if (_autoHerstelBezig) return;
   if (_fbConnected) return; // al verbonden, niets te doen
   // Herlaadlus-grendel: deden we kort geleden al een herstel-reload, dan niet
   // opnieuw automatisch — anders blijven we herladen zonder internet.
   try {
     const last = parseInt(sessionStorage.getItem('rn_last_recovery') || '0', 10);
-    if (last && (Date.now() - last) < AUTO_HERSTEL_LOOP_GUARD_MS) return;
+    if (last && (Date.now() - last) < AUTO_HERSTEL_LOOP_GUARD_MS) {
+      try { if (window.dbgLog) window.dbgLog('auto', 'geblokkeerd: loop-grendel (' + Math.round((Date.now()-last)/1000) + 's geleden hersteld)'); } catch(e){}
+      return;
+    }
   } catch (e) {}
   _autoHerstelBezig = true;
   // Gracetijd: geef de SDK eerst de kans om zelf te herstellen nu de app weer
   // actief is. Alleen als we ná de grace nóg offline zijn, forceren we herstel.
   setTimeout(() => {
     _autoHerstelBezig = false;
-    if (_fbConnected) return; // SDK herstelde zelf — mooi, geen reload nodig
-    // Blokkeer alleen bij een lopende actieve ronde (echte, nog niet veilige
-    // handeling). Een selectie is vluchtig en mag verloren; bevestigde data
-    // staat in Firebase, dus een reload verliest die niet.
+    if (_fbConnected) { try { if (window.dbgLog) window.dbgLog('auto','SDK herstelde zelf binnen grace'); } catch(e){} return; }
     const hasActive = Object.keys(S.active || {}).length > 0;
-    if (hasActive) return;
+    if (hasActive) { try { if (window.dbgLog) window.dbgLog('auto','geblokkeerd: actieve ronde loopt'); } catch(e){} return; }
     herstelVerbinding(reden || 'auto bij terugkeer');
   }, 3000);
 }
