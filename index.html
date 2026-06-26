@@ -1336,7 +1336,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.10.2</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.10.4</span></span>
     </div>
   </div>
 
@@ -1517,7 +1517,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 
 <!-- Meldingen overlay -->
 <div class="meld-overlay" id="meld-overlay">
-  <div class="meld-backdrop" data-act="sluitMeldingen"></div>
+  <div class="meld-backdrop" data-act-self="sluitMeldingen"></div>
   <div class="meld-panel" id="meld-panel">
     <div class="meld-header">
       <span class="meld-title">Meldingen</span>
@@ -1830,7 +1830,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" data-act="logout">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.10.2</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.10.4</span>
     </div>
   </nav>
 
@@ -2030,7 +2030,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 
 </div>
 
-<div class="modal-overlay" id="modal-overlay" style="display:none" data-act="modalCancel">
+<div class="modal-overlay" id="modal-overlay" style="display:none" data-act-self="modalCancel">
   <div class="modal-box" id="modal-box" onclick="event.stopPropagation()" role="alertdialog" aria-modal="true" aria-labelledby="modal-title-txt" aria-describedby="modal-desc-txt">
     <div class="modal-body">
       <div class="modal-glyph" aria-hidden="true" id="modal-glyph">
@@ -2053,7 +2053,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <!-- Uitlog-bevestiging (eigen, niet-destructief ontwerp: blauw accent) -->
-<div class="modal-overlay" id="logout-overlay" style="display:none" data-act="logoutCancel">
+<div class="modal-overlay" id="logout-overlay" style="display:none" data-act-self="logoutCancel">
   <div class="modal-box logout-box" onclick="event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="logout-title">
     <div class="logout-icon" aria-hidden="true">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -2242,7 +2242,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.10.2';
+const APP_VERSION = '3.10.4';
 
 // ==========================================================================
 // CSP-migratie (fase 0/1): gedelegeerde click-handler.
@@ -2251,15 +2251,24 @@ const APP_VERSION = '3.10.2';
 // listener werken tot de migratie compleet is.
 // ==========================================================================
 document.addEventListener('click', function (e) {
+  // data-act-self vuurt ALLEEN bij een directe klik op dat element zelf
+  // (overlay-achtergrond = annuleren), niet wanneer een kind erbinnen geklikt
+  // wordt. Zo annuleert een klik op Bevestigen/Annuleren-knoppen niet per
+  // ongeluk via de overlay-voorouder.
+  if (e.target.dataset && e.target.dataset.actSelf) {
+    runAct(e.target.dataset.actSelf, e.target.dataset);
+    return;
+  }
   const el = e.target.closest('[data-act]');
   if (!el) return;
   // Capture-fase: deze listener ziet de klik vóór een binnenliggende
   // modal-box met onclick="event.stopPropagation()" hem kan tegenhouden.
-  // Daardoor blijven data-act-knoppen BINNEN zo'n box (bv. Annuleren in de
-  // confirm/logout-modal) werken, terwijl de box-klik zelf nog steeds niet
-  // tot de overlay (=annuleren bij achtergrond-klik) doorbubbelt.
-  const d = el.dataset;
-  switch (d.act) {
+  // Daardoor blijven data-act-knoppen BINNEN zo'n box werken.
+  runAct(el.dataset.act, el.dataset);
+}, true);
+
+function runAct(act, d) {
+  switch (act) {
     // navigatie
     case 'goTab':            goTab(d.tab); break;
     case 'cfgMobGoSection':  cfgMobGoSection(d.sec); break;
@@ -2283,7 +2292,7 @@ document.addEventListener('click', function (e) {
     case 'cancelRolEdit':        cancelRolEdit(); break;
     case 'cancelDagdeelEdit':    cancelDagdeelEdit(); break;
   }
-}, true);
+}
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
