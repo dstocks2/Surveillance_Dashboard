@@ -1240,8 +1240,8 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   <div id="dbg-head">
     <span id="dbg-title">Debug log</span>
     <span style="flex:1"></span>
-    <button type="button" class="dbg-btn" onclick="dbgCopy()">Kopieer</button>
-    <button type="button" class="dbg-btn" onclick="dbgClear()">Wis</button>
+    <button type="button" class="dbg-btn" data-act="dbgCopy">Kopieer</button>
+    <button type="button" class="dbg-btn" data-act="dbgClear">Wis</button>
     <button type="button" class="dbg-btn" data-act="dbgToggle">Sluit</button>
   </div>
   <div id="dbg-log"></div>
@@ -1336,7 +1336,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.11.1</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.11.2</span></span>
     </div>
   </div>
 
@@ -1512,7 +1512,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto"><path d="M1 1l22 22"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
     <span id="offline-banner-txt">Geen verbinding met de server — wijzigingen worden gesynchroniseerd zodra de verbinding is hersteld</span>
   </div>
-  <button type="button" id="offline-banner-btn" onclick="herstelVerbinding('knop')">Verbinding herstellen</button>
+  <button type="button" id="offline-banner-btn" data-act="herstelVerbinding" data-reden="knop">Verbinding herstellen</button>
 </div>
 
 <!-- Meldingen overlay -->
@@ -1687,7 +1687,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     <!-- Beheerder-modal -->
     <div id="beheerder-modal-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9400;display:none;align-items:center;justify-content:center;padding:20px">
       <div style="background:#fff;border-radius:16px;padding:28px 24px 24px;max-width:400px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.22);position:relative">
-        <button type="button" onclick="closeBeheerderModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:22px;color:#5b6b7f;cursor:pointer">&times;</button>
+        <button type="button" data-act="closeBeheerderModal" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:22px;color:#5b6b7f;cursor:pointer">&times;</button>
         <div style="font-size:17px;font-weight:700;color:#1e293b;margin-bottom:4px">Beheerder toevoegen</div>
         <div style="font-size:13px;color:#64748b;margin-bottom:20px">De persoon moet al een Firebase-account hebben. De UID vind je in de Firebase Console onder Authentication → Users.</div>
         <div style="display:flex;flex-direction:column;gap:14px">
@@ -1698,7 +1698,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
           <div><label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">Firebase UID <span style="font-weight:400;color:#94a3b8">(uit Authentication Console)</span></label>
             <input type="text" id="inp-beheerder-uid" placeholder="bijv. piP98DQu..." maxlength="128" style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-family:monospace;box-sizing:border-box"></div>
           <div id="beheerder-modal-error" style="font-size:12px;color:#ef4444;display:none"></div>
-          <button type="button" onclick="saveBeheerderModal()" style="padding:11px;border:none;border-radius:8px;background:#1e40af;color:#fff;font-size:14px;font-weight:600;cursor:pointer;width:100%">Opslaan</button>
+          <button type="button" data-act="saveBeheerderModal" style="padding:11px;border:none;border-radius:8px;background:#1e40af;color:#fff;font-size:14px;font-weight:600;cursor:pointer;width:100%">Opslaan</button>
         </div>
       </div>
     </div>
@@ -1768,12 +1768,12 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <!-- MOBILE DETAIL VIEW -->
 <div id="cfg-mobile-detail" class="cfg-mobile-detail">
   <div class="cfg-mob-detail-header">
-    <button type="button" class="cfg-mob-back" onclick="cfgMobBack()">
+    <button type="button" class="cfg-mob-back" data-act="cfgMobBack">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       Instellingen
     </button>
     <div class="cfg-mob-detail-title" id="cfg-mob-detail-title"></div>
-    <button type="button" class="cfg-mob-detail-action" id="cfg-mob-detail-action" style="display:none" onclick="cfgMobDetailAction()"></button>
+    <button type="button" class="cfg-mob-detail-action" id="cfg-mob-detail-action" style="display:none" data-act="cfgMobDetailAction"></button>
   </div>
   <div class="cfg-mob-detail-body" id="cfg-mob-detail-body"></div>
 </div>
@@ -1830,7 +1830,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" data-act="logout">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.11.1</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.11.2</span>
     </div>
   </nav>
 
@@ -1841,7 +1841,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     <div class="cfg-section active" id="cfg-sec-medewerkers">
       <div class="cfg-sec-header">
         <div><div class="cfg-sec-title">Medewerkers</div><div class="cfg-sec-sub" id="med-sub-title">Actieve beveiligers in het systeem</div></div>
-        <button type="button" class="cfg-action-btn" id="med-action-btn" onclick="medActionBtn()">+ Medewerker</button>
+        <button type="button" class="cfg-action-btn" id="med-action-btn" data-act="medActionBtn">+ Medewerker</button>
       </div>
       <!-- Segmented control — mobiel bovenin, desktop verborgen -->
       <div id="med-seg-ctrl" style="display:none;background:#f1f5f9;border-radius:8px;padding:3px;gap:3px;margin-bottom:16px">
@@ -1859,7 +1859,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
             </div>
             <div id="med-rol-filter" style="display:flex;gap:2px;background:#f1f5f9;border-radius:8px;padding:3px"></div>
             <div style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#64748b;flex-shrink:0;user-select:none">
-              <span id="med-toggle-track" onclick="toggleMedDienst()" style="display:inline-block;width:34px;height:19px;border-radius:99px;background:#e2e8f0;position:relative;cursor:pointer;transition:background .15s;flex-shrink:0">
+              <span id="med-toggle-track" data-act="toggleMedDienst" style="display:inline-block;width:34px;height:19px;border-radius:99px;background:#e2e8f0;position:relative;cursor:pointer;transition:background .15s;flex-shrink:0">
                 <span id="med-toggle-thumb" style="position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:99px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .15s"></span>
               </span>
               Op dienst
@@ -1880,7 +1880,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div class="cfg-sec-header" id="rondes-header-rondes">
         <div><div class="cfg-sec-title">Rondes</div><div class="cfg-sec-sub" id="rondes-sub-title">Vaste looproutes in en om het gebouw</div></div>
         <div style="display:flex;gap:6px">
-          <button type="button" class="cfg-action-btn" id="rondes-action-btn" onclick="rondesActionBtn()">+ Ronde</button>
+          <button type="button" class="cfg-action-btn" id="rondes-action-btn" data-act="rondesActionBtn">+ Ronde</button>
         </div>
       </div>
       <!-- Segmented control — mobiel bovenin, desktop verborgen (rail regelt het) -->
@@ -1903,7 +1903,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     <div class="cfg-section" id="cfg-sec-schema">
       <div class="cfg-sec-header" id="schema-header">
         <div><div class="cfg-sec-title" id="schema-title">Dagplanning</div><div class="cfg-sec-sub" id="schema-sub-title">Tijden en taken per dienst</div></div>
-        <button type="button" class="cfg-action-btn" id="schema-action-btn" onclick="schemaActionBtn()">+ Item</button>
+        <button type="button" class="cfg-action-btn" id="schema-action-btn" data-act="schemaActionBtn">+ Item</button>
       </div>
       <!-- Segmented control — mobiel bovenin, desktop verborgen -->
       <div id="schema-seg-ctrl" style="display:none;background:#f1f5f9;border-radius:8px;padding:3px;gap:3px;margin-bottom:16px">
@@ -1935,25 +1935,25 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         <div class="cfg-gedrag-row">
           <div><div class="cfg-gedrag-label">Lange-ronde waarschuwing</div><div class="cfg-gedrag-sub">Oranje melding als een ronde langer duurt dan dit aantal uur</div></div>
           <div class="cfg-stepper">
-            <button type="button" class="cfg-stepper-btn" onclick="gedragStep('inp-timeout-warn',-1)" aria-label="Verlagen">−</button>
+            <button type="button" class="cfg-stepper-btn" data-act="gedragStep" data-stepid="inp-timeout-warn" data-delta="-1" aria-label="Verlagen">−</button>
             <div class="cfg-stepper-val"><input type="number" id="inp-timeout-warn" min="1" max="24" step="1" class="cfg-stepper-input" oninput="saveGedrag()"><span class="cfg-stepper-unit">uur</span></div>
-            <button type="button" class="cfg-stepper-btn" onclick="gedragStep('inp-timeout-warn',1)" aria-label="Verhogen">+</button>
+            <button type="button" class="cfg-stepper-btn" data-act="gedragStep" data-stepid="inp-timeout-warn" data-delta="1" aria-label="Verhogen">+</button>
           </div>
         </div>
         <div class="cfg-gedrag-row">
           <div><div class="cfg-gedrag-label">Herhaal-waarschuwing</div><div class="cfg-gedrag-sub">Herhaal de lange-ronde melding om de zoveel uur zolang de ronde nog loopt</div></div>
           <div class="cfg-stepper">
-            <button type="button" class="cfg-stepper-btn" onclick="gedragStep('inp-rewarn-hours',-1)" aria-label="Verlagen">−</button>
+            <button type="button" class="cfg-stepper-btn" data-act="gedragStep" data-stepid="inp-rewarn-hours" data-delta="-1" aria-label="Verlagen">−</button>
             <div class="cfg-stepper-val"><input type="number" id="inp-rewarn-hours" min="1" max="24" step="1" class="cfg-stepper-input" oninput="saveGedrag()"><span class="cfg-stepper-unit">uur</span></div>
-            <button type="button" class="cfg-stepper-btn" onclick="gedragStep('inp-rewarn-hours',1)" aria-label="Verhogen">+</button>
+            <button type="button" class="cfg-stepper-btn" data-act="gedragStep" data-stepid="inp-rewarn-hours" data-delta="1" aria-label="Verhogen">+</button>
           </div>
         </div>
         <div class="cfg-gedrag-row" style="border-bottom:none">
           <div><div class="cfg-gedrag-label">Melding duur</div><div class="cfg-gedrag-sub">Hoe lang gedeelde meldingen zichtbaar blijven voor alle apparaten</div></div>
           <div class="cfg-stepper">
-            <button type="button" class="cfg-stepper-btn" onclick="gedragStep('inp-melding-ttl',-1)" aria-label="Verlagen">−</button>
+            <button type="button" class="cfg-stepper-btn" data-act="gedragStep" data-stepid="inp-melding-ttl" data-delta="-1" aria-label="Verlagen">−</button>
             <div class="cfg-stepper-val"><input type="number" id="inp-melding-ttl" min="1" max="72" step="1" class="cfg-stepper-input" oninput="saveGedrag()"><span class="cfg-stepper-unit">uur</span></div>
-            <button type="button" class="cfg-stepper-btn" onclick="gedragStep('inp-melding-ttl',1)" aria-label="Verhogen">+</button>
+            <button type="button" class="cfg-stepper-btn" data-act="gedragStep" data-stepid="inp-melding-ttl" data-delta="1" aria-label="Verhogen">+</button>
           </div>
         </div>
       </div>
@@ -1966,9 +1966,9 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         <div class="cfg-gedrag-row" style="border-bottom:none">
           <div><div class="cfg-gedrag-label">Bewaar-duur</div><div class="cfg-gedrag-sub">Hoe lang gelopen rondes bewaard blijven (auto-opruiming elke 30 min). Minimaal 25 uur wordt altijd bewaard voor de 24u-tijdlijn.</div></div>
           <div class="cfg-stepper">
-            <button type="button" class="cfg-stepper-btn" onclick="gedragStep('inp-log-retention',-1)" aria-label="Verlagen">−</button>
+            <button type="button" class="cfg-stepper-btn" data-act="gedragStep" data-stepid="inp-log-retention" data-delta="-1" aria-label="Verlagen">−</button>
             <div class="cfg-stepper-val"><input type="number" id="inp-log-retention" min="1" max="30" step="1" class="cfg-stepper-input" oninput="saveGedrag()"><span class="cfg-stepper-unit">dagen</span></div>
-            <button type="button" class="cfg-stepper-btn" onclick="gedragStep('inp-log-retention',1)" aria-label="Verhogen">+</button>
+            <button type="button" class="cfg-stepper-btn" data-act="gedragStep" data-stepid="inp-log-retention" data-delta="1" aria-label="Verhogen">+</button>
           </div>
         </div>
       </div>
@@ -1980,7 +1980,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         </div>
         <div class="cfg-gedrag-row" style="border-bottom:none">
           <div><div class="cfg-gedrag-label">Ronde-log wissen</div><div class="cfg-gedrag-sub">Verwijdert alle gelopen rondes en actieve rondes direct uit Firebase. Deze actie kan niet ongedaan worden gemaakt.</div></div>
-          <button type="button" onclick="wisLog()" style="flex-shrink:0;display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:1.5px solid #ef4444;border-radius:6px;background:#fff;color:#ef4444;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .12s" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>Wis ronde-log</button>
+          <button type="button" data-act="wisLog" style="flex-shrink:0;display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:1.5px solid #ef4444;border-radius:6px;background:#fff;color:#ef4444;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .12s" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>Wis ronde-log</button>
         </div>
       </div>
     </div>
@@ -1990,8 +1990,8 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div class="cfg-sec-header">
         <div><div class="cfg-sec-title">Audit log</div><div class="cfg-sec-sub">Systeem- en gebruikersacties (auto-wis na 7 dagen)</div></div>
         <div style="display:flex;gap:6px">
-          <button type="button" class="cfg-action-btn cfg-action-btn-sec" onclick="exportEventLog()">Export</button>
-          <button type="button" class="cfg-action-btn cfg-action-btn-sec" onclick="wisEventLog()">Wis log</button>
+          <button type="button" class="cfg-action-btn cfg-action-btn-sec" data-act="exportEventLog">Export</button>
+          <button type="button" class="cfg-action-btn cfg-action-btn-sec" data-act="wisEventLog">Wis log</button>
         </div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
@@ -2016,7 +2016,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   <div class="cfg-section" id="cfg-sec-beheerders">
     <div class="cfg-sec-header">
       <div><div class="cfg-sec-title">Beheerders</div><div class="cfg-sec-sub">Accounts met toegang tot instellingen</div></div>
-      <button type="button" class="cfg-action-btn" onclick="openBeheerderModal()">+ Beheerder</button>
+      <button type="button" class="cfg-action-btn" data-act="openBeheerderModal">+ Beheerder</button>
     </div>
     <div id="beheerders-list" style="display:flex;flex-direction:column;gap:8px;margin-top:8px"></div>
   </div>
@@ -2047,7 +2047,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="modal-btns">
       <button type="button" class="modal-btn modal-btn-nee" id="modal-btn-nee" data-act="modalCancel">Annuleren</button>
-      <button type="button" class="modal-btn modal-btn-ja"  id="modal-btn-ja"  onclick="modalConfirm()">Bevestigen</button>
+      <button type="button" class="modal-btn modal-btn-ja"  id="modal-btn-ja"  data-act="modalConfirm">Bevestigen</button>
     </div>
   </div>
 </div>
@@ -2062,7 +2062,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     <div class="logout-sub">Je wordt afgemeld en moet hierna opnieuw inloggen om verder te gaan.</div>
     <div class="modal-btns logout-btns">
       <button type="button" class="modal-btn modal-btn-nee" data-act="logoutCancel">Annuleren</button>
-      <button type="button" class="modal-btn logout-btn-ja" onclick="logoutConfirmBtn()">
+      <button type="button" class="modal-btn logout-btn-ja" data-act="logoutConfirmBtn">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         Uitloggen
       </button>
@@ -2091,7 +2091,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="edit-modal-foot">
       <button type="button" class="edit-modal-btn edit-modal-btn-cancel" data-act="cancelMedewerkerEdit">Annuleren</button>
-      <button type="button" id="medewerker-modal-save-btn" class="edit-modal-btn edit-modal-btn-save" disabled onclick="saveMedewerkerEdit()"><svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan</button>
+      <button type="button" id="medewerker-modal-save-btn" class="edit-modal-btn edit-modal-btn-save" disabled data-act="saveMedewerkerEdit"><svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan</button>
     </div>
   </div>
 </div>
@@ -2119,7 +2119,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="edit-modal-foot">
       <button type="button" class="edit-modal-btn edit-modal-btn-cancel" data-act="cancelRondeEdit">Annuleren</button>
-      <button type="button" id="ronde-modal-save-btn" class="edit-modal-btn edit-modal-btn-save" disabled onclick="saveRondeEdit()"><svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan</button>
+      <button type="button" id="ronde-modal-save-btn" class="edit-modal-btn edit-modal-btn-save" disabled data-act="saveRondeEdit"><svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan</button>
     </div>
   </div>
 </div>
@@ -2137,7 +2137,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="edit-modal-foot">
       <button type="button" class="edit-modal-btn edit-modal-btn-cancel" data-act="cancelCatEdit">Annuleren</button>
-      <button type="button" id="cat-modal-save-btn" class="edit-modal-btn edit-modal-btn-save" disabled onclick="saveCatEdit()"><svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan</button>
+      <button type="button" id="cat-modal-save-btn" class="edit-modal-btn edit-modal-btn-save" disabled data-act="saveCatEdit"><svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan</button>
     </div>
   </div>
 </div>
@@ -2158,7 +2158,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
             <label style="margin-bottom:2px">Voorgestelde ronde</label>
             <div style="font-size:12px;color:#9ca3af;line-height:1.4">Medewerkers met deze rol meenemen als suggestie bij "Voorgestelde ronde". Heeft iemand ook een andere rol die wél aan staat, dan blijft die persoon meedoen.</div>
           </div>
-          <span id="rol-modal-voorstel-toggle" onclick="toggleRolModalVoorstel()" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();toggleRolModalVoorstel()}" role="switch" aria-checked="true" tabindex="0" title="Meenemen bij voorgestelde ronde" style="display:inline-block;width:34px;height:19px;border-radius:99px;flex-shrink:0;cursor:pointer;position:relative;transition:background .15s;background:#2563eb;margin-top:2px">
+          <span id="rol-modal-voorstel-toggle" data-act="toggleRolModalVoorstel" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();toggleRolModalVoorstel()}" role="switch" aria-checked="true" tabindex="0" title="Meenemen bij voorgestelde ronde" style="display:inline-block;width:34px;height:19px;border-radius:99px;flex-shrink:0;cursor:pointer;position:relative;transition:background .15s;background:#2563eb;margin-top:2px">
             <span style="position:absolute;top:2px;left:17px;width:15px;height:15px;border-radius:99px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .15s"></span>
           </span>
         </div>
@@ -2166,7 +2166,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="edit-modal-foot">
       <button type="button" class="edit-modal-btn edit-modal-btn-cancel" data-act="cancelRolEdit">Annuleren</button>
-      <button type="button" id="rol-modal-save-btn" class="edit-modal-btn edit-modal-btn-save" disabled onclick="saveRolEdit()"><svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan</button>
+      <button type="button" id="rol-modal-save-btn" class="edit-modal-btn edit-modal-btn-save" disabled data-act="saveRolEdit"><svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan</button>
     </div>
   </div>
 </div>
@@ -2198,7 +2198,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="edit-modal-foot">
       <button type="button" class="edit-modal-btn edit-modal-btn-cancel" data-act="cancelDagdeelEdit">Annuleren</button>
-      <button type="button" id="dagdeel-modal-save-btn" class="edit-modal-btn edit-modal-btn-save" disabled onclick="saveDagdeelEdit()"><svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan</button>
+      <button type="button" id="dagdeel-modal-save-btn" class="edit-modal-btn edit-modal-btn-save" disabled data-act="saveDagdeelEdit"><svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan</button>
     </div>
   </div>
 </div>
@@ -2206,7 +2206,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   <div class="edit-modal-box">
     <div class="edit-modal-hdr">
       <p id="schema-modal-title" class="edit-modal-title">Schema-item toevoegen</p>
-      <button type="button" class="edit-modal-close" onclick="closeSchemaModal()" aria-label="Sluiten"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      <button type="button" class="edit-modal-close" data-act="closeSchemaModal" aria-label="Sluiten"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="edit-modal-body">
       <div class="edit-modal-field-row">
@@ -2229,8 +2229,8 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       </div>
     </div>
     <div class="edit-modal-foot">
-      <button type="button" class="edit-modal-btn edit-modal-btn-cancel" onclick="closeSchemaModal()">Annuleren</button>
-      <button type="button" id="schema-modal-save-btn" class="edit-modal-btn edit-modal-btn-save" onclick="saveSchemaModal()" disabled><svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan</button>
+      <button type="button" class="edit-modal-btn edit-modal-btn-cancel" data-act="closeSchemaModal">Annuleren</button>
+      <button type="button" id="schema-modal-save-btn" class="edit-modal-btn edit-modal-btn-save" data-act="saveSchemaModal" disabled><svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M812.73-667.5v452.03q0 28.37-19.92 48.28-19.91 19.92-48.26 19.92h-529.1q-28.35 0-48.26-19.92-19.92-19.91-19.92-48.26v-529.1q0-28.35 19.92-48.26 19.91-19.92 48.28-19.92H667.5L812.73-667.5Zm-55.96 23.04L644.46-756.77H215.54q-5.39 0-8.85 3.46t-3.46 8.85v528.92q0 5.39 3.46 8.85t8.85 3.46h528.92q5.39 0 8.85-3.46t3.46-8.85v-428.92Zm-209.39 341.8q27.77-27.76 27.77-67.38 0-39.61-27.77-67.38-27.77-27.77-67.38-27.77t-67.38 27.77q-27.77 27.77-27.77 67.38 0 39.62 27.77 67.38 27.77 27.77 67.38 27.77t67.38-27.77ZM259.42-565.42h321.19v-135.16H259.42v135.16Zm-56.19-79.04v441.23-553.54 112.31Z"/></svg>Opslaan</button>
     </div>
   </div>
 </div>
@@ -2242,7 +2242,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.11.1';
+const APP_VERSION = '3.11.2';
 
 // ==========================================================================
 // CSP-migratie (fase 0/1): gedelegeerde click-handler.
@@ -2303,6 +2303,35 @@ function runAct(act, d) {
     case 'verwijderMelding':     verwijderMelding(+d.id); break;
     case 'setMedFilter':         setMedFilter(d.rol); break;
     case 'verwijderBeheerder':   verwijderBeheerder(d.uid); break;
+    // fase 4a: save-knoppen, modals, gedrag-steppers, log/debug
+    case 'saveMedewerkerEdit':   saveMedewerkerEdit(); break;
+    case 'saveRondeEdit':        saveRondeEdit(); break;
+    case 'saveCatEdit':          saveCatEdit(); break;
+    case 'saveRolEdit':          saveRolEdit(); break;
+    case 'saveDagdeelEdit':      saveDagdeelEdit(); break;
+    case 'saveSchemaModal':      saveSchemaModal(); break;
+    case 'closeSchemaModal':     closeSchemaModal(); break;
+    case 'modalConfirm':         modalConfirm(); break;
+    case 'toggleRolModalVoorstel': toggleRolModalVoorstel(); break;
+    case 'openBeheerderModal':   openBeheerderModal(); break;
+    case 'closeBeheerderModal':  closeBeheerderModal(); break;
+    case 'saveBeheerderModal':   saveBeheerderModal(); break;
+    case 'logoutConfirmBtn':     logoutConfirmBtn(); break;
+    case 'cfgMobBack':           cfgMobBack(); break;
+    case 'cfgMobDetailAction':   cfgMobDetailAction(); break;
+    case 'medActionBtn':         medActionBtn(); break;
+    case 'rondesActionBtn':      rondesActionBtn(); break;
+    case 'schemaActionBtn':      schemaActionBtn(); break;
+    case 'clearMedFilters':      clearMedFilters(); break;
+    case 'toggleMedDienst':      toggleMedDienst(); break;
+    case 'wisLog':               wisLog(); break;
+    case 'exportEventLog':       exportEventLog(); break;
+    case 'wisEventLog':          wisEventLog(); break;
+    case 'gedragStep':           gedragStep(d.stepid, +d.delta); break;
+    case 'forceReloadFresh':     forceReloadFresh(); break;
+    case 'herstelVerbinding':    window.herstelVerbinding ? window.herstelVerbinding(d.reden) : herstelVerbinding(d.reden); break;
+    case 'dbgCopy':              window.dbgCopy && window.dbgCopy(); break;
+    case 'dbgClear':             window.dbgClear && window.dbgClear(); break;
     // acties zonder argument
     case 'logout':           doLogout(); break;
     case 'modalCancel':      modalCancel(); break;
@@ -2656,7 +2685,7 @@ function showUpdateBanner() {
       <div style="font-size:32px;margin-bottom:12px">🔄</div>
       <div style="font-size:16px;font-weight:600;color:#1e293b;margin-bottom:8px">Nieuwe versie beschikbaar</div>
       <div style="font-size:13px;color:#64748b;margin-bottom:20px;line-height:1.5">De versie van de webapplicatie is gewijzigd. Vernieuw de pagina om door te gaan.</div>
-      <button type="button" onclick="forceReloadFresh()"
+      <button type="button" data-act="forceReloadFresh"
         style="width:100%;padding:13px;border-radius:8px;border:none;background:#1d4ed8;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
         Pagina vernieuwen
       </button>
@@ -5942,7 +5971,7 @@ function renderMedewerkersList() {
     const isFiltered = query || _medFilterRol !== 'alle' || _medFilterDienst;
     ml.innerHTML = `<div style="text-align:center;padding:32px 16px;color:#5b6b7f">
       <div style="font-size:13px;margin-bottom:8px">${total === 0 ? 'Geen medewerkers.' : 'Geen medewerkers gevonden.'}</div>
-      ${isFiltered ? '<button type="button" onclick="clearMedFilters()" style="font-size:12px;color:#2563eb;background:none;border:none;cursor:pointer;font-family:inherit;text-decoration:underline">Filters wissen</button>' : ''}
+      ${isFiltered ? '<button type="button" data-act="clearMedFilters" style="font-size:12px;color:#2563eb;background:none;border:none;cursor:pointer;font-family:inherit;text-decoration:underline">Filters wissen</button>' : ''}
     </div>`;
     return;
   }
