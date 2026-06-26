@@ -1336,7 +1336,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.10.0</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.10.1</span></span>
     </div>
   </div>
 
@@ -1830,7 +1830,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" data-act="logout">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.10.0</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.10.1</span>
     </div>
   </nav>
 
@@ -2242,7 +2242,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.10.0';
+const APP_VERSION = '3.10.1';
 
 // ==========================================================================
 // CSP-migratie (fase 0/1): gedelegeerde click-handler.
@@ -2905,6 +2905,7 @@ function fbListen() {
       }
       fbLog.sort((a, b) => (b.end || 0) - (a.end || 0));
       const fbIds = new Set(fbLog.map(r => r.id));
+      const pendingLocal = S.log.filter(r => _pendingLog.has(r.id) && !fbIds.has(r.id));
       const merged = [...pendingLocal, ...fbLog];
       const seen = new Map();
       const mergedLog = merged.filter(r => {
@@ -3132,6 +3133,7 @@ if (LS.get('rn_version') !== VERSION) {
   // Migrate: existing routes may be strings (old format) or objects (new format)
   const existingObjs = sanitizeRoutes(existingRoutes);
   const drNames = new Set(DR.map(r => r.naam.toLowerCase()));
+  const extraObjs = existingObjs.filter(r => !drNames.has(r.naam.toLowerCase()));
   const mergedRoutes = [...DR, ...extraObjs].sort((a,b) => a.naam.toLowerCase().localeCompare(b.naam.toLowerCase(),'nl'));
   // Medewerkers: bron is Firebase (dashboard/medewerkers); lokaal geen seed forceren.
   if (!LS.get('rn_medewerkers')) {
@@ -3946,6 +3948,7 @@ async function doRetourAllen(names) {
   const labels = joinNamen(okInfo.map(x => x.name.split(' ')[0]));
   const route  = okInfo[0].route;
   const now    = Date.now();
+  const durs   = okInfo.map(x => Math.max(0, Math.round((now - x.start) / 60000)));
   const minD = Math.min(...durs), maxD = Math.max(...durs);
   const durStr = (minD === maxD) ? (minD + ' min.') : (minD + '\u2013' + maxD + ' min.');
   schrijfGedeeldeMelding('grijs', route, labels + ' retour \u2014 ' + durStr);
@@ -4449,6 +4452,8 @@ function drawTimeline(recent, active, cutoff, now) {
   // Find boundaries from all dagdelen
 
   // Build raw point list: cutoff, all dagdeel boundaries, now
+  const dagdeelBounds = dagdeelBoundariesInWindow(now, cutoff);
+
   const rawPts = [cutoff, ...dagdeelBounds.map(b => b.t), now];
   rawPts.sort((a, b) => a - b);
 
