@@ -1336,7 +1336,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.11.0</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.11.1</span></span>
     </div>
   </div>
 
@@ -1830,7 +1830,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" data-act="logout">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.11.0</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.11.1</span>
     </div>
   </nav>
 
@@ -2242,7 +2242,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.11.0';
+const APP_VERSION = '3.11.1';
 
 // ==========================================================================
 // CSP-migratie (fase 0/1): gedelegeerde click-handler.
@@ -2286,6 +2286,23 @@ function runAct(act, d) {
     case 'zetTlVenster':         zetTlVenster(d.venster); break;
     case 'toggleMeldingen':      toggleMeldingen(); break;
     case 'wisAlleMeldingen':     wisAlleMeldingen(); break;
+    // fase 3: dynamische lijst-handlers (Instellingen + meldingen)
+    case 'editMedewerker':       editMedewerker(+d.idx); break;
+    case 'rmName':               rmName(+d.idx); break;
+    case 'editRonde':            editRonde(+d.idx); break;
+    case 'rmRoute':              rmRoute(+d.idx); break;
+    case 'openCatModal':         openCatModal(+d.idx); break;
+    case 'rmCat':                rmCat(+d.idx); break;
+    case 'openSchemaModal':      openSchemaModal(+d.idx); break;
+    case 'rmSchemaItem':         rmSchemaItem(+d.idx); break;
+    case 'editDagdeel':          editDagdeel(+d.idx); break;
+    case 'rmDagdeel':            rmDagdeel(+d.idx); break;
+    case 'openRolModal':         openRolModal(+d.idx); break;
+    case 'rmRol':                rmRol(+d.idx); break;
+    case 'meldActie':            meldActie(+d.id); break;
+    case 'verwijderMelding':     verwijderMelding(+d.id); break;
+    case 'setMedFilter':         setMedFilter(d.rol); break;
+    case 'verwijderBeheerder':   verwijderBeheerder(d.uid); break;
     // acties zonder argument
     case 'logout':           doLogout(); break;
     case 'modalCancel':      modalCancel(); break;
@@ -5865,7 +5882,7 @@ function renderMedRolFilter() {
   el.innerHTML = options.map(r => {
     const label = r === 'alle' ? 'Alle' : r;
     const active = _medFilterRol === r;
-    return `<button type="button" class="med-fil-btn" onclick="setMedFilter(${escHtml(JSON.stringify(r))})" style="${btnStyle(active)}">${escHtml(label)}</button>`;
+    return `<button type="button" class="med-fil-btn" data-act="setMedFilter" data-rol="${escHtml(r)}" style="${btnStyle(active)}">${escHtml(label)}</button>`;
   }).join('');
 }
 
@@ -5953,8 +5970,8 @@ function renderMedewerkersList() {
         ${rol ? `<div style="font-size:10px;color:#5b6b7f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${rolArray(rol).map(r => escHtml(r)).join(' · ')}</div>` : ''}
       </div>
       ${isOnDienst ? '<span style="font-size:11px;font-weight:600;color:#15803d;background:#dcfce7;border-radius:4px;padding:2px 7px;flex-shrink:0;white-space:nowrap">op dienst</span>' : ''}
-      <button type="button" onclick="editMedewerker(${i})" style="background:none;border:none;cursor:pointer;color:#5b6b7f;font-size:12px;padding:0 3px;flex-shrink:0;line-height:1" title="Wijzigen" aria-label="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#5b6b7f'">✎</button>
-      <button type="button" onclick="rmName(${i})" style="background:none;border:none;cursor:pointer;color:#5b6b7f;font-size:13px;padding:0 3px;flex-shrink:0;line-height:1" title="Verwijderen" aria-label="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#5b6b7f'">✕</button>
+      <button type="button" data-act="editMedewerker" data-idx="${i}" style="background:none;border:none;cursor:pointer;color:#5b6b7f;font-size:12px;padding:0 3px;flex-shrink:0;line-height:1" title="Wijzigen" aria-label="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#5b6b7f'">✎</button>
+      <button type="button" data-act="rmName" data-idx="${i}" style="background:none;border:none;cursor:pointer;color:#5b6b7f;font-size:13px;padding:0 3px;flex-shrink:0;line-height:1" title="Verwijderen" aria-label="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#5b6b7f'">✕</button>
     </div>`;
   });
   ml.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">${rows.join('')}</div>`;
@@ -6034,8 +6051,8 @@ function renderCfg() {
         return `<div style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:0.5px solid rgba(148,163,184,.15);font-size:12px">
           <span style="font-weight:500;color:#1e293b;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(naam)}</span>
           ${dubBadge}
-          <button type="button" onclick="editRonde(${i})" style="background:none;border:none;cursor:pointer;color:#5b6b7f;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen" aria-label="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#5b6b7f'">✎</button>
-          <button type="button" onclick="rmRoute(${i})" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:14px;padding:0 4px;flex-shrink:0" title="Verwijderen" aria-label="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#cbd5e1'">✕</button>
+          <button type="button" data-act="editRonde" data-idx="${i}" style="background:none;border:none;cursor:pointer;color:#5b6b7f;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen" aria-label="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#5b6b7f'">✎</button>
+          <button type="button" data-act="rmRoute" data-idx="${i}" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:14px;padding:0 4px;flex-shrink:0" title="Verwijderen" aria-label="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#cbd5e1'">✕</button>
         </div>`;
       };
       let html = '';
@@ -6165,8 +6182,8 @@ function renderCfg() {
           ${item.ronde ? `<span style="background:#fff;color:#1d4ed8;border:1px solid #dbeafe;border-radius:20px;padding:1px 7px;font-size:11px;flex-shrink:0">${escHtml(item.ronde)}</span>` : ''}
           <span style="color:#475569;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(item.taak)}</span>
           ${dagenBadge}
-          <button type="button" onclick="openSchemaModal(${origIdx})" style="background:none;border:none;cursor:pointer;color:#5b6b7f;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen" aria-label="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#5b6b7f'">✎</button>
-          <button type="button" onclick="rmSchemaItem(${origIdx})" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:14px;padding:0 4px;flex-shrink:0" title="Verwijderen" aria-label="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#cbd5e1'">✕</button>
+          <button type="button" data-act="openSchemaModal" data-idx="${origIdx}" style="background:none;border:none;cursor:pointer;color:#5b6b7f;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen" aria-label="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#5b6b7f'">✎</button>
+          <button type="button" data-act="rmSchemaItem" data-idx="${origIdx}" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:14px;padding:0 4px;flex-shrink:0" title="Verwijderen" aria-label="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#cbd5e1'">✕</button>
         </div>`;
       };
 
@@ -6217,8 +6234,8 @@ function renderCfg() {
             <span style="font-weight:600;color:#1e293b;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(d.naam) || '—'}</span>
             <span style="color:#64748b;font-size:12px">${escHtml(d.start)} – ${escHtml(d.eind)}</span>
           </div>
-          <button type="button" onclick="editDagdeel(${origIdx})" style="background:#fff;border:1px solid #e2e8f0;border-radius:7px;cursor:pointer;color:#334155;font-size:12px;font-weight:500;padding:6px 12px;flex-shrink:0;font-family:inherit" title="Wijzigen">Bewerk</button>
-          <button type="button" onclick="rmDagdeel(${origIdx})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:15px;padding:0 2px;flex-shrink:0" title="Verwijderen" aria-label="Verwijderen">✕</button>
+          <button type="button" data-act="editDagdeel" data-idx="${origIdx}" style="background:#fff;border:1px solid #e2e8f0;border-radius:7px;cursor:pointer;color:#334155;font-size:12px;font-weight:500;padding:6px 12px;flex-shrink:0;font-family:inherit" title="Wijzigen">Bewerk</button>
+          <button type="button" data-act="rmDagdeel" data-idx="${origIdx}" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:15px;padding:0 2px;flex-shrink:0" title="Verwijderen" aria-label="Verwijderen">✕</button>
         </div>`;
       }).join('') + `</div>`;
     }
@@ -6767,8 +6784,8 @@ function renderRollenList() {
         '<span style="flex:1;font-size:13px;color:#1e293b">' + escHtml(rol) + '</span>' +
         badge +
         '<span style="background:#f1f5f9;color:#64748b;border-radius:99px;font-size:11px;font-weight:600;padding:1px 8px;flex-shrink:0">' + count + '</span>' +
-        '<button type="button" onclick="openRolModal(' + i + ')" class="cfg-icon-btn" title="Wijzigen" aria-label="Wijzigen">✎</button>' +
-        '<button type="button" onclick="rmRol(' + i + ')" class="cfg-icon-btn cfg-icon-btn-del" title="Verwijderen" aria-label="Verwijderen">✕</button>' +
+        '<button type="button" data-act="openRolModal" data-idx="' + i + '" class="cfg-icon-btn" title="Wijzigen" aria-label="Wijzigen">✎</button>' +
+        '<button type="button" data-act="rmRol" data-idx="' + i + '" class="cfg-icon-btn cfg-icon-btn-del" title="Verwijderen" aria-label="Verwijderen">✕</button>' +
       '</div>';
   });
   html += '</div>';
@@ -7279,8 +7296,8 @@ function renderRouteCatsList() {
       return `<div style="${rowStyle}">
         <span style="flex:1;font-size:13px;color:#1e293b">${cat}</span>
         <span style="${badgeStyle('#f1f5f9','#64748b')}">${count}</span>
-        <button type="button" onclick="openCatModal(${i})" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:13px;padding:0 2px;flex-shrink:0;line-height:1" title="Wijzigen" aria-label="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#cbd5e1'">✎</button>
-        <button type="button" onclick="rmCat(${i})" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:14px;padding:0 2px;flex-shrink:0;line-height:1" title="Verwijderen" aria-label="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#cbd5e1'">✕</button>
+        <button type="button" data-act="openCatModal" data-idx="${i}" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:13px;padding:0 2px;flex-shrink:0;line-height:1" title="Wijzigen" aria-label="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#cbd5e1'">✎</button>
+        <button type="button" data-act="rmCat" data-idx="${i}" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:14px;padding:0 2px;flex-shrink:0;line-height:1" title="Verwijderen" aria-label="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#cbd5e1'">✕</button>
       </div>`;
     }).join('') +
     `<div style="${rowStyle}">
@@ -8226,10 +8243,10 @@ function renderMeldingen() {
       <div class="meld-tekst">
         <div class="meld-naam">${escHtml(m.naam)}</div>
         <div class="meld-sub">${escHtml(m.sub)}</div>
-        ${m.actieLabel ? `<button type="button" class="meld-actie ${m.type}" onclick="meldActie(${m.id})">${escHtml(m.actieLabel)} →</button>` : ''}
+        ${m.actieLabel ? `<button type="button" class="meld-actie ${m.type}" data-act="meldActie" data-id="${m.id}">${escHtml(m.actieLabel)} →</button>` : ''}
         <div class="meld-tijd">${escHtml(m.tijdStr)}</div>
       </div>
-      <button type="button" class="meld-x" onclick="verwijderMelding(${m.id})" aria-label="Melding verwijderen" title="Verwijderen">&times;</button>
+      <button type="button" class="meld-x" data-act="verwijderMelding" data-id="${m.id}" aria-label="Melding verwijderen" title="Verwijderen">&times;</button>
     </div>`).join('');
 }
 
@@ -8878,7 +8895,7 @@ function renderBeheerders() {
         '<div style="font-size:12px;color:#64748b;margin-top:2px">' + escHtml(b.email || '') + '</div>' +
         '<div style="font-size:11px;color:#94a3b8;margin-top:2px;font-family:monospace;word-break:break-all">' + escHtml(uid) + '</div>' +
       '</div>' +
-      (!isZelf ? '<button type="button" onclick="verwijderBeheerder(\'' + escHtml(uid) + '\')" style="flex-shrink:0;padding:6px 12px;border:1.5px solid #fca5a5;border-radius:6px;background:#fff;color:#ef4444;font-size:12px;font-weight:600;cursor:pointer">Verwijder</button>' : '<div style="flex-shrink:0;width:70px"></div>') +
+      (!isZelf ? '<button type="button" data-act="verwijderBeheerder" data-uid="' + escHtml(uid) + '" style="flex-shrink:0;padding:6px 12px;border:1.5px solid #fca5a5;border-radius:6px;background:#fff;color:#ef4444;font-size:12px;font-weight:600;cursor:pointer">Verwijder</button>' : '<div style="flex-shrink:0;width:70px"></div>') +
     '</div>';
   }).join('');
 }
