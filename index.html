@@ -885,6 +885,23 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   input[type=text],input[type=number],input[type=tel],input[type=search],
   input[type=text],input[type=search],input[type=password],input[type=email],input[type=number],input[type=time],select,textarea{font-size:16px !important}
 }
+
+/* Hover-effecten (fase 4b): verplaatst van inline onmouseover/out naar CSS.
+   Achter @media(hover:hover) zodat tap op iOS geen plak-hover geeft. */
+@media (hover:hover) and (pointer:fine) {
+  [data-act="wisLog"]:hover { background:#fef2f2 !important; }
+  [data-act="startRondeVoorgesteld"]:hover { opacity:.85 !important; }
+  [data-act="editMedewerker"]:hover,
+  [data-act="editRonde"]:hover,
+  [data-act="openSchemaModal"]:hover,
+  [data-act="openCatModal"]:hover { color:#2563eb !important; }
+  [data-act="rmName"]:hover,
+  [data-act="rmRoute"]:hover,
+  [data-act="rmSchemaItem"]:hover,
+  [data-act="rmCat"]:hover { color:#ef4444 !important; }
+}
+
+  #med-search:focus { border-color:#2563eb; }
 </style>
 
 <!-- Firebase SDK -->
@@ -1336,7 +1353,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.11.2</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.11.3</span></span>
     </div>
   </div>
 
@@ -1373,12 +1390,12 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div class="login-field" id="login-field-pw">
         <svg class="login-field-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         <input type="password" id="login-pw" placeholder="••••••••" autocomplete="current-password">
-        <button type="button" class="login-eye" id="login-eye-btn" onclick="toggleLoginPw()" aria-label="Wachtwoord tonen">
+        <button type="button" class="login-eye" id="login-eye-btn" data-act="toggleLoginPw" aria-label="Wachtwoord tonen">
           <svg id="login-eye-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
       </div>
 
-      <button type="button" id="login-btn" class="login-submit" onclick="doLogin()">
+      <button type="button" id="login-btn" class="login-submit" data-act="doLogin">
         <span>Inloggen</span>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </button>
@@ -1446,7 +1463,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 
 <div class="topbar-sticky">
 <header class="header">
-  <img src="logo.png" alt="Logo" style="height:36px;width:auto;object-fit:contain;flex-shrink:0;border-radius:6px" onerror="this.style.display='none';var d=document.getElementById('header-logo-divider');if(d)d.style.display='none'">
+  <img src="logo.png" alt="Logo" id="header-logo" style="height:36px;width:auto;object-fit:contain;flex-shrink:0;border-radius:6px">
   <div id="header-logo-divider" style="width:1px;height:36px;background:rgba(255,255,255,.2);flex-shrink:0"></div>
   <div id="header-left" style="flex:1;min-width:0">
     <h1>Surveillance Dashboard</h1>
@@ -1570,7 +1587,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
           </button>
           <button type="button" class="abtn abtn-w" id="btn-wis" data-act="resetSel" disabled>Selectie wissen</button>
         </div>
-        <div id="reg-sidebar-head" data-act="toggleOnderwegAccordion" role="button" tabindex="0" aria-expanded="false" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleOnderwegAccordion();}">
+        <div id="reg-sidebar-head" data-act="toggleOnderwegAccordion" role="button" tabindex="0" aria-expanded="false" data-key-act="onderwegAccordion">
           <span id="reg-sidebar-title">Onderweg</span>
           <span id="reg-sidebar-count">0</span>
           <svg id="reg-sidebar-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
@@ -1657,7 +1674,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         <div id="dienst-toolbar">
           <div id="dienst-zoekwrap">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-            <input id="dienst-zoek" type="text" inputmode="search" autocomplete="off" placeholder="Naam zoeken…" maxlength="40" oninput="dienstZoekInput(this.value)" aria-label="Zoek collega op naam">
+            <input id="dienst-zoek" type="text" inputmode="search" autocomplete="off" placeholder="Naam zoeken…" maxlength="40" data-input-act="dienstZoekInput" aria-label="Zoek collega op naam">
           </div>
           <div id="dienst-toolbar-rij">
             <span id="dienst-totaal"></span>
@@ -1830,7 +1847,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" data-act="logout">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.11.2</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.11.3</span>
     </div>
   </nav>
 
@@ -1855,7 +1872,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
             <div style="flex:1;min-width:180px;position:relative">
               <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-              <input type="text" id="med-search" placeholder="Zoek op naam of functie..." oninput="renderMedewerkersList()" style="width:100%;padding:7px 10px 7px 30px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;font-family:inherit;box-sizing:border-box;outline:none" onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#e2e8f0'">
+              <input type="text" id="med-search" placeholder="Zoek op naam of functie..." data-input-act="renderMedewerkersList" style="width:100%;padding:7px 10px 7px 30px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;font-family:inherit;box-sizing:border-box;outline:none">
             </div>
             <div id="med-rol-filter" style="display:flex;gap:2px;background:#f1f5f9;border-radius:8px;padding:3px"></div>
             <div style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#64748b;flex-shrink:0;user-select:none">
@@ -1936,7 +1953,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
           <div><div class="cfg-gedrag-label">Lange-ronde waarschuwing</div><div class="cfg-gedrag-sub">Oranje melding als een ronde langer duurt dan dit aantal uur</div></div>
           <div class="cfg-stepper">
             <button type="button" class="cfg-stepper-btn" data-act="gedragStep" data-stepid="inp-timeout-warn" data-delta="-1" aria-label="Verlagen">−</button>
-            <div class="cfg-stepper-val"><input type="number" id="inp-timeout-warn" min="1" max="24" step="1" class="cfg-stepper-input" oninput="saveGedrag()"><span class="cfg-stepper-unit">uur</span></div>
+            <div class="cfg-stepper-val"><input type="number" id="inp-timeout-warn" min="1" max="24" step="1" class="cfg-stepper-input" data-input-act="saveGedrag"><span class="cfg-stepper-unit">uur</span></div>
             <button type="button" class="cfg-stepper-btn" data-act="gedragStep" data-stepid="inp-timeout-warn" data-delta="1" aria-label="Verhogen">+</button>
           </div>
         </div>
@@ -1944,7 +1961,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
           <div><div class="cfg-gedrag-label">Herhaal-waarschuwing</div><div class="cfg-gedrag-sub">Herhaal de lange-ronde melding om de zoveel uur zolang de ronde nog loopt</div></div>
           <div class="cfg-stepper">
             <button type="button" class="cfg-stepper-btn" data-act="gedragStep" data-stepid="inp-rewarn-hours" data-delta="-1" aria-label="Verlagen">−</button>
-            <div class="cfg-stepper-val"><input type="number" id="inp-rewarn-hours" min="1" max="24" step="1" class="cfg-stepper-input" oninput="saveGedrag()"><span class="cfg-stepper-unit">uur</span></div>
+            <div class="cfg-stepper-val"><input type="number" id="inp-rewarn-hours" min="1" max="24" step="1" class="cfg-stepper-input" data-input-act="saveGedrag"><span class="cfg-stepper-unit">uur</span></div>
             <button type="button" class="cfg-stepper-btn" data-act="gedragStep" data-stepid="inp-rewarn-hours" data-delta="1" aria-label="Verhogen">+</button>
           </div>
         </div>
@@ -1952,7 +1969,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
           <div><div class="cfg-gedrag-label">Melding duur</div><div class="cfg-gedrag-sub">Hoe lang gedeelde meldingen zichtbaar blijven voor alle apparaten</div></div>
           <div class="cfg-stepper">
             <button type="button" class="cfg-stepper-btn" data-act="gedragStep" data-stepid="inp-melding-ttl" data-delta="-1" aria-label="Verlagen">−</button>
-            <div class="cfg-stepper-val"><input type="number" id="inp-melding-ttl" min="1" max="72" step="1" class="cfg-stepper-input" oninput="saveGedrag()"><span class="cfg-stepper-unit">uur</span></div>
+            <div class="cfg-stepper-val"><input type="number" id="inp-melding-ttl" min="1" max="72" step="1" class="cfg-stepper-input" data-input-act="saveGedrag"><span class="cfg-stepper-unit">uur</span></div>
             <button type="button" class="cfg-stepper-btn" data-act="gedragStep" data-stepid="inp-melding-ttl" data-delta="1" aria-label="Verhogen">+</button>
           </div>
         </div>
@@ -1967,7 +1984,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
           <div><div class="cfg-gedrag-label">Bewaar-duur</div><div class="cfg-gedrag-sub">Hoe lang gelopen rondes bewaard blijven (auto-opruiming elke 30 min). Minimaal 25 uur wordt altijd bewaard voor de 24u-tijdlijn.</div></div>
           <div class="cfg-stepper">
             <button type="button" class="cfg-stepper-btn" data-act="gedragStep" data-stepid="inp-log-retention" data-delta="-1" aria-label="Verlagen">−</button>
-            <div class="cfg-stepper-val"><input type="number" id="inp-log-retention" min="1" max="30" step="1" class="cfg-stepper-input" oninput="saveGedrag()"><span class="cfg-stepper-unit">dagen</span></div>
+            <div class="cfg-stepper-val"><input type="number" id="inp-log-retention" min="1" max="30" step="1" class="cfg-stepper-input" data-input-act="saveGedrag"><span class="cfg-stepper-unit">dagen</span></div>
             <button type="button" class="cfg-stepper-btn" data-act="gedragStep" data-stepid="inp-log-retention" data-delta="1" aria-label="Verhogen">+</button>
           </div>
         </div>
@@ -1980,7 +1997,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         </div>
         <div class="cfg-gedrag-row" style="border-bottom:none">
           <div><div class="cfg-gedrag-label">Ronde-log wissen</div><div class="cfg-gedrag-sub">Verwijdert alle gelopen rondes en actieve rondes direct uit Firebase. Deze actie kan niet ongedaan worden gemaakt.</div></div>
-          <button type="button" data-act="wisLog" style="flex-shrink:0;display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:1.5px solid #ef4444;border-radius:6px;background:#fff;color:#ef4444;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .12s" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>Wis ronde-log</button>
+          <button type="button" data-act="wisLog" style="flex-shrink:0;display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:1.5px solid #ef4444;border-radius:6px;background:#fff;color:#ef4444;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .12s"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>Wis ronde-log</button>
         </div>
       </div>
     </div>
@@ -1995,7 +2012,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         </div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
-        <select id="event-log-filter" onchange="renderEventLog()" style="padding:5px 8px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;font-family:inherit;background:#fff">
+        <select id="event-log-filter" data-change-act="renderEventLog" style="padding:5px 8px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;font-family:inherit;background:#fff">
           <option value="">Alle types</option>
           <option value="start">start</option>
           <option value="retour">retour</option>
@@ -2007,7 +2024,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
           <option value="melding">melding</option>
           <option value="error">error</option>
         </select>
-        <input type="text" id="event-log-search" placeholder="Zoeken..." oninput="renderEventLog()" style="flex:1;min-width:120px;padding:5px 8px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;font-family:inherit">
+        <input type="text" id="event-log-search" placeholder="Zoeken..." data-input-act="renderEventLog" style="flex:1;min-width:120px;padding:5px 8px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;font-family:inherit">
       </div>
       <div id="event-log-list" style="max-height:500px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;background:#fafafa;font-family:ui-monospace,Menlo,monospace;font-size:11px"></div>
     </div>
@@ -2031,7 +2048,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <div class="modal-overlay" id="modal-overlay" style="display:none" data-act-self="modalCancel">
-  <div class="modal-box" id="modal-box" onclick="event.stopPropagation()" role="alertdialog" aria-modal="true" aria-labelledby="modal-title-txt" aria-describedby="modal-desc-txt">
+  <div class="modal-box" id="modal-box" role="alertdialog" aria-modal="true" aria-labelledby="modal-title-txt" aria-describedby="modal-desc-txt">
     <div class="modal-body">
       <div class="modal-glyph" aria-hidden="true" id="modal-glyph">
         <!-- icon injected by customConfirm -->
@@ -2054,7 +2071,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 
 <!-- Uitlog-bevestiging (eigen, niet-destructief ontwerp: blauw accent) -->
 <div class="modal-overlay" id="logout-overlay" style="display:none" data-act-self="logoutCancel">
-  <div class="modal-box logout-box" onclick="event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="logout-title">
+  <div class="modal-box logout-box" role="dialog" aria-modal="true" aria-labelledby="logout-title">
     <div class="logout-icon" aria-hidden="true">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
     </div>
@@ -2073,7 +2090,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <!-- ══════════════════════════════════════════════════════════════════════
      MODALS (altijd aanwezig in DOM)
 ════════════════════════════════════════════════════════════════════════ -->
-<div id="medewerker-modal-overlay" class="edit-modal-overlay" style="display:none" onmousedown="if(event.target===this)this._mdOnOverlay=true" onmouseup="if(event.target===this&&this._mdOnOverlay)cancelMedewerkerEdit();this._mdOnOverlay=false">
+<div id="medewerker-modal-overlay" class="edit-modal-overlay" style="display:none" data-overlay-cancel="cancelMedewerkerEdit">
   <div class="edit-modal-box">
     <div class="edit-modal-hdr">
       <p id="medewerker-modal-title" class="edit-modal-title">Medewerker toevoegen</p>
@@ -2082,7 +2099,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     <div class="edit-modal-body">
       <div class="edit-modal-field">
         <label for="inp-medewerker-edit-naam">Naam</label>
-        <input type="text" id="inp-medewerker-edit-naam" maxlength="80" placeholder="Voor- en achternaam…" onkeydown="if(event.key==='Enter'){var f=document.querySelector('#inp-medewerker-edit-rol-checks select');if(f)f.focus();}">
+        <input type="text" id="inp-medewerker-edit-naam" maxlength="80" placeholder="Voor- en achternaam…" data-key-act="medNaamEnter">
       </div>
       <div class="edit-modal-field">
         <label>Functie / rol <span style="font-weight:400;color:#6e6e73">(optioneel)</span></label>
@@ -2095,7 +2112,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
   </div>
 </div>
-<div id="ronde-modal-overlay" class="edit-modal-overlay" style="display:none" onmousedown="if(event.target===this)this._mdOnOverlay=true" onmouseup="if(event.target===this&&this._mdOnOverlay)cancelRondeEdit();this._mdOnOverlay=false">
+<div id="ronde-modal-overlay" class="edit-modal-overlay" style="display:none" data-overlay-cancel="cancelRondeEdit">
   <div class="edit-modal-box">
     <div class="edit-modal-hdr">
       <p id="ronde-modal-title" class="edit-modal-title">Ronde toevoegen</p>
@@ -2104,7 +2121,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     <div class="edit-modal-body">
       <div class="edit-modal-field">
         <label for="inp-ronde-edit-naam">Naam</label>
-        <input type="text" id="inp-ronde-edit-naam" maxlength="80" placeholder="bijv. Verpleegronde, Buitenronde…" onkeydown="if(event.key==='Enter'&&!document.getElementById('ronde-modal-save-btn').disabled)saveRondeEdit()">
+        <input type="text" id="inp-ronde-edit-naam" maxlength="80" placeholder="bijv. Verpleegronde, Buitenronde…" data-key-act="rondeNaamEnter">
       </div>
       <div class="edit-modal-field">
         <label for="inp-ronde-edit-cat">Categorie <span style="font-weight:400;color:#6e6e73">(optioneel)</span></label>
@@ -2123,7 +2140,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
   </div>
 </div>
-<div id="cat-modal-overlay" class="edit-modal-overlay" style="display:none" onmousedown="if(event.target===this)this._mdOnOverlay=true" onmouseup="if(event.target===this&&this._mdOnOverlay)cancelCatEdit();this._mdOnOverlay=false">
+<div id="cat-modal-overlay" class="edit-modal-overlay" style="display:none" data-overlay-cancel="cancelCatEdit">
   <div class="edit-modal-box" style="max-width:360px">
     <div class="edit-modal-hdr">
       <p id="cat-modal-title" class="edit-modal-title">Categorie toevoegen</p>
@@ -2132,7 +2149,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     <div class="edit-modal-body">
       <div class="edit-modal-field">
         <label for="inp-cat-naam">Naam</label>
-        <input type="text" id="inp-cat-naam" maxlength="80" placeholder="bijv. Parkeren, Noodhulp…" onkeydown="if(event.key==='Enter'&&!document.getElementById('cat-modal-save-btn').disabled)saveCatEdit()">
+        <input type="text" id="inp-cat-naam" maxlength="80" placeholder="bijv. Parkeren, Noodhulp…" data-key-act="catNaamEnter">
       </div>
     </div>
     <div class="edit-modal-foot">
@@ -2141,7 +2158,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
   </div>
 </div>
-<div id="rol-modal-overlay" class="edit-modal-overlay" style="display:none" onmousedown="if(event.target===this)this._mdOnOverlay=true" onmouseup="if(event.target===this&&this._mdOnOverlay)cancelRolEdit();this._mdOnOverlay=false">
+<div id="rol-modal-overlay" class="edit-modal-overlay" style="display:none" data-overlay-cancel="cancelRolEdit">
   <div class="edit-modal-box" style="max-width:360px">
     <div class="edit-modal-hdr">
       <p id="rol-modal-title" class="edit-modal-title">Rol / Functie toevoegen</p>
@@ -2150,7 +2167,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     <div class="edit-modal-body">
       <div class="edit-modal-field">
         <label for="inp-rol-naam">Naam</label>
-        <input type="text" id="inp-rol-naam" maxlength="80" placeholder="bijv. Teamleider, Beveiliger…" oninput="_updateRolModalSaveState()" onkeydown="if(event.key==='Enter'&&!document.getElementById('rol-modal-save-btn').disabled)saveRolEdit()">
+        <input type="text" id="inp-rol-naam" maxlength="80" placeholder="bijv. Teamleider, Beveiliger…" data-input-act="_updateRolModalSaveState" data-key-act="rolNaamEnter">
       </div>
       <div id="rol-modal-voorstel-row" class="edit-modal-field" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid #f1f5f9">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
@@ -2158,7 +2175,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
             <label style="margin-bottom:2px">Voorgestelde ronde</label>
             <div style="font-size:12px;color:#9ca3af;line-height:1.4">Medewerkers met deze rol meenemen als suggestie bij "Voorgestelde ronde". Heeft iemand ook een andere rol die wél aan staat, dan blijft die persoon meedoen.</div>
           </div>
-          <span id="rol-modal-voorstel-toggle" data-act="toggleRolModalVoorstel" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();toggleRolModalVoorstel()}" role="switch" aria-checked="true" tabindex="0" title="Meenemen bij voorgestelde ronde" style="display:inline-block;width:34px;height:19px;border-radius:99px;flex-shrink:0;cursor:pointer;position:relative;transition:background .15s;background:#2563eb;margin-top:2px">
+          <span id="rol-modal-voorstel-toggle" data-act="toggleRolModalVoorstel" data-key-act="voorstelToggle" role="switch" aria-checked="true" tabindex="0" title="Meenemen bij voorgestelde ronde" style="display:inline-block;width:34px;height:19px;border-radius:99px;flex-shrink:0;cursor:pointer;position:relative;transition:background .15s;background:#2563eb;margin-top:2px">
             <span style="position:absolute;top:2px;left:17px;width:15px;height:15px;border-radius:99px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .15s"></span>
           </span>
         </div>
@@ -2170,7 +2187,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
   </div>
 </div>
-<div id="dagdeel-modal-overlay" class="edit-modal-overlay" style="display:none" onmousedown="if(event.target===this)this._mdOnOverlay=true" onmouseup="if(event.target===this&&this._mdOnOverlay)cancelDagdeelEdit();this._mdOnOverlay=false">
+<div id="dagdeel-modal-overlay" class="edit-modal-overlay" style="display:none" data-overlay-cancel="cancelDagdeelEdit">
   <div class="edit-modal-box">
     <div class="edit-modal-hdr">
       <p id="dagdeel-modal-title" class="edit-modal-title">Dagdeel wijzigen</p>
@@ -2202,7 +2219,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
   </div>
 </div>
-<div id="schema-modal-overlay" class="edit-modal-overlay" style="display:none" onmousedown="if(event.target===this)this._mdOnOverlay=true" onmouseup="if(event.target===this&&this._mdOnOverlay)closeSchemaModal();this._mdOnOverlay=false">
+<div id="schema-modal-overlay" class="edit-modal-overlay" style="display:none" data-overlay-cancel="closeSchemaModal">
   <div class="edit-modal-box">
     <div class="edit-modal-hdr">
       <p id="schema-modal-title" class="edit-modal-title">Schema-item toevoegen</p>
@@ -2242,7 +2259,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.11.2';
+const APP_VERSION = '3.11.3';
 
 // ==========================================================================
 // CSP-migratie (fase 0/1): gedelegeerde click-handler.
@@ -2332,6 +2349,10 @@ function runAct(act, d) {
     case 'herstelVerbinding':    window.herstelVerbinding ? window.herstelVerbinding(d.reden) : herstelVerbinding(d.reden); break;
     case 'dbgCopy':              window.dbgCopy && window.dbgCopy(); break;
     case 'dbgClear':             window.dbgClear && window.dbgClear(); break;
+    // fase 4b: login
+    case 'toggleLoginPw':        toggleLoginPw(); break;
+    case 'doLogin':              doLogin(); break;
+    case 'startRondeVoorgesteld': startRondeVoorgesteld(d.ronde, d.naam); break;
     // acties zonder argument
     case 'logout':           doLogout(); break;
     case 'modalCancel':      modalCancel(); break;
@@ -2347,6 +2368,89 @@ function runAct(act, d) {
     case 'cancelDagdeelEdit':    cancelDagdeelEdit(); break;
   }
 }
+
+// ── Drag-safe overlay-sluit (fase 4b) ────────────────────────────────────
+// Edit-modals sluiten als je BUITEN de box klikt, maar niet als een
+// tekstselectie toevallig buiten de box eindigt. Daarom: alleen sluiten als
+// zowel mousedown als mouseup op de overlay zélf (niet de box) plaatsvonden.
+document.addEventListener('mousedown', function (e) {
+  const ov = e.target.closest('[data-overlay-cancel]');
+  if (ov && e.target === ov) ov._mdOnOverlay = true;
+}, true);
+document.addEventListener('mouseup', function (e) {
+  const ov = e.target.closest('[data-overlay-cancel]');
+  if (!ov) return;
+  if (e.target === ov && ov._mdOnOverlay) runAct(ov.dataset.overlayCancel, ov.dataset);
+  ov._mdOnOverlay = false;
+}, true);
+
+// ── Gedelegeerde input/change-handlers (fase 4b) ─────────────────────────
+document.addEventListener('input', function (e) {
+  const t = e.target;
+  if (!t || !t.dataset || !t.dataset.inputAct) return;
+  runInputAct(t.dataset.inputAct, t);
+});
+document.addEventListener('change', function (e) {
+  const t = e.target;
+  if (!t || !t.dataset || !t.dataset.changeAct) return;
+  runInputAct(t.dataset.changeAct, t);
+});
+function runInputAct(act, t) {
+  switch (act) {
+    case 'dienstZoekInput':          dienstZoekInput(t.value); break;
+    case 'renderMedewerkersList':    renderMedewerkersList(); break;
+    case 'saveGedrag':               saveGedrag(); break;
+    case 'renderEventLog':           renderEventLog(); break;
+    case '_updateRolModalSaveState': _updateRolModalSaveState(); break;
+    case 'updateDagenCheckbox':      updateDagenCheckbox(t); break;
+  }
+}
+
+// ── Gedelegeerde keydown-handlers (fase 4b) ──────────────────────────────
+// Repliceert exact de oude inline onkeydown-logica per element.
+document.addEventListener('keydown', function (e) {
+  const t = e.target;
+  if (!t || !t.dataset || !t.dataset.keyAct) return;
+  const k = e.key;
+  switch (t.dataset.keyAct) {
+    case 'onderwegAccordion':
+      if (k === 'Enter' || k === ' ') { e.preventDefault(); toggleOnderwegAccordion(); }
+      break;
+    case 'medNaamEnter':
+      if (k === 'Enter') {
+        const f = document.querySelector('#inp-medewerker-edit-rol-checks select');
+        if (f) f.focus();
+      }
+      break;
+    case 'rondeNaamEnter':
+      if (k === 'Enter' && !document.getElementById('ronde-modal-save-btn').disabled) saveRondeEdit();
+      break;
+    case 'catNaamEnter':
+      if (k === 'Enter' && !document.getElementById('cat-modal-save-btn').disabled) saveCatEdit();
+      break;
+    case 'rolNaamEnter':
+      if (k === 'Enter' && !document.getElementById('rol-modal-save-btn').disabled) saveRolEdit();
+      break;
+    case 'voorstelToggle':
+      if (k === ' ' || k === 'Enter') { e.preventDefault(); toggleRolModalVoorstel(); }
+      break;
+  }
+});
+
+// Logo-fallback (fase 4b): vervangt inline onerror op <img>. error-events
+// bubbelen niet, dus directe listener op het element.
+(function () {
+  const logo = document.getElementById('header-logo');
+  if (!logo) return;
+  function hideLogo() {
+    logo.style.display = 'none';
+    const d = document.getElementById('header-logo-divider');
+    if (d) d.style.display = 'none';
+  }
+  logo.addEventListener('error', hideLogo);
+  // Vang een load die al mislukte vóór deze listener bestond.
+  if (logo.complete && logo.naturalWidth === 0) hideLogo();
+})();
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
@@ -5743,9 +5847,8 @@ function renderPlan() {
               <div style="font-size:13px;font-weight:600;color:#1e293b">${escHtml(suggested)}</div>
             </div>
           </div>
-          <button type="button" onclick='startRondeVoorgesteld(${escHtml(JSON.stringify(s.ronde))}, ${escHtml(JSON.stringify(suggested))})'
-            style="padding:9px 16px;border-radius:8px;border:none;background:#1e3a8a;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;min-height:40px;display:flex;align-items:center;gap:5px;flex-shrink:0;transition:opacity .13s"
-            onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          <button type="button" data-act="startRondeVoorgesteld" data-ronde="${escHtml(s.ronde)}" data-naam="${escHtml(suggested)}"
+            style="padding:9px 16px;border-radius:8px;border:none;background:#1e3a8a;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;min-height:40px;display:flex;align-items:center;gap:5px;flex-shrink:0;transition:opacity .13s">
             ▶ Ronde starten
           </button>
         </div>`;
@@ -5999,8 +6102,8 @@ function renderMedewerkersList() {
         ${rol ? `<div style="font-size:10px;color:#5b6b7f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${rolArray(rol).map(r => escHtml(r)).join(' · ')}</div>` : ''}
       </div>
       ${isOnDienst ? '<span style="font-size:11px;font-weight:600;color:#15803d;background:#dcfce7;border-radius:4px;padding:2px 7px;flex-shrink:0;white-space:nowrap">op dienst</span>' : ''}
-      <button type="button" data-act="editMedewerker" data-idx="${i}" style="background:none;border:none;cursor:pointer;color:#5b6b7f;font-size:12px;padding:0 3px;flex-shrink:0;line-height:1" title="Wijzigen" aria-label="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#5b6b7f'">✎</button>
-      <button type="button" data-act="rmName" data-idx="${i}" style="background:none;border:none;cursor:pointer;color:#5b6b7f;font-size:13px;padding:0 3px;flex-shrink:0;line-height:1" title="Verwijderen" aria-label="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#5b6b7f'">✕</button>
+      <button type="button" data-act="editMedewerker" data-idx="${i}" style="background:none;border:none;cursor:pointer;color:#5b6b7f;font-size:12px;padding:0 3px;flex-shrink:0;line-height:1" title="Wijzigen" aria-label="Wijzigen">✎</button>
+      <button type="button" data-act="rmName" data-idx="${i}" style="background:none;border:none;cursor:pointer;color:#5b6b7f;font-size:13px;padding:0 3px;flex-shrink:0;line-height:1" title="Verwijderen" aria-label="Verwijderen">✕</button>
     </div>`;
   });
   ml.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">${rows.join('')}</div>`;
@@ -6080,8 +6183,8 @@ function renderCfg() {
         return `<div style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:0.5px solid rgba(148,163,184,.15);font-size:12px">
           <span style="font-weight:500;color:#1e293b;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(naam)}</span>
           ${dubBadge}
-          <button type="button" data-act="editRonde" data-idx="${i}" style="background:none;border:none;cursor:pointer;color:#5b6b7f;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen" aria-label="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#5b6b7f'">✎</button>
-          <button type="button" data-act="rmRoute" data-idx="${i}" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:14px;padding:0 4px;flex-shrink:0" title="Verwijderen" aria-label="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#cbd5e1'">✕</button>
+          <button type="button" data-act="editRonde" data-idx="${i}" style="background:none;border:none;cursor:pointer;color:#5b6b7f;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen" aria-label="Wijzigen">✎</button>
+          <button type="button" data-act="rmRoute" data-idx="${i}" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:14px;padding:0 4px;flex-shrink:0" title="Verwijderen" aria-label="Verwijderen">✕</button>
         </div>`;
       };
       let html = '';
@@ -6211,8 +6314,8 @@ function renderCfg() {
           ${item.ronde ? `<span style="background:#fff;color:#1d4ed8;border:1px solid #dbeafe;border-radius:20px;padding:1px 7px;font-size:11px;flex-shrink:0">${escHtml(item.ronde)}</span>` : ''}
           <span style="color:#475569;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(item.taak)}</span>
           ${dagenBadge}
-          <button type="button" data-act="openSchemaModal" data-idx="${origIdx}" style="background:none;border:none;cursor:pointer;color:#5b6b7f;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen" aria-label="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#5b6b7f'">✎</button>
-          <button type="button" data-act="rmSchemaItem" data-idx="${origIdx}" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:14px;padding:0 4px;flex-shrink:0" title="Verwijderen" aria-label="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#cbd5e1'">✕</button>
+          <button type="button" data-act="openSchemaModal" data-idx="${origIdx}" style="background:none;border:none;cursor:pointer;color:#5b6b7f;font-size:12px;padding:0 4px;flex-shrink:0" title="Wijzigen" aria-label="Wijzigen">✎</button>
+          <button type="button" data-act="rmSchemaItem" data-idx="${origIdx}" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:14px;padding:0 4px;flex-shrink:0" title="Verwijderen" aria-label="Verwijderen">✕</button>
         </div>`;
       };
 
@@ -6339,7 +6442,7 @@ function openSchemaModal(idx) {
   dagenContainer.innerHTML = DAGEN_LABELS.map(({ key, label }) => {
     const checked = selectedDagen.includes(key);
     return `<label for="schema-dag-${key}" class="edit-modal-daglabel${checked ? ' on' : ''}">
-      <input type="checkbox" id="schema-dag-${key}" name="schema-dag" value="${key}"${checked ? ' checked' : ''} style="display:none" onchange="updateDagenCheckbox(this)">
+      <input type="checkbox" id="schema-dag-${key}" name="schema-dag" value="${key}"${checked ? ' checked' : ''} style="display:none" data-change-act="updateDagenCheckbox">
       ${label}
     </label>`;
   }).join('');
@@ -7325,8 +7428,8 @@ function renderRouteCatsList() {
       return `<div style="${rowStyle}">
         <span style="flex:1;font-size:13px;color:#1e293b">${cat}</span>
         <span style="${badgeStyle('#f1f5f9','#64748b')}">${count}</span>
-        <button type="button" data-act="openCatModal" data-idx="${i}" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:13px;padding:0 2px;flex-shrink:0;line-height:1" title="Wijzigen" aria-label="Wijzigen" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#cbd5e1'">✎</button>
-        <button type="button" data-act="rmCat" data-idx="${i}" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:14px;padding:0 2px;flex-shrink:0;line-height:1" title="Verwijderen" aria-label="Verwijderen" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#cbd5e1'">✕</button>
+        <button type="button" data-act="openCatModal" data-idx="${i}" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:13px;padding:0 2px;flex-shrink:0;line-height:1" title="Wijzigen" aria-label="Wijzigen">✎</button>
+        <button type="button" data-act="rmCat" data-idx="${i}" style="background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:14px;padding:0 2px;flex-shrink:0;line-height:1" title="Verwijderen" aria-label="Verwijderen">✕</button>
       </div>`;
     }).join('') +
     `<div style="${rowStyle}">
