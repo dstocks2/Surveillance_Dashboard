@@ -1336,7 +1336,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.10.4</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.10.5</span></span>
     </div>
   </div>
 
@@ -1830,7 +1830,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" data-act="logout">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.10.4</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.10.5</span>
     </div>
   </nav>
 
@@ -2242,7 +2242,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.10.4';
+const APP_VERSION = '3.10.5';
 
 // ==========================================================================
 // CSP-migratie (fase 0/1): gedelegeerde click-handler.
@@ -8909,14 +8909,18 @@ function saveBeheerderModal() {
     });
 }
 
-function verwijderBeheerder(uid) {
+async function verwijderBeheerder(uid) {
   var b = _beheerders[uid];
   if (!b) return;
-  customConfirm(escHtml(b.naam) + ' verwijderen als beheerder? Die persoon verliest toegang tot instellingen.', function() {
-    window.fbRemove(window.fbRef(window.fbDb, 'dashboard/beheerders/' + uid))
-      .then(function() { logEvent('settings', 'Beheerder verwijderd: ' + b.naam); })
-      .catch(function(e) { showToast('Verwijderen mislukt: ' + String(e)); });
-  });
+  // customConfirm is Promise-based: gebruik await + options-object, GEEN callback.
+  const ok = await customConfirm(
+    b.naam + ' verwijderen als beheerder? Die persoon verliest toegang tot instellingen.',
+    { title: 'Beheerder verwijderen?', confirmLabel: 'Verwijderen', cancelLabel: 'Annuleren' }
+  );
+  if (!ok) return;
+  window.fbRemove(window.fbRef(window.fbDb, 'dashboard/beheerders/' + uid))
+    .then(function() { logEvent('settings', 'Beheerder verwijderd: ' + b.naam); })
+    .catch(function(e) { showToast('Verwijderen mislukt: ' + String(e)); });
 }
 
 // Toont/verbergt de foutbanner en zet rode veldranden bij een fout.
