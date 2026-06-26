@@ -1336,7 +1336,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.10.1</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.10.2</span></span>
     </div>
   </div>
 
@@ -1830,7 +1830,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <button type="button" class="cfg-rail-btn" data-act="logout">Uitloggen</button>
       </div>
-      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.10.1</span>
+      <span id="app-version-badge" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b">v3.10.2</span>
     </div>
   </nav>
 
@@ -2242,7 +2242,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 </div>
 
 <script>
-const APP_VERSION = '3.10.1';
+const APP_VERSION = '3.10.2';
 
 // ==========================================================================
 // CSP-migratie (fase 0/1): gedelegeerde click-handler.
@@ -2253,6 +2253,11 @@ const APP_VERSION = '3.10.1';
 document.addEventListener('click', function (e) {
   const el = e.target.closest('[data-act]');
   if (!el) return;
+  // Capture-fase: deze listener ziet de klik vóór een binnenliggende
+  // modal-box met onclick="event.stopPropagation()" hem kan tegenhouden.
+  // Daardoor blijven data-act-knoppen BINNEN zo'n box (bv. Annuleren in de
+  // confirm/logout-modal) werken, terwijl de box-klik zelf nog steeds niet
+  // tot de overlay (=annuleren bij achtergrond-klik) doorbubbelt.
   const d = el.dataset;
   switch (d.act) {
     // navigatie
@@ -2278,7 +2283,7 @@ document.addEventListener('click', function (e) {
     case 'cancelRolEdit':        cancelRolEdit(); break;
     case 'cancelDagdeelEdit':    cancelDagdeelEdit(); break;
   }
-});
+}, true);
 
 // ==============================================================================
 //  SURVEILLANCE DASHBOARD — niet-module script
