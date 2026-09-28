@@ -2,21 +2,21 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://apis.google.com 'sha256-2Ijs+0H+8ZQSE49PvYCxa5cE5Ks6Som7De18TmvpP3s=' 'sha256-w+6T4DxWUrRWhz5RM2gmI3i28ClMUJw94sRnEcQO4mU=' 'sha256-O3Fc4kb8dL3kzvQP8t1nbbWn2BALU7d0PGcn23kfbNc='; connect-src 'self' https://*.firebasedatabase.app wss://*.firebasedatabase.app https://*.firebaseio.com wss://*.firebaseio.com https://*.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.gstatic.com; frame-src 'self' https://*.firebaseapp.com https://apis.google.com; img-src 'self' data: blob:; style-src 'self' 'sha256-KhqM1zDnsk/MXzd/cCLP9KKTSkvXS2hiFNd9/SSbCmU=' 'sha256-Inj1exA089l00egp+fPVZeQhemUnTr1E8fV33hftwe8='; font-src 'self' data:; base-uri 'self'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://apis.google.com 'sha256-FZDLXGhNLhhSy6/0GlV39ulpx8+TihNYcSO8p4Q2OVU=' 'sha256-w+6T4DxWUrRWhz5RM2gmI3i28ClMUJw94sRnEcQO4mU=' 'sha256-OqMJGWom02PiOjhikcWeSpdwkcO0YjiA4aS4nB7Di3E='; connect-src 'self' https://*.firebasedatabase.app wss://*.firebasedatabase.app https://*.firebaseio.com wss://*.firebaseio.com https://*.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.gstatic.com; frame-src 'self' https://*.firebaseapp.com https://apis.google.com; img-src 'self' data: blob:; style-src 'self' 'sha256-KhqM1zDnsk/MXzd/cCLP9KKTSkvXS2hiFNd9/SSbCmU=' 'sha256-wsVxnlZgCYR102Dw5NV/hH6dWfU8SrvCQ12uUdiUfSM='; font-src 'self' data:; base-uri 'self'; form-action 'none'; object-src 'none'">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTYgMjU2Ij4KICA8cmVjdCB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgcng9IjU2IiBmaWxsPSIjMWUzYTVjIj48L3JlY3Q+CiAgPHRleHQgeD0iMTI4IiB5PSIxMjgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJjZW50cmFsIiBmb250LWZhbWlseT0iU2Vnb2UgVUksIHN5c3RlbS11aSwgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSIxNDgiIGZpbGw9IiNmZmZmZmYiIGxldHRlci1zcGFjaW5nPSItNiI+U0Q8L3RleHQ+CiAgPGNpcmNsZSBjeD0iMjA4IiBjeT0iNDgiIHI9IjE4IiBmaWxsPSIjZWY0NDQ0Ij48L2NpcmNsZT4KPC9zdmc+">
 <link rel="apple-touch-icon" href="data:image/png;base64,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">
 
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Surveillance Dashboard">
+<meta name="apple-mobile-web-app-title" content="TEST Dashboard">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="description" content="Beveiligingsdashboard — surveillance rondes en dienstplanning.">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1e3a5c">
 <meta name="color-scheme" content="light">
 <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
-<title>Surveillance Dashboard</title>
+<title>[TEST] Surveillance Dashboard</title>
 <style>
 /* ─── Design tokens ─── Centraal beheer van kleuren. Aanpassen hier = overal. */
 :root {
@@ -1668,7 +1668,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 <script type="module">
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref as _ref, onValue as _onValue, get as _get, set as _set, update as _update, remove as _remove, push as _push, serverTimestamp as _serverTimestamp, runTransaction as _runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getDatabase, ref as _ref, onValue as _onValue, get as _get, set as _set, update as _update, remove as _remove, push as _push, serverTimestamp as _serverTimestamp, runTransaction as _runTransaction, onDisconnect as _onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
   // ════════════════════════════════════════════════════════════════════════
@@ -1687,14 +1687,16 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   //   Melding_bel.mp3   — belgeluid bij oranje meldingen (ontbreekt het bestand,
   //                       dan werkt de app door maar blijft de bel stil)
   // ════════════════════════════════════════════════════════════════════════
+  // ⚠️ TEST-OMGEVING — surveillance-dashboard-test. NOOIT naar productie.
+  //    Productie (index.html) gebruikt bab07.
   const firebaseConfig = {
-    apiKey: "AIzaSyB9D09JXjLPp0Pdz-F3iIFHWdNCTKFtDOk",
-    authDomain: "surveillance-dashboard-bab07.firebaseapp.com",
-    databaseURL: "https://surveillance-dashboard-bab07-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "surveillance-dashboard-bab07",
-    storageBucket: "surveillance-dashboard-bab07.firebasestorage.app",
-    messagingSenderId: "463291924795",
-    appId: "1:463291924795:web:8ea56aed92b83a8e5c371e"
+    apiKey: "AIzaSyB-hz0MZyWEwwlsb3h6Ccamjo2lNwV2Z3Y",
+    authDomain: "surveillance-dashboard-test.firebaseapp.com",
+    databaseURL: "https://surveillance-dashboard-test-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "surveillance-dashboard-test",
+    storageBucket: "surveillance-dashboard-test.firebasestorage.app",
+    messagingSenderId: "235953749425",
+    appId: "1:235953749425:web:fa32258f016093b21b1190"
   };
   // ════════════════════════════════════════════════════════════════════════
 
@@ -1743,8 +1745,15 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   let SNAP = { dienst: undefined, active: undefined };   // ruwe ops-snapshots (id-vorm)
 
   function newId(p) { return p + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  // v3.76.1: lokale naam-patches bij hernoemen (id → nieuwe naam), alleen voor
+  // de opzoekingen hieronder. Voorheen werd REG.medewerkers zelf gepatcht, maar
+  // REG is de diff-basis (server-stand): diffMedewerkersLike zag dan "geen
+  // wijziging" en schreef de nieuwe naam nooit weg — hernoemen sprong bij de
+  // volgende sync terug. Een patch vervalt zodra de server de naam bevestigt.
+  const NAAM_PATCH = {};
   function medIdByNaam(naam) {
-    for (const [id, v] of Object.entries(REG.medewerkers)) if (v && v.naam === naam) return id;
+    for (const [id, n] of Object.entries(NAAM_PATCH)) if (n === naam) return id;
+    for (const [id, v] of Object.entries(REG.medewerkers)) if (v && v.naam === naam && !(id in NAAM_PATCH)) return id;
     return null;
   }
   // Export: rolnaam → Firebase-id binnen config/rollen/{id}. Gebruikt door
@@ -1764,7 +1773,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   // in dezelfde save()-tick, en meldt iemand die op dienst is of loopt zich
   // per ongeluk af (dienst) of raakt zijn actieve ronde kwijt (active).
   window._patchMedNaamLokaal = function(id, naam) {
-    if (REG.medewerkers[id]) REG.medewerkers[id] = Object.assign({}, REG.medewerkers[id], { naam });
+    if (REG.medewerkers[id]) NAAM_PATCH[id] = naam;
   };
   window._routeIdByNaam = function(naam) {
     for (const [id, v] of Object.entries(REG.routes)) if (v && v.naam === naam) return id;
@@ -1787,6 +1796,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     if (p === 'dashboard/appVersion') return 'meta/appVersion';
     if (p === 'dashboard/beheerders' || p.startsWith('dashboard/beheerders/')) return p.replace('dashboard/beheerders', 'meta/beheerders');
     if (p === 'dashboard/statistieken' || p.startsWith('dashboard/statistieken/')) return p.replace('dashboard/statistieken', 'meta/statistieken');
+    if (p === 'dashboard/dienstaccounts' || p.startsWith('dashboard/dienstaccounts/')) return p.replace('dashboard/dienstaccounts', 'meta/dienstaccounts');
     if (p === 'dashboard/applicatiebeheerders' || p.startsWith('dashboard/applicatiebeheerders/')) return p.replace('dashboard/applicatiebeheerders', 'meta/applicatiebeheerders');
     if (p === 'dashboard/auditLog'   || p.startsWith('dashboard/auditLog/'))   return p.replace('dashboard/auditLog', 'audit/log');
     if (p === 'dashboard/log'        || p.startsWith('dashboard/log/'))        return p.replace('dashboard/log', 'ops/log');
@@ -1871,11 +1881,36 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   // draagt geen ts en zou de race-winnaar onbepaald laten. Bij ~10 medewerkers
   // blijft de tak triviaal klein, dus geen prune nodig.
   function _dienstIsOn(e) { return e === true ? true : !!(e && e.on); } // legacy-true telt als on
-  function diffDienst(namesArr) {
+  // v3.79.3: `alleen` = namen die DIT apparaat net heeft gewijzigd (pending-
+  // markeringen). Alleen die worden geschreven. Voorheen schreef elke opslag
+  // het verschil tussen de hele lokale dienstlijst en SNAP.dienst weg. Had een
+  // apparaat een bevroren SNAP (listeners ingetrokken, bv. na de toegangs-
+  // storing), dan zette elke klik of ronde op dat apparaat mensen die elders
+  // van dienst waren gehaald weer óp dienst ("opstaan uit de dood").
+  function diffDienst(namesArr, alleen) {
     const out = {};
     const cur = SNAP.dienst || {};
     const wantIds = new Set();
     (namesArr || []).forEach(naam => { const id = medIdByNaam(naam); if (id) wantIds.add(id); });
+    if (Array.isArray(alleen)) {
+      const ids = new Set();
+      alleen.forEach(naam => { const id = medIdByNaam(naam); if (id) ids.add(id); });
+      ids.forEach(id => {
+        if (wantIds.has(id)) {
+          if (_dienstIsOn(cur[id])) return;
+          const naam = naamByMedId(id) || '';
+          const entry = { on: true, ts: _serverTimestamp(), naam: naam };
+          try { const pid = (typeof window._standaardPostVoorNaam === 'function') ? window._standaardPostVoorNaam(naam) : ''; if (pid) entry.post = pid; } catch (e) {}
+          try { const tid = (typeof window._autoToestelVoorNaam === 'function') ? window._autoToestelVoorNaam(naam) : ''; if (tid) entry.toestel = tid; } catch (e) {}
+          out['ops/dienst/' + id] = entry;
+        } else {
+          // Afmelden altijd schrijven, ook als de lokale serverstand "al af" zegt:
+          // die stand kan verouderd zijn terwijl de persoon op de server wél aan staat.
+          out['ops/dienst/' + id] = { on: false, ts: _serverTimestamp(), naam: naamByMedId(id) || '' };
+        }
+      });
+      return out;
+    }
     // naam wordt als snapshot meegeschreven — puur voor leesbaarheid in de Firebase
     // Console (id → mens). De app blijft de naam uit REG.medewerkers afleiden; dit
     // veld is informatief, geen bron van waarheid (mag verouderen bij hernoemen).
@@ -1909,7 +1944,13 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     return out;
   }
 
-  function diffActive(byName) {
+  // v3.79.5: `alleen` = rondes die DIT apparaat net zelf wijzigde (pending:
+  // [{naam, op, start}]). Alleen die worden geschreven. Voorheen schreef elke
+  // write het verschil tussen de hele lokale 'onderweg'-lijst en SNAP.active.
+  // Een apparaat met een bevroren SNAP (listeners ingetrokken) zette daardoor
+  // al geretourneerde rondes terug ("spook-rondes") en verwijderde zijn eigen
+  // retours niet uit Firebase. Zelfde principe als diffDienst (v3.79.3).
+  function diffActive(byName, alleen) {
     const out = {};
     const cur = SNAP.active || {};
     const want = {}; // medId → entry
@@ -1920,6 +1961,23 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       if (a.groupId) e.groupId = a.groupId;
       want[id] = e;
     });
+    const isGelijk = (c, e) => c && c.naam === e.naam && c.route === e.route && c.start === e.start && (c.groupId || null) === (e.groupId || null);
+    if (Array.isArray(alleen)) {
+      alleen.forEach(p => {
+        const id = p && medIdByNaam(p.naam);
+        if (!id) return;
+        const c = cur[id];
+        if (want[id]) {
+          if (!isGelijk(c, want[id])) out['ops/active/' + id] = want[id];
+        } else if (!c || !p.start || c.start === p.start) {
+          // Verwijderen, ook als de lokale serverstand hem niet (meer) kent.
+          // Maar niet als de server een ANDERE (nieuwere) ronde van deze persoon
+          // heeft: die is intussen elders gestart en mag niet gewist worden.
+          out['ops/active/' + id] = null;
+        }
+      });
+      return out;
+    }
     Object.entries(want).forEach(([id, e]) => {
       const c = cur[id];
       const same = c && c.naam === e.naam && c.route === e.route && c.start === e.start && (c.groupId || null) === (e.groupId || null);
@@ -1933,8 +1991,8 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     const out = {};
     for (const [rawKey, val] of Object.entries(updates)) {
       const key = rawKey.replace(/^\/+/, '');
-      if (key === 'dashboard/dienst')           Object.assign(out, diffDienst(val));
-      else if (key === 'dashboard/active')      Object.assign(out, diffActive(val || {}));
+      if (key === 'dashboard/dienst')           Object.assign(out, Array.isArray(val) ? diffDienst(val) : diffDienst(val && val.namen, val && val.alleen));
+      else if (key === 'dashboard/active')      Object.assign(out, (val && Array.isArray(val.__alleen)) ? diffActive(val.__byName || {}, val.__alleen) : diffActive(val || {}));
       else if (key === 'dashboard/medewerkers') Object.assign(out, diffMedewerkersLike('medewerkers', val, ['naam', 'rol']));
       else if (key === 'dashboard/routes')      Object.assign(out, diffMedewerkersLike('routes', val, ['naam', 'categorie', 'dubbelOk', 'toonOpKaart']));
       else if (key === 'dashboard/schema')      Object.assign(out, diffMedewerkersLike('schema', val || [], ['h', 'm', 'ronde', 'taak', 'dagen', 'weekdagsOnly']));
@@ -1957,6 +2015,11 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
   // ── lees-composities: id-vorm → oude app-vorm ──
   function composeConfigArrays(cfg) {
     REG.medewerkers = (cfg && cfg.medewerkers) || {};
+    // Naam-patches opruimen zodra de server de nieuwe naam (of verwijdering) toont.
+    for (const id of Object.keys(NAAM_PATCH)) {
+      const v = REG.medewerkers[id];
+      if (!v || v.naam === NAAM_PATCH[id]) delete NAAM_PATCH[id];
+    }
     REG.routes      = (cfg && cfg.routes)      || {};
     REG.routeCats   = (cfg && cfg.routeCats)   || {};
     REG.rollen      = (cfg && cfg.rollen)      || {};
@@ -2006,6 +2069,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     return { med, routes, cats, rollen, posten, toestellen, sleutels, rolVoorstel, rolPost, dagd, schema, gedrag: REG.gedrag };
   }
   function naamByMedId(id, fallback) {
+    if (id in NAAM_PATCH) return NAAM_PATCH[id];
     const m = REG.medewerkers[id];
     return (m && m.naam) || fallback || null;
   }
@@ -2128,6 +2192,66 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
       if (geweigerd.length) throw new Error('PERMISSION_DENIED op: ' + geweigerd.slice(0, 8).join(', '));
     });
   };
+  // ── Presence (v3.79.0) ─────────────────────────────────────────────────
+  // Elk apparaat meldt zich onder presence/{DEVICE_ID}. Bij elke (her)verbinding:
+  // eerst de onDisconnect-actie registreren (server zet online:false zodra de
+  // verbinding wegvalt, ook bij een gecrashte of dichtgeklapte iPad), daarna
+  // online:true schrijven. update() i.p.v. set(): een door de beheerder
+  // ingestelde naam blijft zo staan.
+  // v3.79.1: status bijhouden (voor het scherm) en opnieuw kunnen proberen.
+  // Voorheen faalde een geweigerde aanmelding stil en werd pas bij een nieuwe
+  // verbinding opnieuw geprobeerd.
+  let _presRef = null, _presInfo = null;
+  let _presStatus = { ok: false, fout: '', bezig: false };
+  // v3.79.2: zelfdiagnostisch met terugvalopties. In productie gaf de eerste
+  // variant PERMISSION_DENIED terwijl de rules het schrijven toestaan; dan faalt
+  // vrijwel zeker een validatie. We proberen in volgorde en onthouden welke
+  // variant slaagde, zodat het scherm precies kan tonen wat er geweigerd werd:
+  //   aanmelden: A) alles + servertijd  B) alles + toestelklok  C) minimaal
+  //   afmeldregel (onDisconnect): 1) online:false + servertijd  2) online:false
+  const _foutCode = e => String((e && (e.code || e.message)) || e);
+  function _presSchrijf() {
+    if (!_presRef || !_presInfo) return Promise.resolve(_presStatus);
+    _presStatus = Object.assign({}, _presStatus, { bezig: true });
+    const info = _presInfo, extra = {
+      version: String(info.version || '').slice(0, 20),
+      email: String(info.email || '').slice(0, 120),
+      platform: String(info.platform || '').slice(0, 20)
+    };
+    const pogingen = [];
+    const probeer = (label, fn) => fn().then(() => { pogingen.push(label + ': ok'); return true; },
+                                             e => { pogingen.push(label + ': ' + _foutCode(e)); return false; });
+    return probeer('A', () => _update(_presRef, Object.assign({ online: true, since: _serverTimestamp(), lastSeen: _serverTimestamp() }, extra)))
+      .then(ok => ok || probeer('B', () => { const t = Date.now(); return _update(_presRef, Object.assign({ online: true, since: t, lastSeen: t }, extra)); }))
+      .then(ok => ok || probeer('C', () => _update(_presRef, { online: true, lastSeen: Date.now() })))
+      .then(aangemeld => {
+        if (!aangemeld) return false;
+        return probeer('D1', () => _onDisconnect(_presRef).update({ online: false, lastSeen: _serverTimestamp() }))
+          .then(ok => ok || probeer('D2', () => _onDisconnect(_presRef).update({ online: false })))
+          .then(() => true);
+      })
+      .then(aangemeld => {
+        const mislukt = pogingen.filter(p => !/: ok$/.test(p));
+        _presStatus = {
+          ok: aangemeld, bezig: false,
+          fout: aangemeld ? '' : (mislukt.length ? mislukt[mislukt.length - 1].replace(/^\w+: /, '') : 'onbekend'),
+          // Alleen gevuld als er een terugvaloptie nodig was: welke stap werd geweigerd.
+          diagnose: mislukt.length ? pogingen.join(' \u00b7 ') : ''
+        };
+        return _presStatus;
+      });
+  }
+  window.fbPresenceStart = (info) => {
+    if (_presRef || !info || !info.deviceId) return;
+    _presInfo = info;
+    _presRef = _ref(db, 'presence/' + info.deviceId);
+    _onValue(_ref(db, '.info/connected'), snap => {
+      if (snap && snap.val() === true) _presSchrijf();
+    });
+  };
+  window.fbPresenceRetry  = () => _presSchrijf();
+  window.fbPresenceStatus = () => _presStatus;
+
   // Bulk-verwijderen in één multi-path update (v3.75.2), bedoeld voor opschoning.
   // Bewust NIET via fbUpdate: die probeert bij een weigering elk pad los opnieuw
   // en logt een fout — bij honderden opschoon-paden is dat ongewenst. Faalt de
@@ -2345,6 +2469,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
         <img src="data:image/jpeg;base64,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" alt="Surveillance Dashboard logo">
       </div>
       <span class="login-brand-name">Surveillance Dashboard</span>
+      <span class="test-badge test-badge-login">TEST</span>
     </div>
     <div class="login-brand-mid">
       <h2 class="login-brand-head">Grip op elke ronde.</h2>
@@ -2352,7 +2477,7 @@ button:focus:not(:focus-visible) { outline: none; box-shadow: none; }
     </div>
     <div class="login-brand-foot">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Beveiligde verbinding · <span id="login-version">v3.75.3</span></span>
+      <span>Beveiligde verbinding · <span id="login-version">v3.79.6</span></span>
     </div>
   </div>
 
@@ -2516,6 +2641,7 @@ body.post-login-reveal .topbar-sticky,body.post-login-reveal #app-main,body.post
 .acc-badge.beh{background:#dbeafe;color:#1e40af}
 .acc-badge.app{background:#fef3c7;color:#92400e}
 .acc-badge.stat{background:#d1fae5;color:#065f46}
+.acc-badge.dienst{background:#e2e8f0;color:#334155}
 .acc-info{min-width:0}
 .acc-naam{font-size:14px;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .acc-naam .jij{font-size:11px;font-weight:400;color:#64748b}
@@ -2727,11 +2853,38 @@ body.post-login-reveal .topbar-sticky,body.post-login-reveal #app-main,body.post
 #beheerder-modal-error{font-size:12px;color:#ef4444;display:none}
 #cfg-mobile-master{display:none}
 #cfg-mob-row-beheerders{display:none}
+#cfg-mob-row-apparaten{display:none}
+#cfg-nav-apparaten{display:none}
+/* v3.79.0: Apparatenoverzicht (Systeembeheer) */
+.ap-samenvatting{font-size:13px;color:#475569;margin:0 0 10px}
+.ap-melding{font-size:13px;color:#9a3412;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:10px 12px;margin:0 0 10px}
+.ap-lijst{border:1px solid #e2e8f0;border-radius:12px;background:#fff;overflow:hidden}
+.ap-rij{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid #f1f5f9;flex-wrap:wrap}
+.ap-rij:last-child{border-bottom:none}
+.ap-rij.ap-inactief{opacity:.55}
+.ap-dot{width:10px;height:10px;border-radius:50%;background:#cbd5e1;flex:none}
+.ap-dot.on{background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.18)}
+.ap-info{flex:1;min-width:170px}
+.ap-naam{font-size:14px;font-weight:600;color:#0f172a}
+.ap-dit{font-size:11px;font-weight:600;color:#1d4ed8;background:#dbeafe;border-radius:6px;padding:1px 6px;margin-left:6px;white-space:nowrap}
+.ap-sub{font-size:12px;color:#5b6b7f;margin-top:2px;word-break:break-word}
+.ap-id{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px}
+.ap-versie{font-size:12px;font-weight:600;border-radius:6px;padding:2px 8px;background:#dcfce7;color:#166534;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ap-versie.oud{background:#ffedd5;color:#9a3412}
+.ap-status{font-size:12px;color:#475569;min-width:150px;text-align:right}
+.ap-knoppen{display:flex;gap:2px}
+.ap-knop{border:none;background:transparent;color:#64748b;font-size:14px;line-height:1;padding:7px 8px;border-radius:6px;cursor:pointer;font-family:inherit}
+@media(hover:hover) and (pointer:fine){.ap-knop:hover{background:#f1f5f9;color:#0f172a}}
+@media(max-width:600px){.ap-info{flex-basis:calc(100% - 120px)}.ap-status{text-align:left;min-width:0;flex:1 1 auto;padding-left:22px}}
 #cfg-mob-detail-action{display:none}
 #cfg-rail-systeembeheer-label{margin:10px 0 6px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:10px;font-weight:700;color:#5b6b7f;letter-spacing:.07em;text-transform:uppercase;padding-left:10px}
 #cfg-nav-beheerders{display:none}
 #app-version-badge{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:11px;color:#64748b}
 #med-seg-ctrl{display:none;background:#f1f5f9;border-radius:8px;padding:3px;gap:3px;margin-bottom:16px}
+/* v3.78.0: Dienstmiddelen = Diensttelefoons + Sleutels (zelfde patroon als Medewerkers/Rollen) */
+#dm-seg-ctrl{display:none;background:#f1f5f9;border-radius:8px;padding:3px;gap:3px;margin-bottom:16px}
+#dm-seg-toestellen,#dm-seg-sleutels{flex:1;padding:6px 0;border:none;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;background:transparent;color:#475569;transition:all .13s}
+#dm-view-sleutels{display:none}
 #med-seg-medewerkers{flex:1;padding:6px 0;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;background:#1e3a5c;color:#fff;transition:all .13s}
 #med-seg-rollen{flex:1;padding:6px 0;border:none;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;background:transparent;color:#475569;transition:all .13s}
 #med-filterbar{position:sticky;top:0;z-index:10;background:#fff;padding:10px 0 12px;margin-bottom:4px;border-bottom:1px solid #e2e8f0}
@@ -2757,6 +2910,18 @@ body.post-login-reveal .topbar-sticky,body.post-login-reveal #app-main,body.post
 #schema-list{margin-bottom:12px}
 #schema-view-dagdelen{display:none}
 #dagdelen-list{margin-bottom:12px}
+/* v3.77.0: 24-uurs tijdlijn onder de dagdelen (puur visueel). Posities en
+   kleuren komen via data-css (CSSOM), zodat de CSP geen inline style ziet. */
+.dd-tl{margin:2px 0 10px}
+.dd-tl-kop{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#64748b;margin:0 0 6px}
+.dd-tl-balk{position:relative;height:34px;border-radius:9px;background:#f1f5f9;border:1px solid #e2e8f0;overflow:hidden}
+.dd-tl-seg{position:absolute;top:0;bottom:0;display:flex;align-items:center;justify-content:center;padding:0 6px;box-sizing:border-box;font-size:11.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:inset -1px 0 0 rgba(255,255,255,.75)}
+.dd-tl-tick{position:absolute;bottom:0;height:6px;width:1px;background:rgba(15,23,42,.28);pointer-events:none}
+.dd-tl-as{position:relative;height:15px;margin-top:4px;font-size:11px;color:#64748b;font-variant-numeric:tabular-nums}
+.dd-tl-as span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
+.dd-tl-as span.eerste{transform:none}
+.dd-tl-as span.laatste{transform:translateX(-100%)}
+@media(max-width:600px){.dd-tl-as span.tussen{display:none}} /* smal scherm: labels om de 6 uur */
 #schema-view-toets{display:none}
 #pt-slots{overflow-x:auto}
 #pg-empty{display:none;padding:24px;text-align:center;color:#5b6b7f;font-size:13px;line-height:1.6}
@@ -2777,10 +2942,17 @@ body.post-login-reveal .topbar-sticky,body.post-login-reveal #app-main,body.post
 #event-log-filter{padding:5px 8px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;font-family:inherit;background:#fff}
 #event-log-search{flex:1;min-width:120px;padding:5px 8px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;font-family:inherit}
 #event-log-list{max-height:500px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;background:#fafafa;font-family:ui-monospace,Menlo,monospace;font-size:11px}
-#modal-overlay{display:none}
+#modal-overlay{display:none;z-index:9600}
+.test-h1{display:flex;align-items:center;gap:8px}
+.test-badge{background:#fde047;color:#713f12;font-size:11px;font-weight:800;letter-spacing:.08em;padding:2px 8px;border-radius:5px;flex-shrink:0}
+.test-badge-login{font-size:10px;padding:2px 7px;margin-left:8px;align-self:center} /* v3.76.5: bevestiging altijd boven bewerkvensters (9000) en accountvenster (9400) */
 #modal-target{display:none}
 #logout-overlay{display:none}
 #autologout-overlay{display:none}
+#geen-toegang-overlay{display:none;z-index:9800}
+.gt-uid{display:flex;align-items:center;gap:8px;margin:14px 16px 4px;padding:9px 12px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:9px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;color:#0f172a;word-break:break-all;text-align:left;user-select:all;-webkit-user-select:all}
+.gt-uid span{flex:1}
+.gt-uid button{flex:none;border:1px solid #cbd5e1;background:#fff;border-radius:7px;padding:5px 9px;font-size:12px;font-weight:600;color:#334155;cursor:pointer;font-family:inherit}
 .al-sec{font-weight:700;font-variant-numeric:tabular-nums;color:var(--c-text)}
 #medewerker-modal-overlay{display:none}
 #inp-medewerker-edit-rol-checks{display:flex;flex-direction:column;gap:6px;margin-top:2px}
@@ -2788,6 +2960,7 @@ body.post-login-reveal .topbar-sticky,body.post-login-reveal #app-main,body.post
 #cat-modal-overlay{display:none}
 #toestel-modal-overlay{display:none}
 #sleutel-modal-overlay{display:none}
+#apparaat-modal-overlay{display:none}
 #post-modal-overlay{display:none}
 #post-modal-kleuren{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
 #post-modal-bezetting{font-size:15px;font-weight:600;min-width:16px;text-align:center;color:#1e293b}
@@ -3115,7 +3288,7 @@ td.hm-dd-tot{font-weight:700}
   <img src="logo.png" alt="Logo" id="header-logo">
   <div id="header-logo-divider"></div>
   <div class="u-flex1-minw0" id="header-left">
-    <h1>Surveillance Dashboard</h1>
+    <h1 class="test-h1">Surveillance Dashboard <span class="test-badge">TEST</span></h1>
     <p id="header-sub">&nbsp;</p>
   </div>
   <div id="header-right">
@@ -3566,9 +3739,10 @@ td.hm-dd-tot{font-weight:700}
 
         <div><span class="u-veldlabel">Rol</span>
           <div class="acc-m-rol" id="acc-m-rol">
+            <button type="button" data-act="accModalRol" data-r="dienst">Dienst&shy;account</button>
             <button type="button" class="on" data-act="accModalRol" data-r="statistieken">Statistieken</button>
-            <button type="button" data-act="accModalRol" data-r="applicatiebeheerder">Applicatiebeheerder</button>
-            <button type="button" data-act="accModalRol" data-r="beheerder">Systeembeheerder</button>
+            <button type="button" data-act="accModalRol" data-r="applicatiebeheerder">Applicatie&shy;beheerder</button>
+            <button type="button" data-act="accModalRol" data-r="beheerder">Systeem&shy;beheerder</button>
           </div>
         </div>
 
@@ -3608,16 +3782,10 @@ td.hm-dd-tot{font-weight:700}
       <span class="cfg-mob-badge" id="cfg-mob-badge-medewerkers"></span>
       <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
-    <button type="button" class="cfg-mob-row" data-act="cfgMobGoSection" data-sec="toestellen">
-      <div class="cfg-mob-row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3b5fc0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2.5"/><line x1="10.5" y1="18.5" x2="13.5" y2="18.5"/></svg></div>
-      <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Diensttelefoons</div><div class="cfg-mob-row-sub">Toestellen die surveillanten meenemen</div></div>
-      <span class="cfg-mob-badge" id="cfg-mob-badge-toestellen"></span>
-      <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </button>
-    <button type="button" class="cfg-mob-row" data-act="cfgMobGoSection" data-sec="sleutels">
-      <div class="cfg-mob-row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3b5fc0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3L20 3"/><path d="M17 6l2.5 2.5"/></svg></div>
-      <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Sleutels</div><div class="cfg-mob-row-sub">Sleutelbossen die surveillanten meenemen</div></div>
-      <span class="cfg-mob-badge" id="cfg-mob-badge-sleutels"></span>
+    <button type="button" class="cfg-mob-row" data-act="cfgMobGoSection" data-sec="dienstmiddelen">
+      <div class="cfg-mob-row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3b5fc0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg></div>
+      <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Dienstmiddelen</div><div class="cfg-mob-row-sub">Telefoons en sleutels die surveillanten meenemen</div></div>
+      <span class="cfg-mob-badge" id="cfg-mob-badge-dienstmiddelen"></span>
       <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
     <button type="button" class="cfg-mob-row" data-act="cfgMobGoSection" data-sec="posten">
@@ -3652,6 +3820,12 @@ td.hm-dd-tot{font-weight:700}
       <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Gedrag</div><div class="cfg-mob-row-sub">Limieten</div></div>
       <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
+    <button type="button" class="cfg-mob-row" id="cfg-mob-row-apparaten" data-act="cfgMobGoSection" data-sec="apparaten">
+      <div class="cfg-mob-row-icon cfg-mob-row-icon-slate"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2.5"/><line x1="11" y1="18" x2="13" y2="18"/><path d="M9 7.5a4.5 4.5 0 0 1 6 0"/><path d="M10.6 10a2 2 0 0 1 2.8 0"/></svg></div>
+      <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Apparaten</div><div class="cfg-mob-row-sub">Wie is online, op welke versie</div></div>
+      <span class="cfg-mob-badge" id="cfg-mob-badge-apparaten"></span>
+      <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
     <button type="button" class="cfg-mob-row" id="cfg-mob-row-auditlog" data-act="cfgMobGoSection" data-sec="auditlog">
       <div class="cfg-mob-row-icon cfg-mob-row-icon-slate"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
       <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Audit log</div><div class="cfg-mob-row-sub">Auto-wis na 7 dagen</div></div>
@@ -3660,7 +3834,7 @@ td.hm-dd-tot{font-weight:700}
     </button>
     <button type="button" class="cfg-mob-row" id="cfg-mob-row-beheerders" data-act="cfgMobGoSection" data-sec="beheerders">
       <div class="cfg-mob-row-icon cfg-mob-row-icon-slate"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.85"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-      <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Accountbeheer</div><div class="cfg-mob-row-sub">Beheerders- en statistieken-accounts</div></div>
+      <div class="cfg-mob-row-text"><div class="cfg-mob-row-title">Accountbeheer</div><div class="cfg-mob-row-sub">Alle accounts met toegang</div></div>
       <svg class="cfg-mob-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
     <button type="button" class="cfg-mob-row" data-act="logout">
@@ -3703,14 +3877,14 @@ td.hm-dd-tot{font-weight:700}
       <button type="button" class="cfg-nav-sub-item active" id="cfg-nav-sub-med-medewerkers" data-act="medSubView" data-view="medewerkers"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg><span class="cfg-sub-lbl" data-label="Medewerkers">Medewerkers</span></button>
       <button type="button" class="cfg-nav-sub-item" id="cfg-nav-sub-med-rollen" data-act="medSubView" data-view="rollen"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><span class="cfg-sub-lbl" data-label="Rollen / Functies">Rollen / Functies</span></button>
     </div>
-    <button type="button" class="cfg-nav-item" id="cfg-nav-toestellen" data-act="cfgGoSection" data-sec="toestellen">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2.5"/><line x1="10.5" y1="18.5" x2="13.5" y2="18.5"/></svg>
-      <span class="cfg-nav-lbl" data-label="Diensttelefoons">Diensttelefoons</span>
+    <button type="button" class="cfg-nav-item has-sub" id="cfg-nav-dienstmiddelen" data-act="cfgNavToggle" data-sec="dienstmiddelen">
+      <span class="u-rij10"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg><span class="cfg-nav-lbl" data-label="Dienstmiddelen">Dienstmiddelen</span></span>
+      <span class="cfg-nav-arrow">▼</span>
     </button>
-    <button type="button" class="cfg-nav-item" id="cfg-nav-sleutels" data-act="cfgGoSection" data-sec="sleutels">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3L20 3"/><path d="M17 6l2.5 2.5"/></svg>
-      <span class="cfg-nav-lbl" data-label="Sleutels">Sleutels</span>
-    </button>
+    <div class="cfg-nav-sub" id="cfg-nav-sub-dienstmiddelen">
+      <button type="button" class="cfg-nav-sub-item active" id="cfg-nav-sub-dm-toestellen" data-act="dmSubView" data-view="toestellen"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2.5"/><line x1="10.5" y1="18.5" x2="13.5" y2="18.5"/></svg><span class="cfg-sub-lbl" data-label="Diensttelefoons">Diensttelefoons</span></button>
+      <button type="button" class="cfg-nav-sub-item" id="cfg-nav-sub-dm-sleutels" data-act="dmSubView" data-view="sleutels"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3L20 3"/><path d="M17 6l2.5 2.5"/></svg><span class="cfg-sub-lbl" data-label="Sleutels">Sleutels</span></button>
+    </div>
     <button type="button" class="cfg-nav-item" id="cfg-nav-posten" data-act="cfgGoSection" data-sec="posten">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
       <span class="cfg-nav-lbl" data-label="Posten">Posten</span>
@@ -3746,6 +3920,10 @@ td.hm-dd-tot{font-weight:700}
       <span class="cfg-nav-lbl" data-label="Audit log">Audit log</span>
     </button>
 
+    <button type="button" class="cfg-nav-item" id="cfg-nav-apparaten" data-act="cfgGoSection" data-sec="apparaten">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2.5"/><line x1="11" y1="18" x2="13" y2="18"/><path d="M9 7.5a4.5 4.5 0 0 1 6 0"/><path d="M10.6 10a2 2 0 0 1 2.8 0"/></svg>
+      <span class="cfg-nav-lbl" data-label="Apparaten">Apparaten</span>
+    </button>
     <button type="button" class="cfg-nav-item" id="cfg-nav-beheerders" data-act="cfgGoSection" data-sec="beheerders">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.85"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       <span class="cfg-nav-lbl" data-label="Accountbeheer">Accountbeheer</span>
@@ -3755,7 +3933,7 @@ td.hm-dd-tot{font-weight:700}
       <div class="u-chiprij">
         <button type="button" class="cfg-rail-btn" data-act="logout">Uitloggen</button>
       </div>
-      <span id="app-version-badge">v3.75.3</span>
+      <span id="app-version-badge">v3.79.6</span>
     </div>
   </nav>
 
@@ -3800,21 +3978,24 @@ td.hm-dd-tot{font-weight:700}
       </div>
     </div>
 
-    <!-- Diensttelefoons -->
-    <div class="cfg-section" id="cfg-sec-toestellen">
+    <!-- Dienstmiddelen (v3.78.0): Diensttelefoons + Sleutels. Data blijft gescheiden
+         (config/toestellen en config/sleutels); alleen de weergave is samengevoegd. -->
+    <div class="cfg-section" id="cfg-sec-dienstmiddelen">
       <div class="cfg-sec-header">
-        <div><div class="cfg-sec-title">Diensttelefoons</div><div class="cfg-sec-sub">Toestellen die surveillanten meenemen tijdens hun dienst</div></div>
-        <button type="button" class="cfg-action-btn" data-act="openToestelModal" data-idx="-1">+ Toestel</button>
+        <div><div class="cfg-sec-title">Dienstmiddelen</div><div class="cfg-sec-sub" id="dm-sub-title">Toestellen die surveillanten meenemen tijdens hun dienst</div></div>
+        <button type="button" class="cfg-action-btn" id="dm-action-btn" data-act="dmActionBtn">+ Toestel</button>
       </div>
-      <div id="toestellen-list"></div>
-    </div>
-
-    <div class="cfg-section" id="cfg-sec-sleutels">
-      <div class="cfg-sec-header">
-        <div><div class="cfg-sec-title">Sleutels</div><div class="cfg-sec-sub">Sleutelbossen die surveillanten meenemen tijdens hun dienst</div></div>
-        <button type="button" class="cfg-action-btn" data-act="openSleutelModal" data-idx="-1">+ Sleutelbos</button>
+      <!-- Segmented control — mobiel bovenin, desktop verborgen -->
+      <div id="dm-seg-ctrl">
+        <button type="button" id="dm-seg-toestellen" data-act="dmSubView" data-view="toestellen">Diensttelefoons</button>
+        <button type="button" id="dm-seg-sleutels" data-act="dmSubView" data-view="sleutels">Sleutels</button>
       </div>
-      <div id="sleutels-list"></div>
+      <div id="dm-view-toestellen">
+        <div id="toestellen-list"></div>
+      </div>
+      <div id="dm-view-sleutels">
+        <div id="sleutels-list"></div>
+      </div>
     </div>
 
     <!-- Posten -->
@@ -3877,7 +4058,8 @@ td.hm-dd-tot{font-weight:700}
       <!-- View: Dagdelen -->
       <div id="schema-view-dagdelen">
         <div id="dagdelen-list"></div>
-        <div class="dagdeel-legenda">Tip: een dagdeel mag middernacht overschrijden (bv. nacht 23:00 → 07:00). Tijdvakken mogen niet overlappen.</div>
+        <div id="dagdelen-tijdlijn"></div>
+        <div class="dagdeel-legenda">Tip: een dagdeel mag middernacht overschrijden (bv. nacht 23:00 → 07:00). Overlapt een nieuw dagdeel, dan buigen de andere dagdelen eromheen.</div>
       </div>
       <!-- View: Praktijktoets (v3.35.0) -->
       <div id="schema-view-toets">
@@ -4069,6 +4251,15 @@ td.hm-dd-tot{font-weight:700}
     </div>
 
     <!-- Audit log -->
+    <!-- Apparaten (v3.79.0): presence per DEVICE_ID -->
+    <div class="cfg-section" id="cfg-sec-apparaten">
+      <div class="cfg-sec-header">
+        <div><div class="cfg-sec-title">Apparaten</div><div class="cfg-sec-sub">Welke apparaten verbonden zijn, op welke versie en wanneer laatst gezien</div></div>
+      </div>
+      <div class="ap-samenvatting" id="apparaten-samenvatting"></div>
+      <div id="apparaten-list"></div>
+    </div>
+
     <div class="cfg-section" id="cfg-sec-auditlog">
       <div class="cfg-sec-header">
         <div><div class="cfg-sec-title">Audit log</div><div class="cfg-sec-sub">Systeem- en gebruikersacties (auto-wis na 7 dagen)</div></div>
@@ -4107,6 +4298,7 @@ td.hm-dd-tot{font-weight:700}
     <div class="acc-bar">
       <div class="acc-seg" id="acc-filter">
         <button type="button" class="on" data-act="accFilter" data-f="alle">Alle <span id="acc-n-alle"></span></button>
+        <button type="button" data-act="accFilter" data-f="dienst">Dienst <span id="acc-n-dienst"></span></button>
         <button type="button" data-act="accFilter" data-f="statistieken">Statistieken <span id="acc-n-stat"></span></button>
         <button type="button" data-act="accFilter" data-f="applicatiebeheerder">Applicatiebeheerders <span id="acc-n-app"></span></button>
         <button type="button" data-act="accFilter" data-f="beheerder">Systeembeheerders <span id="acc-n-beh"></span></button>
@@ -4164,6 +4356,22 @@ td.hm-dd-tot{font-weight:700}
         <svg class="u-shrink0" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         Uitloggen
       </button>
+    </div>
+  </div>
+</div>
+<!-- Geen toegang (v3.76.0): account is ingelogd maar staat in geen enkele
+     accountlijst, dus de rules weigeren het lezen. Getoond door toonGeenToegang(). -->
+<div class="modal-overlay" id="geen-toegang-overlay">
+  <div class="modal-box logout-box" role="alertdialog" aria-modal="true" aria-labelledby="gt-titel" aria-describedby="gt-tekst">
+    <div class="logout-icon" aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+    <div class="logout-title" id="gt-titel">Dit account heeft geen toegang</div>
+    <div class="logout-sub" id="gt-tekst"><span id="gt-email">Dit account</span> is ingelogd, maar staat niet in de lijst met toegestane accounts. Het dashboard kan daardoor niets laden of opslaan. Vraag de systeembeheerder dit account toe te voegen via Instellingen &rarr; Accountbeheer, met deze UID:</div>
+    <div class="gt-uid"><span id="gt-uid">&ndash;</span><button type="button" data-act="geenToegangKopieer">Kopieer</button></div>
+    <div class="modal-btns logout-btns">
+      <button type="button" class="modal-btn modal-btn-nee" data-act="geenToegangUitloggen">Uitloggen / wisselen</button>
+      <button type="button" class="modal-btn logout-btn-ja" data-act="geenToegangOpnieuw">Opnieuw proberen</button>
     </div>
   </div>
 </div>
@@ -4277,6 +4485,25 @@ td.hm-dd-tot{font-weight:700}
     <div class="edit-modal-foot">
       <button type="button" class="edit-modal-btn edit-modal-btn-cancel" data-act="cancelToestelEdit">Annuleren</button>
       <button type="button" id="toestel-modal-save-btn" class="edit-modal-btn edit-modal-btn-save" disabled data-act="saveToestelEdit">Opslaan</button>
+    </div>
+  </div>
+</div>
+<div id="apparaat-modal-overlay" class="edit-modal-overlay" data-overlay-cancel="cancelApparaatNaam">
+  <div class="edit-modal-box u-maxw360">
+    <div class="edit-modal-hdr">
+      <p class="edit-modal-title">Apparaat benoemen</p>
+      <button type="button" class="edit-modal-close" data-act="cancelApparaatNaam" aria-label="Sluiten"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="edit-modal-body">
+      <div class="edit-modal-field">
+        <label for="inp-apparaat-naam">Naam</label>
+        <input type="text" id="inp-apparaat-naam" maxlength="40" placeholder="bijv. Meldkamer iPad 1" data-key-act="apparaatNaamEnter">
+      </div>
+      <div class="edit-modal-field"><span class="ap-sub" id="apparaat-modal-info"></span></div>
+    </div>
+    <div class="edit-modal-foot">
+      <button type="button" class="edit-modal-btn edit-modal-btn-cancel" data-act="cancelApparaatNaam">Annuleren</button>
+      <button type="button" class="edit-modal-btn edit-modal-btn-save" data-act="saveApparaatNaam">Opslaan</button>
     </div>
   </div>
 </div>
@@ -4596,7 +4823,7 @@ td.hm-dd-tot{font-weight:700}
 </div>
 
 <script>
-const APP_VERSION = '3.75.3';
+const APP_VERSION = '3.79.6';
 
 // ==========================================================================
 // CSP-migratie (fase 0/1): gedelegeerde click-handler.
@@ -4648,6 +4875,9 @@ function runAct(act, d) {
     case 'plattegrondVergroot': plattegrondToggleGroot(); break;
     case 'toggleHeatmapTab': toggleHeatmapTab(); break;
     case 'autoLogoutBlijf':  autoLogoutBlijf(); break;
+    case 'geenToegangKopieer':   geenToegangKopieer(); break;
+    case 'geenToegangOpnieuw':   location.reload(); break;
+    case 'geenToegangUitloggen': geenToegangUitloggen(); break;
     case 'autoLogoutNu':     autoLogoutNu(); break;
     case 'setHeatmapZichtbaarheid': setHeatmapZichtbaarheid(d.val); break;
     case 'hmPeriode':        hmPeriode(d.h); break;
@@ -4659,6 +4889,7 @@ function runAct(act, d) {
     case 'pgSluitVlak':      pgSluitVlak(); break;
     case 'cfgNavToggle':     cfgNavToggle(d.sec); break;
     case 'medSubView':       medSubView(d.view); break;
+    case 'dmSubView':        dmSubView(d.view); break;
     case 'rondesSubView':    rondesSubView(d.view); break;
     case 'schemaSubView':    schemaSubView(d.view); break;
     case 'ptPeriode':        ptPeriode(d.p); break;
@@ -4744,6 +4975,7 @@ function runAct(act, d) {
     case 'openAccountModal':     openAccountModal(d.type); break;
     case 'verwijderStatistieken': verwijderStatistiekenAccount(d.uid); break;
     case 'verwijderApplicatiebeheerder': verwijderApplicatiebeheerderAccount(d.uid); break;
+    case 'verwijderDienstaccount': verwijderDienstaccount(d.uid); break;
     case 'accFilter':            accFilter(d.f); break;
     case 'accModalRol':          accModalRol(d.r); break;
     case 'accCopyUid':           accCopyUid(d.uid); break;
@@ -4754,6 +4986,11 @@ function runAct(act, d) {
     case 'cfgMobBack':           cfgMobBack(); break;
     case 'cfgMobDetailAction':   cfgMobDetailAction(); break;
     case 'medActionBtn':         medActionBtn(); break;
+    case 'dmActionBtn':          dmActionBtn(); break;
+    case 'apparaatNaam':         openApparaatNaam(d.id); break;
+    case 'apparaatVerwijder':    verwijderApparaat(d.id); break;
+    case 'saveApparaatNaam':     saveApparaatNaam(); break;
+    case 'cancelApparaatNaam':   cancelApparaatNaam(); break;
     case 'rondesActionBtn':      rondesActionBtn(); break;
     case 'schemaActionBtn':      schemaActionBtn(); break;
     case 'clearMedFilters':      clearMedFilters(); break;
@@ -4909,6 +5146,9 @@ document.addEventListener('keydown', function (e) {
       break;
     case 'toestelNaamEnter':
       if (k === 'Enter' && !document.getElementById('toestel-modal-save-btn').disabled) saveToestelEdit();
+      break;
+    case 'apparaatNaamEnter':
+      if (k === 'Enter') saveApparaatNaam();
       break;
     case 'sleutelNummerEnter':
       if (k === 'Enter' && !document.getElementById('sleutel-modal-save-btn').disabled) saveSleutelEdit();
@@ -5157,7 +5397,7 @@ function fbSave() {
   }
   // Only save settings — active/log only written via fbSaveActive()
   const updates = {};
-  updates['/dashboard/dienst']  = [...S.dienst];
+  updates['/dashboard/dienst']  = { namen: [...S.dienst], alleen: _dienstGewijzigd() }; // v3.79.3
   // medewerkers is de enige bron — names wordt niet meer naar Firebase geschreven
   updates['/dashboard/medewerkers'] = S.medewerkers || [];
   updates['/dashboard/routes']    = S.routes;
@@ -5196,7 +5436,7 @@ function fbSaveDienst() {
   if (!window.fbDb) return;
   if (window._appOutdated) return;
   LS.set('rn_dienst', [...S.dienst]);
-  window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/dienst': [...S.dienst] })
+  window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/dienst': { namen: [...S.dienst], alleen: _dienstGewijzigd() } }) // v3.79.3
     .then(() => setFbStatus('ok'))
     .catch(e => { logEvent('error', 'Dienst opslaan MISLUKT', { error: String(e) }); setFbStatus('error'); });
 }
@@ -5233,6 +5473,15 @@ function toggleRolVoorstel(rol) {
 }
 
 // Writes active + log atomically to Firebase — this is the ONLY place these are saved
+// v3.79.5: payload voor '/dashboard/active': de lokale lijst + welke namen dit
+// apparaat net zelf wijzigde. Het module-script schrijft alleen die laatste.
+function _activePayload() {
+  return {
+    __byName: cleanActiveForFirebase() || {},
+    __alleen: [..._pendingActive.entries()].map(([naam, p]) => ({ naam, op: p.op, start: p.entry && p.entry.start }))
+  };
+}
+
 function cleanActiveForFirebase() {
   // Strip local-only flags (_warned etc.) before writing to Firebase
   const clean = {};
@@ -5248,10 +5497,17 @@ function fbSaveActive() {
   if (!window.fbDb) return;
   if (window._appOutdated) { showUpdateBanner(); return; }
   const updates = {};
-  updates['/dashboard/active'] = cleanActiveForFirebase();
+  const payload = _activePayload();
+  updates['/dashboard/active'] = payload;
+  // v3.79.5: markeringen die in deze write zaten na succes opruimen (zoals start
+  // en retour al deden), zodat een latere write ze niet nog eens meestuurt.
+  const meegestuurd = payload.__alleen.map(x => [x.naam, _pendingActive.get(x.naam)]);
   // Log wordt NIET meer als array overschreven — elke entry heeft eigen push-key
   window.fbUpdate(window.fbRef(window.fbDb), updates)
-    .then(() => { setFbStatus('ok'); })
+    .then(() => {
+      setFbStatus('ok');
+      meegestuurd.forEach(([n, p]) => { if (_pendingActive.get(n) === p) clearActivePending(n); });
+    })
     .catch(e => { setFbStatus('error'); logEvent('error', 'fbSaveActive MISLUKT', { error: String(e) }); voegMeldingToe('rood', 'Synchronisatie mislukt', 'Data kon niet worden opgeslagen. Controleer de verbinding.', null, null); });
 }
 
@@ -5353,6 +5609,17 @@ function checkAppVersion(remoteVersion) {
   // met verwerken en starts niet meer doorkwamen.
   if (isNewerVersion(remoteVersion, APP_VERSION)) showUpdateBanner();
 }
+
+// v3.79.3: elke 10 minuten ook zonder zichtbaarheidswissel. Een meldkamer-pc
+// staat de hele dag voorgrond; waren zijn listeners ingetrokken (storing), dan
+// hoorde hij nooit van een nieuwe versie en bleef hij met een bevroren beeld
+// schrijven. Een losse read werkt ook als de listeners dood zijn.
+TIMERS.set('versieCheck', () => {
+  if (!window.fbDb || !window.fbGet) return;
+  window.fbGet(window.fbRef(window.fbDb, 'dashboard/appVersion'))
+    .then(snap => { if (snap && snap.exists()) checkAppVersion(snap.val()); })
+    .catch(() => {});
+}, 10 * 60 * 1000);
 
 // Re-check version when tab comes back to foreground (catches background-stale tabs)
 document.addEventListener('visibilitychange', () => {
@@ -6071,7 +6338,42 @@ function fbListen() {
       if (_hmPane && _hmPane.classList.contains('on') && typeof renderHeatmap === 'function') renderHeatmap();
       updBtn();
     }, 60);
-  }, e => { logEvent('error', 'Firebase read MISLUKT', { error: String(e) }); setFbStatus('error'); });
+  }, e => {
+    // v3.76.0: geweigerd lezen = dit account staat in geen enkele accountlijst.
+    // Duidelijk scherm met de UID i.p.v. een vaag "Sync mislukt".
+    if (_isPermissionDenied(e)) { toonGeenToegang(); return; }
+    logEvent('error', 'Firebase read MISLUKT', { error: String(e) }); setFbStatus('error');
+  });
+}
+
+// ── Geen toegang (v3.76.0) ─────────────────────────────────────────────────
+function _isPermissionDenied(e) {
+  if (!e) return false;
+  return String(e.code || '').toUpperCase() === 'PERMISSION_DENIED' || /permission[_ ]denied/i.test(String(e.message || e));
+}
+function toonGeenToegang() {
+  // Alleen met een ingelogde gebruiker. Bij (auto-)uitloggen trekt Firebase de
+  // listeners ook in met permission_denied; dan is currentUser al null en hoort
+  // dit scherm niet even op te flitsen vóór de herstart.
+  const u = window.fbAuth && window.fbAuth.currentUser;
+  if (!u) return;
+  const ov = document.getElementById('geen-toegang-overlay');
+  if (!ov || ov.style.display === 'flex') return; // meerdere sub-listeners: één keer tonen
+  const em = document.getElementById('gt-email');
+  if (em) em.textContent = u.email || 'Dit account';
+  const id = document.getElementById('gt-uid');
+  if (id) id.textContent = u.uid || '\u2013';
+  ov.style.display = 'flex';
+  setFbStatus('error');
+}
+function geenToegangKopieer() {
+  const u = window.fbAuth && window.fbAuth.currentUser;
+  if (!u || !navigator.clipboard) return;
+  navigator.clipboard.writeText(u.uid).then(() => showToast('UID gekopieerd')).catch(() => {});
+}
+async function geenToegangUitloggen() {
+  try { await window.fbSignOut(); } catch (e) {}
+  setTimeout(() => location.reload(), 150);
 }
 
 
@@ -6195,6 +6497,10 @@ function markLogPending(id) {
   _pendingLog.add(id);
   setTimeout(() => _pendingLog.delete(id), 60000); // auto-cleanup after 60s
 }
+// v3.79.3: namen die dit apparaat recent zelf op/af dienst zette (pending).
+// Alleen die schrijft de dienst-opslag weg; zie diffDienst in het module-script.
+function _dienstGewijzigd() { return [..._pendingDienst.keys()]; }
+
 function markDienstPending(name, op) {
   const now = Date.now();
   // ts  = race-klok: start op clientklok, wordt in fbListen herijkt naar de
@@ -6728,23 +7034,24 @@ function renderRegNadb() {
   const el = document.getElementById('reg-nadb');
   if (!el) return;
 
-  // Gebruik dezelfde schema-logica als renderPlan
-  const now = nowMinsAdj();
-  const todayDow = ['zo','ma','di','wo','do','vr','za'][new Date().getDay()];
-  const weekday = isWeekday();
-  const todaySchema = (S.schema || SCHEMA).filter(ss => {
-    if (ss.dagen && ss.dagen.length) return ss.dagen.includes(todayDow);
-    if (ss.weekdagsOnly) return weekday;
-    return true;
-  });
-  const currentHour = new Date().getHours();
-  function schemaAdj(item) {
-    if (item.h >= 24) return item.h * 60 + item.m;
-    if (item.h < 7) return (item.h + 24) * 60 + item.m;
-    if (currentHour < 7) return (item.h + 24) * 60 + item.m;
-    return item.h * 60 + item.m;
-  }
-  const sorted = [...todaySchema].sort((a, b) => schemaAdj(a) - schemaAdj(b));
+  // v3.76.2: het venster rond 'nu' rekent met het DICHTSTBIJZIJNDE voorkomen van
+  // elk slot (_slotEpochMs), net als de afgerond-check hieronder. De oude
+  // nachtcorrectie (uur+24 zolang het vóór 07:00 is) sloeg om op 00:00 en 07:00:
+  // een niet-gelopen ronde van 23:45 verdween om middernacht uit deze balk, een
+  // van 06:30 om 07:00. De weekdag komt van dát voorkomen, niet van 'nu', zodat
+  // een za-23:30-ronde na middernacht nog als zaterdag-ronde telt.
+  // (renderPlan houdt bewust zijn eigen rollende 24u-weergave.)
+  const DOW = ['zo','ma','di','wo','do','vr','za'];
+  const nowMs = Date.now();
+  const sorted = (S.schema || SCHEMA)
+    .map(item => ({ item, slotMs: _slotEpochMs(item.h % 24, item.m) }))
+    .filter(({ item, slotMs }) => {
+      const dag = new Date(slotMs).getDay();
+      if (item.dagen && item.dagen.length) return item.dagen.includes(DOW[dag]);
+      if (item.weekdagsOnly) return dag >= 1 && dag <= 5;
+      return true;
+    })
+    .sort((a, b) => a.slotMs - b.slotMs);
 
   // Vind huidige en komende schema-items die nog niet afgerond zijn
   const routeRunners = {};
@@ -6755,16 +7062,14 @@ function renderRegNadb() {
 
   const chips = [];
   const seen = new Set();
-  for (const item of sorted) {
+  for (const { item, slotMs } of sorted) {
     if (!item.ronde) continue;
     if (seen.has(item.ronde)) continue;
-    const adjM = schemaAdj(item);
-    const delta = now - adjM; // positief = voorbij, negatief = toekomst
+    const delta = (nowMs - slotMs) / 60000; // minuten; positief = voorbij, negatief = toekomst
     // Verschijnt 15 min vóór geplande tijd, verdwijnt 60 min erna
     if (delta < -15) continue;  // nog niet aan de beurt (>15 min te vroeg)
     if (delta > 60) continue;   // >1 uur voorbij → opruimen
     // Check of al afgerond of actief
-    const slotMs = _slotEpochMs(item.h % 24, item.m);
     const isDone = S.log.some(r => r.route === item.ronde && r.end && r.start >= slotMs && (r.end - r.start) >= MIN_RONDE_MS);
     const isActive = !!routeRunners[item.ronde];
     if (isDone || isActive) continue;
@@ -6991,7 +7296,7 @@ function doStart() {
   // Write to Firebase — active only, log gaat niet meer als array
   if (window.fbDb) {
     const updates = {
-      '/dashboard/active': cleanActiveForFirebase()
+      '/dashboard/active': _activePayload()
     };
     window.fbUpdate(window.fbRef(window.fbDb), updates)
       .then(() => {
@@ -7052,7 +7357,7 @@ function herstelStart(names, route, startTime) {
   renderAllActive(); updBtn();
   if (typeof renderLive === 'function') renderLive();
   if (window.fbDb) {
-    window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/active': cleanActiveForFirebase() })
+    window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/active': _activePayload() })
       .then(() => { setFbStatus('ok'); stillActive.forEach(n => clearActivePending(n)); })
       .catch(e => { setFbStatus('error'); logEvent('error', 'Start ongedaan maken MISLUKT', { error: String(e), names: stillActive, route }); });
   }
@@ -7104,6 +7409,10 @@ async function doRetour(name, _opts) {
   if (alreadyLogged) {
     showToast(n.split(' ')[0] + ' stond al als retour geregistreerd');
     delete S.active[n]; // verwijder stale active entry
+    // v3.79.5: ook in Firebase opruimen (voorheen gebeurde dat pas als bijvangst
+    // van de volgende volledige diff; die bestaat niet meer).
+    markActivePending(n, 'remove', { route: a.route, start: a.start });
+    fbSaveActive();
     renderAllActive(); updBtn(); renderLive();
     return false;
   }
@@ -7127,7 +7436,7 @@ async function doRetour(name, _opts) {
   if (window.fbDb) {
     try {
       await Promise.all([
-        window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/active': cleanActiveForFirebase() }),
+        window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/active': _activePayload() }),
         fbPushLogEntry(logEntry)
       ]);
       setFbStatus('ok');
@@ -7182,14 +7491,16 @@ function herstelRetour(n, prev, logEntry) {
   // 2) Log-entry lokaal verwijderen.
   S.log = S.log.filter(r => r.id !== logEntry.id);
   renderAllActive(); updBtn(); renderLive();
-  // 3) Firebase: active terugschrijven + de log-entry-node verwijderen.
+  // 3) Firebase: active terugschrijven + de log-entry-node verwijderen, in ÉÉN
+  //    atomaire write (v3.79.5). Voorheen twee losse writes: andere apparaten
+  //    kregen eerst "weer onderweg" terwijl de retourregel nog in hun log stond,
+  //    en hun spook-vangnet ruimde de zojuist herstelde ronde direct weer op.
   if (window.fbDb) {
-    window.fbUpdate(window.fbRef(window.fbDb), { '/dashboard/active': cleanActiveForFirebase() })
+    const upd = { '/dashboard/active': _activePayload() };
+    if (logEntry._fbKey) upd['/dashboard/log/' + logEntry._fbKey] = null;
+    window.fbUpdate(window.fbRef(window.fbDb), upd)
       .then(() => setFbStatus('ok'))
       .catch(e => { setFbStatus('error'); logEvent('error', 'Retour ongedaan maken MISLUKT', { error: String(e), name: n }); });
-    if (logEntry._fbKey && window.fbRemove) {
-      fbRemoveLogEntry(logEntry._fbKey).catch(() => {});
-    }
   }
   logEvent('retour', n.split(' ')[0] + ' retour ongedaan gemaakt \u2014 ' + prev.route, { name: n, route: prev.route, start: prev.start });
   showToast(n.split(' ')[0] + ' weer onderweg \u2014 ' + prev.route);
@@ -7697,7 +8008,7 @@ function voegToeAanGroep(groupId, route) {
     return;
   }
 
-  const updates = { '/dashboard/active': cleanActiveForFirebase() };
+  const updates = { '/dashboard/active': _activePayload() };
   window.fbUpdate(window.fbRef(window.fbDb), updates)
     .then(() => {
       setFbStatus('ok');
@@ -8811,9 +9122,23 @@ function reconcileState() {
 
   // ── I1: spook-active opruimen ────────────────────────────────────────────
   if (S.active && S.log && S.log.length) {
-    const loggedKeys = new Set(S.log.map(r => (r.name||'') + '|' + (r.route||'') + '|' + (r.start||'')));
-    const ghosts = [];
     const nowI1 = Date.now();
+    // v3.79.5: een retourregel van < 20 s oud telt nog niet als bewijs van een
+    // spook-ronde. Zo'n regel kan nog onderweg zijn om te verdwijnen (retour
+    // ongedaan maken op een ander apparaat) of de bijbehorende 'niet meer
+    // onderweg' kan net nog niet binnen zijn. Na de wachttijd opnieuw kijken.
+    const I1_WACHT_MS = 20000;
+    let uitgesteld = false;
+    const loggedKeys = new Set();
+    S.log.forEach(r => {
+      const k = (r.name||'') + '|' + (r.route||'') + '|' + (r.start||'');
+      if (r.end && nowI1 - r.end < I1_WACHT_MS) { uitgesteld = true; return; }
+      loggedKeys.add(k);
+    });
+    if (uitgesteld && !reconcileState._herhaal) {
+      reconcileState._herhaal = setTimeout(() => { reconcileState._herhaal = null; reconcileState(); }, I1_WACHT_MS + 1000);
+    }
+    const ghosts = [];
     Object.entries(S.active).forEach(([n, a]) => {
       const pending = _pendingActive.get(n);
       if (pending && pending.op === 'add') return; // verse start niet aanraken
@@ -8967,6 +9292,8 @@ async function wisLog() {
   })) return;
   const wipedLog = S.log.length;
   const wipedActive = Object.keys(S.active);
+  // v3.79.5: markeer elke lopende ronde als 'verwijderd' zodat fbSaveActive ze wist.
+  wipedActive.forEach(n => markActivePending(n, 'remove', { route: S.active[n].route, start: S.active[n].start }));
   S.log = [];
   S.active = {};
   fbSaveActive();
@@ -9221,10 +9548,21 @@ function applyDagdeelMutation(list, newItem, skipIdx) {
     if (ns < ne) return m >= ns && m < ne;
     return m >= ns || m < ne; // wrapping
   };
+  // v3.76.5: het EIND van een bestaand dagdeel ligt "in" het nieuwe als de
+  // laatste minuut ervoor erin valt: e in (ns, ne]. Voorheen werd hier ook
+  // insideNew gebruikt ([ns, ne)). Gevolg: een dagdeel dat precies eindigt waar
+  // het nieuwe begint (alleen aanraken) telde als overlap — verleng je de vroege
+  // dienst tot 23:30, dan verdween de nachtdienst (23:00–07:00) volledig — en
+  // een gedeelde eindtijd telde juist niet, waardoor stil overlap ontstond.
+  const eindInNew = (m) => {
+    if (ns < ne) return m > ns && m <= ne;
+    return m > ns || m <= ne; // wrapping
+  };
 
   const result = [];
   const verwijderd = [];
   const aangepast = [];
+  const gesplitst = [];
 
   list.forEach((d, i) => {
     if (i === skipIdx) { result.push(d); return; }
@@ -9233,7 +9571,7 @@ function applyDagdeelMutation(list, newItem, skipIdx) {
     if (isNaN(s) || isNaN(e) || s === e) { result.push(d); return; }
 
     const startIn = insideNew(s);
-    const eindIn  = insideNew(e);
+    const eindIn  = eindInNew(e);
 
     if (startIn && eindIn) {
       // Fully swallowed
@@ -9242,7 +9580,21 @@ function applyDagdeelMutation(list, newItem, skipIdx) {
     }
 
     if (!startIn && !eindIn) {
-      // No overlap (or the new item is inside this one — shouldn't happen after validation)
+      // v3.76.6: valt het nieuwe dagdeel STRIKT binnen dit dagdeel, dan buigt dit
+      // dagdeel eromheen door te splitsen: het eerste deel houdt naam en id
+      // (koppelingen zoals bezetting per dagdeel blijven), het tweede deel krijgt
+      // de naam met " (2)" (of hoger als die al bestaat) en een nieuw id.
+      const binnenD = (m) => (s < e) ? (m > s && m < e) : (m > s || m < e);
+      if (binnenD(ns) && binnenD(ne)) {
+        const namen = new Set(list.map(x => x.naam).concat([newItem.naam]));
+        let n = 2, tweede;
+        do { const suf = ' (' + n + ')'; tweede = d.naam.slice(0, 24 - suf.length) + suf; n++; } while (namen.has(tweede));
+        const deel1 = { ...d, eind: minToHhmm(ns) };
+        const deel2 = { naam: tweede, start: minToHhmm(ne), eind: d.eind, kleur: d.kleur };
+        gesplitst.push({ oud: d, delen: [deel1, deel2] });
+        result.push(deel1, deel2);
+        return;
+      }
       result.push(d);
       return;
     }
@@ -9265,7 +9617,7 @@ function applyDagdeelMutation(list, newItem, skipIdx) {
     result.push(clipped);
   });
 
-  return { list: result, verwijderd, aangepast };
+  return { list: result, verwijderd, aangepast, gesplitst };
 }
 
 // ── PLANNING — volledige dag op basis van klok ────────────────────────────
@@ -9621,7 +9973,10 @@ function _wzhIsAfgerond(w) {
 }
 
 function _wzhStatus(w) {
-  const isActief = w.ronde && Object.values(S.active).some(a => a.route === w.ronde);
+  // v3.76.3: zelfde actief-koppeling als tijdlijn en meldingen. Voorheen alleen
+  // op routenaam: een al AFGERONDE taak sprong terug naar "bezig" (en telde weer
+  // als open taak) zodra iemand later dezelfde ronde liep.
+  const isActief = _wzhRondeActiefFn(w);
   if (isActief)              return 'bezig';
   if (_wzhIsAfgerond(w))     return 'afgerond';
   return 'te-starten';
@@ -10585,6 +10940,10 @@ function renderCfg() {
   var subRol = document.getElementById('cfg-nav-sub-med-rollen');
   if (subMed) { var _lbl=subMed.querySelector('.cfg-sub-lbl'); if(_lbl){var _t='Medewerkers'+(S.medewerkers&&S.medewerkers.length?' ('+S.medewerkers.length+')':'');_lbl.textContent=_t;_lbl.dataset.label=_t;} else subMed.textContent='Medewerkers'+(S.medewerkers&&S.medewerkers.length?' ('+S.medewerkers.length+')':''); }
   if (subRol) { var _lbl=subRol.querySelector('.cfg-sub-lbl'); if(_lbl){var _t='Rollen / Functies'+(S.rollen&&S.rollen.length?' ('+S.rollen.length+')':'');_lbl.textContent=_t;_lbl.dataset.label=_t;} else subRol.textContent='Rollen / Functies'+(S.rollen&&S.rollen.length?' ('+S.rollen.length+')':''); }
+  [['cfg-nav-sub-dm-toestellen', 'Diensttelefoons', S.toestellen], ['cfg-nav-sub-dm-sleutels', 'Sleutels', S.sleutels]].forEach(function(p) {
+    var el = document.getElementById(p[0]); var lbl = el && el.querySelector('.cfg-sub-lbl');
+    if (lbl) { var t = p[1] + (p[2] && p[2].length ? ' (' + p[2].length + ')' : ''); lbl.textContent = t; lbl.dataset.label = t; }
+  });
   var subSchemaSchema = document.getElementById('cfg-nav-sub-schema-schema');
   var subSchemaDagdelen = document.getElementById('cfg-nav-sub-schema-dagdelen');
   var _schemaSrc = S.schema || SCHEMA;
@@ -10602,7 +10961,14 @@ function renderCfg() {
     `<option value="${escHtml(r)}">${r ? escHtml(r) : '— geen ronde —'}</option>`
   ).join('');
   const modalDropdown = document.getElementById('inp-schema-modal-ronde');
-  if (modalDropdown) modalDropdown.innerHTML = rondeOptions;
+  if (modalDropdown) {
+    // v3.79.6: gekozen waarde bewaren. Een update van elders liet renderCfg de
+    // lijst opnieuw vullen terwijl het venster openstond; de gekozen ronde viel
+    // dan weg en opslaan weigerde met "Vul minimaal een tijd en ronde in".
+    const _gekozen = modalDropdown.value;
+    modalDropdown.innerHTML = rondeOptions;
+    if (_gekozen && [...modalDropdown.options].some(o => o.value === _gekozen)) modalDropdown.value = _gekozen;
+  }
 
   // Render schema list — grouped per dagdeel with coloured band
   const sl = document.getElementById('schema-list');
@@ -10777,6 +11143,10 @@ function renderCfg() {
     }
   }
 
+  // v3.77.0: 24-uurs tijdlijn onder de dagdelen.
+  const tl = document.getElementById('dagdelen-tijdlijn');
+  if (tl) tl.innerHTML = _dagdelenTijdlijnHTML(S.dagdelen || DAGDELEN_DEFAULT);
+
   // Mobiele detail-view re-syncen: de mobiele weergave is een kopie (cloneNode)
   // van de desktop-sectie. Na een mutatie (renderCfg) is die kopie verouderd. Als
   // de mobiele detail open staat, kopieer de zojuist bijgewerkte sectie opnieuw.
@@ -10799,6 +11169,7 @@ function renderCfg() {
       if (_cfgActiveSection === 'auditlog') _rewireAuditlog(body);
       if (_cfgActiveSection === 'rondes')   { var s1 = body.querySelector('#rondes-seg-ctrl'); if (s1) s1.style.display = 'flex'; rondesSubView(_rondesSubView); }
       if (_cfgActiveSection === 'medewerkers') { var s2 = body.querySelector('#med-seg-ctrl'); if (s2) s2.style.display = 'flex'; medSubView(_medSubView); }
+      if (_cfgActiveSection === 'dienstmiddelen') { var s4 = body.querySelector('#dm-seg-ctrl'); if (s4) s4.style.display = 'flex'; dmSubView(_dmSubView); }
       if (_cfgActiveSection === 'schema')   { var s3 = body.querySelector('#schema-seg-ctrl'); if (s3) s3.style.display = 'flex'; schemaSubView(_schemaSubView); }
     }
   }
@@ -10824,6 +11195,7 @@ function openSchemaModal(idx) {
   _schemaModalIdx = idx;
   const isEdit = idx !== null;
   const activeSchema = S.schema || SCHEMA;
+  _schemaEditKey = isEdit ? _itemSleutel(activeSchema[idx]) : null;
   const item = isEdit ? activeSchema[idx] : null;
 
   document.getElementById('schema-modal-title').textContent = isEdit ? 'Schema-item wijzigen' : 'Schema-item toevoegen';
@@ -10940,6 +11312,11 @@ function saveSchemaModal() {
 
   const activeSchema = S.schema ? [...S.schema] : [...SCHEMA];
   if (_schemaModalIdx !== null) {
+    const _i = _zoekItem(activeSchema, _schemaEditKey);
+    if (_i < 0) { _itemWeg('Dit dagplanning-item'); return; }
+    _schemaModalIdx = _i;
+    // Firebase-id behouden: anders krijgt een bewerkt item een nieuw id.
+    if (activeSchema[_i] && activeSchema[_i]._id) newItem._id = activeSchema[_i]._id;
     activeSchema[_schemaModalIdx] = newItem;
   } else {
     activeSchema.push(newItem);
@@ -10968,6 +11345,7 @@ let _dagdeelEditIdx = null; // null = nieuw, number = edit index
 
 function openDagdeelModal(idx) {
   _dagdeelEditIdx = idx;
+  _dagdeelEditKey = idx !== null ? _itemSleutel((S.dagdelen || DAGDELEN_DEFAULT)[idx]) : null;
   const isEdit = idx !== null;
   document.getElementById('dagdeel-modal-title').textContent = isEdit ? 'Dagdeel wijzigen' : 'Dagdeel toevoegen';
   if (isEdit) {
@@ -10995,6 +11373,66 @@ function openDagdeelModal(idx) {
 
 function editDagdeel(i) { openDagdeelModal(i); }
 
+// ── 24-uurs tijdlijn dagdelen (v3.77.0, puur visueel) ─────────────────────
+// De as begint op de dagdeelgrens die het dichtst bij 07:00 ligt (de dag van
+// de app loopt 07:00–07:00), zodat een nachtdienst één aaneengesloten blok is.
+// Een dagdeel dat over het ankerpunt heen loopt wordt in twee blokken getekend.
+// Lege stukken (geen dagdeel) blijven grijs zichtbaar.
+function _dagdelenTijdlijnHTML(lijst) {
+  const geldig = (lijst || []).map(d => ({ d, s: hhmmToMin(d.start), e: hhmmToMin(d.eind) }))
+    .filter(x => !isNaN(x.s) && !isNaN(x.e) && x.s !== x.e);
+  if (!geldig.length) return '';
+  const afst = m => { const x = Math.abs(m - 420) % 1440; return Math.min(x, 1440 - x); };
+  const anker = geldig.map(x => x.s).sort((a, b) => afst(a) - afst(b) || a - b)[0];
+  const pct = m => (m / 1440 * 100).toFixed(3) + '%';
+  const blokken = [];
+  geldig.forEach(({ d, s, e }) => {
+    const off = (s - anker + 1440) % 1440;
+    const duur = (e - s + 1440) % 1440;
+    const delen = off + duur > 1440 ? [[off, 1440 - off], [0, off + duur - 1440]] : [[off, duur]];
+    delen.forEach(([o, w]) => blokken.push({ d, o, w }));
+  });
+  const segs = blokken.map(({ d, o, w }) => {
+    const bg = safeColor(d.kleur, '#e2e8f0');
+    const fg = autoTekstKleur(bg);
+    const titel = (d.naam || '') + ' ' + d.start + '\u2013' + d.eind;
+    const tekst = w >= 90 ? escHtml(d.naam || '') : '';   // < 1,5 uur: geen label (past niet)
+    return '<div class="dd-tl-seg" title="' + escHtml(titel) + '" data-css="left:' + pct(o) + ';width:' + pct(w) +
+      ';background:' + bg + ';color:' + fg + '">' + tekst + '</div>';
+  }).join('');
+  let ticks = '', as = '';
+  for (let i = 0; i <= 8; i++) {
+    const m = i * 180, klok = (anker + m) % 1440;
+    const lbl = String(Math.floor(klok / 60)).padStart(2, '0') + ':' + String(klok % 60).padStart(2, '0');
+    if (i > 0 && i < 8) ticks += '<div class="dd-tl-tick" data-css="left:' + pct(m) + '"></div>';
+    as += '<span class="' + (i === 0 ? 'eerste' : i === 8 ? 'laatste' : (i % 2 ? 'tussen' : '')) + '" data-css="left:' + pct(m) + '">' + lbl + '</span>';
+  }
+  const beschrijving = geldig.slice().sort((a, b) => ((a.s - anker + 1440) % 1440) - ((b.s - anker + 1440) % 1440))
+    .map(x => (x.d.naam || '') + ' ' + x.d.start + '\u2013' + x.d.eind).join(', ');
+  return '<div class="dd-tl" role="img" aria-label="' + escHtml('Dagdelen over 24 uur: ' + beschrijving) + '">' +
+    '<div class="dd-tl-kop">24 uur</div>' +
+    '<div class="dd-tl-balk">' + segs + ticks + '</div>' +
+    '<div class="dd-tl-as" aria-hidden="true">' + as + '</div></div>';
+}
+
+// v3.76.4: minuten (0–1439) die een dagdeel beslaat, ook als het over middernacht loopt.
+function _dagdeelMinuten(d) {
+  const set = new Set();
+  const s = hhmmToMin(d.start), e = hhmmToMin(d.eind);
+  if (isNaN(s) || isNaN(e) || s === e) return set;
+  for (let m = s; m !== e; m = (m + 1) % 1440) set.add(m);
+  return set;
+}
+// Eerste dagdeel in `list` (anders dan `item` zelf) dat minuten deelt met `item`.
+function _dagdeelOverlap(item, list) {
+  const mijn = _dagdeelMinuten(item);
+  for (const d of list) {
+    if (d === item) continue;
+    for (const m of _dagdeelMinuten(d)) if (mijn.has(m)) return d;
+  }
+  return null;
+}
+
 function saveDagdeelEdit() {
   const naam  = sanitizeForStorage(document.getElementById('inp-dagdeel-edit-naam').value || '').slice(0, 24);
   const start = document.getElementById('inp-dagdeel-edit-start').value;
@@ -11004,13 +11442,25 @@ function saveDagdeelEdit() {
   if (isNaN(hhmmToMin(start)) || isNaN(hhmmToMin(eind))) { showToast('Ongeldige tijd'); return; }
   if (start === eind) { showToast('Start en eind mogen niet gelijk zijn'); return; }
 
-  const isEdit = _dagdeelEditIdx !== null;
   const baseList = S.dagdelen ? [...S.dagdelen] : [...DAGDELEN_DEFAULT];
+  if (_dagdeelEditIdx !== null) {
+    const _i = _zoekItem(baseList, _dagdeelEditKey);
+    if (_i < 0) { _itemWeg('Dit dagdeel'); return; }
+    _dagdeelEditIdx = _i;
+  }
+  const isEdit = _dagdeelEditIdx !== null;
   const skipIdx = isEdit ? _dagdeelEditIdx : -1;
   const newItem = { naam, start, eind, kleur };
 
   // Compute mutations
-  const { list: mutatedList, verwijderd, aangepast } = applyDagdeelMutation(baseList, newItem, skipIdx);
+  // v3.76.6: bij bewerken het Firebase-id meenemen (anders nieuw id → posten
+  // verliezen hun bezetting-per-dagdeel), en het bewerkte item op OBJECT
+  // terugvinden in de nieuwe lijst: opgeslokte of gesplitste dagdelen ervóór
+  // verschuiven de posities, waardoor op index het verkeerde item werd vervangen.
+  const origItem = isEdit ? baseList[_dagdeelEditIdx] : null;
+  if (origItem && origItem._id) newItem._id = origItem._id;
+  const { list: mutatedList, verwijderd, aangepast, gesplitst } = applyDagdeelMutation(baseList, newItem, skipIdx);
+  const editPos = origItem ? mutatedList.indexOf(origItem) : -1;
 
   const doSave = () => {
     // For edits: if start or eind changed, shift the neighbouring dagdeel's border too.
@@ -11020,7 +11470,7 @@ function saveDagdeelEdit() {
       if (old) {
         // Old eind changed → find successor whose start matched old eind, update it
         if (old.eind !== eind) {
-          const succ = mutatedList.find((r, ri) => ri !== _dagdeelEditIdx && r.start === old.eind);
+          const succ = mutatedList.find((r, ri) => ri !== editPos && r.start === old.eind);
           if (succ) {
             succ.start = eind;
             borderMsgs.push(`"${succ.naam}" ${old.eind > eind ? 'eerder' : 'later'} (${eind})`);
@@ -11028,16 +11478,23 @@ function saveDagdeelEdit() {
         }
         // Old start changed → find predecessor whose eind matched old start, update it
         if (old.start !== start) {
-          const pred = mutatedList.find((r, ri) => ri !== _dagdeelEditIdx && r.eind === old.start);
+          const pred = mutatedList.find((r, ri) => ri !== editPos && r.eind === old.start);
           if (pred) {
             pred.eind = start;
             borderMsgs.push(`"${pred.naam}" ${old.start > start ? 'korter' : 'langer'} (tot ${start})`);
           }
         }
       }
-      mutatedList[_dagdeelEditIdx] = newItem;
+      if (editPos >= 0) mutatedList[editPos] = newItem; else mutatedList.push(newItem);
     } else {
       mutatedList.push(newItem);
+    }
+    // v3.76.4: vangnet — het nieuwe/gewijzigde dagdeel mag met geen enkel ander
+    // dagdeel overlappen (controle per minuut, inclusief over middernacht).
+    const _conflict = _dagdeelOverlap(newItem, mutatedList);
+    if (_conflict) {
+      showToast('Overlapt met "' + _conflict.naam + '" (' + _conflict.start + '\u2013' + _conflict.eind + ') \u2014 pas dat dagdeel eerst aan', 6000);
+      return;
     }
     S.dagdelen = mutatedList;
     LS.set('rn_dagdelen', S.dagdelen);
@@ -11045,13 +11502,15 @@ function saveDagdeelEdit() {
     const label = isEdit ? 'Dagdeel gewijzigd' : 'Dagdeel toegevoegd';
     logEvent('settings', label, { naam, start, eind,
       aangepast: aangepast.map(a => a.oud.naam),
-      verwijderd: verwijderd.map(v => v.naam) });
+      verwijderd: verwijderd.map(v => v.naam),
+      gesplitst: gesplitst.map(g => g.oud.naam) });
     _dagdeelEditIdx = null;
     document.getElementById('dagdeel-modal-overlay').style.display = 'none';
     // Toast: show border-shift names, fall back to count for overlap-clips
     const toastParts = [...borderMsgs];
     if (aangepast.length && !borderMsgs.length) toastParts.push(`${aangepast.length} aangepast`);
     if (verwijderd.length) toastParts.push(`${verwijderd.length} verwijderd`);
+    gesplitst.forEach(g => toastParts.push(`"${g.oud.naam}" gesplitst`));
     showToast(isEdit ? 'Dagdeel bijgewerkt' + (toastParts.length ? ` — ${toastParts.join(', ')}` : '')
                      : 'Dagdeel toegevoegd'  + (toastParts.length ? ` — ${toastParts.join(', ')}` : ''));
     renderCfg();
@@ -11080,7 +11539,7 @@ function saveDagdeelEdit() {
 
   customConfirm(
     warnings,
-    { title: 'Dagdeel volledig verwijderd', confirmLabel: 'Doorgaan', cancelLabel: 'Annuleren' }
+    { title: verwijderd.length > 1 ? 'Dagdelen worden vervangen' : 'Dagdeel wordt vervangen', confirmLabel: 'Doorgaan', cancelLabel: 'Annuleren' }
   ).then(ok => { if (ok) doSave(); });
 }
 
@@ -11092,8 +11551,34 @@ function cancelDagdeelEdit() {
 // ── MEDEWERKER MODAL ──────────────────────────────────────────────────────
 let _medewerkerEditIdx = null; // null = nieuw, number = bewerk index
 
+// ── Items op identiteit i.p.v. positie (v3.79.6) ────────────────────────────
+// Bewerkvensters en verwijderknoppen onthielden alleen een POSITIE in de lijst.
+// Kwam er intussen een update binnen (ander apparaat voegt toe/verwijdert),
+// dan verschoof die positie en werd bij opslaan een ANDER item overschreven of
+// verwijderd (aangetoond: A bewerkt 'Bert' terwijl B 'Ayoub' verwijdert → de
+// buurman 'Carlo' werd overschreven en verdween). Nu wordt bij openen ook de
+// identiteit onthouden en bij opslaan/verwijderen de actuele positie opgezocht.
+function _itemSleutel(x) {
+  if (x === null || x === undefined) return null;
+  if (typeof x === 'string') return 's:' + x;                       // rollen, categorieën
+  if (x._id) return 'id:' + x._id;
+  if (x.naam !== undefined) return 'naam:' + x.naam;
+  if (x.nummer !== undefined) return 'nr:' + x.nummer;
+  return 'j:' + JSON.stringify([x.h, x.m, x.ronde, x.taak, x.start, x.eind]);
+}
+function _zoekItem(list, sleutel) {
+  if (!Array.isArray(list) || !sleutel) return -1;
+  return list.findIndex(x => _itemSleutel(x) === sleutel);
+}
+function _itemWeg(wat) {
+  showToast(wat + ' is intussen op een ander apparaat gewijzigd of verwijderd \u2014 open het opnieuw', 5000);
+}
+var _medewerkerEditKey = null, _rondeEditKey = null, _catEditKey = null, _rolEditKey = null,
+    _postEditKey = null, _toestelEditKey = null, _sleutelEditKey = null, _schemaEditKey = null, _dagdeelEditKey = null;
+
 function openMedewerkerModal(idx) {
   _medewerkerEditIdx = idx;
+  _medewerkerEditKey = idx !== null ? _itemSleutel((S.medewerkers || [])[idx]) : null;
   const isEdit = idx !== null;
   document.getElementById('medewerker-modal-title').textContent = isEdit ? 'Medewerker wijzigen' : 'Medewerker toevoegen';
   const _medItem = isEdit ? (S.medewerkers || [])[idx] : null;
@@ -11117,6 +11602,11 @@ function editMedewerker(i) { openMedewerkerModal(i); }
 
 
 function saveMedewerkerEdit() {
+  if (_medewerkerEditIdx !== null) {
+    const _i = _zoekItem(S.medewerkers, _medewerkerEditKey);
+    if (_i < 0) { _itemWeg('Deze medewerker'); return; }
+    _medewerkerEditIdx = _i;
+  }
   const naam = sanitizeForStorage(document.getElementById('inp-medewerker-edit-naam').value || '').slice(0, 60);
   const _checksEl = document.getElementById('inp-medewerker-edit-rol-checks');
   const _selEls = _checksEl ? Array.from(_checksEl.querySelectorAll('select')) : [];
@@ -11151,7 +11641,10 @@ function saveMedewerkerEdit() {
         const entry = S.active[oudeNaam];
         markActivePending(oudeNaam, 'remove', { route: entry.route, start: entry.start });
         markActivePending(naam, 'add', { route: entry.route, start: entry.start });
-        S.active[naam] = { route: entry.route, start: entry.start };
+        // v3.76.1: groupId meenemen, anders valt een hernoemd groepslid uit de groep.
+        const nieuwEntry = { route: entry.route, start: entry.start };
+        if (entry.groupId) nieuwEntry.groupId = entry.groupId;
+        S.active[naam] = nieuwEntry;
         delete S.active[oudeNaam];
         activeGemigreerd = true;
       }
@@ -11182,11 +11675,17 @@ function cancelMedewerkerEdit() {
 }
 
 function rmDagdeel(i) {
-  const list = S.dagdelen ? [...S.dagdelen] : [...DAGDELEN_DEFAULT];
-  const d = list[i];
+  let list = S.dagdelen ? [...S.dagdelen] : [...DAGDELEN_DEFAULT];
+  let d = list[i];
   if (!d) return;
+  const _sl = _itemSleutel(d);
   confirmDelete('Dagdeel', 'dagdeel', d.naam).then(ok => {
     if (!ok) return;
+    // v3.79.6: actuele lijst en positie na de bevestiging (niet de oude kopie).
+    list = S.dagdelen ? [...S.dagdelen] : [...DAGDELEN_DEFAULT];
+    i = _zoekItem(list, _sl);
+    if (i < 0) return;
+    d = list[i];
     // Remove item, then let a neighbour fill the gap.
     const remaining = list.filter((_, idx) => idx !== i);
     let filledBy = null;
@@ -11331,7 +11830,8 @@ function updateCfgMobActionLabel() {
   var labelMap = {
     rondes:      (_rondesSubView === 'cats'     ? '+ Categorie'     : '+ Ronde'),
     medewerkers: (_medSubView    === 'rollen'   ? '+ Rol / Functie' : '+ Medewerker'),
-    schema:      (_schemaSubView === 'dagdelen' ? '+ Dagdeel'       : '+ Item')
+    schema:      (_schemaSubView === 'dagdelen' ? '+ Dagdeel'       : '+ Item'),
+    dienstmiddelen: (_dmSubView  === 'sleutels' ? '+ Sleutelbos'    : '+ Toestel')
   };
   if (labelMap[_cfgActiveSection]) btn.textContent = labelMap[_cfgActiveSection];
 }
@@ -11359,6 +11859,201 @@ function medSubView(which) {
   if (subTitle) subTitle.textContent = which === 'medewerkers' ? 'Actieve beveiligers in het systeem' : 'Functies en rollen voor medewerkers';
   if (actionBtn) actionBtn.textContent = which === 'medewerkers' ? '+ Medewerker' : '+ Rol / Functie';
   updateCfgMobActionLabel();
+}
+
+// ── Apparatenoverzicht (v3.79.0) ────────────────────────────────────────────
+// Elk apparaat schrijft zichzelf naar presence/{DEVICE_ID} (module-script,
+// fbPresenceStart, met onDisconnect). Alleen systeembeheerders lezen de lijst.
+function _apparaatType() {
+  const ua = navigator.userAgent || '';
+  if (/iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return 'iPad';
+  if (/iPhone/.test(ua)) return 'iPhone';
+  if (/Android/.test(ua)) return /Mobile/.test(ua) ? 'Android-telefoon' : 'Android-tablet';
+  if (/Windows/.test(ua)) return 'Windows-pc';
+  if (/Macintosh/.test(ua)) return 'Mac';
+  if (/Linux/.test(ua)) return 'Linux';
+  return 'Onbekend';
+}
+function _presenceStart() {
+  const u = window.fbAuth && window.fbAuth.currentUser;
+  if (!u || !window.fbPresenceStart) return;
+  window.fbPresenceStart({ deviceId: DEVICE_ID, version: APP_VERSION, email: u.email || '', platform: _apparaatType() });
+}
+
+var _presence = {};
+var _presenceFout = '';
+let _presenceListening = false;
+function fbListenPresence() {
+  if (_presenceListening || !window.fbDb) return;
+  _presenceListening = true;
+  window.fbOnValue(window.fbRef(window.fbDb, 'presence'), snap => {
+    _presenceFout = '';
+    _presence = (snap && typeof snap.val === 'function' && snap.val()) || {};
+    renderApparaten();
+  }, err => {
+    // v3.79.1: geweigerd → Firebase trekt de listener in. Vlag terugzetten zodat
+    // het bij het volgende openen van Apparaten opnieuw geprobeerd wordt.
+    _presenceListening = false;
+    _presenceFout = String((err && (err.code || err.message)) || err);
+    renderApparaten();
+  });
+}
+// Bij elk openen van Apparaten: lijst opnieuw laten luisteren als die ooit
+// geweigerd werd, en dit apparaat opnieuw aanmelden als dat niet gelukt is.
+function _apparatenHerstel() {
+  fbListenPresence();
+  const st = window.fbPresenceStatus ? window.fbPresenceStatus() : null;
+  if (window.fbPresenceRetry && (!st || (!st.ok && !st.bezig))) {
+    if (!window.fbPresenceStatus) _presenceStart();
+    window.fbPresenceRetry().then(() => renderApparaten());
+  }
+}
+
+const AP_INACTIEF_MS = 30 * 24 * 60 * 60 * 1000; // na 30 dagen offline: gedimd
+function _apTijd(ts) {
+  if (!ts || typeof ts !== 'number') return 'onbekend';
+  const d = new Date(ts), nu = new Date(), min = (nu - d) / 60000;
+  if (min < 1) return 'zojuist';
+  if (min < 60) return Math.floor(min) + ' min geleden';
+  const hhmm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  const dag0 = new Date(nu); dag0.setHours(0, 0, 0, 0);
+  if (d >= dag0) return 'vandaag ' + hhmm;
+  const gisteren = new Date(dag0); gisteren.setDate(gisteren.getDate() - 1);
+  if (d >= gisteren) return 'gisteren ' + hhmm;
+  return d.getDate() + ' ' + ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'][d.getMonth()] + ' ' + hhmm;
+}
+// "Online sinds": klokijd als het vandaag is, anders dag + tijd.
+function _apSinds(ts) {
+  if (!ts || typeof ts !== 'number') return 'onbekend';
+  const d = new Date(ts), dag0 = new Date(); dag0.setHours(0, 0, 0, 0);
+  if (d >= dag0) return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  return _apTijd(ts);
+}
+function _apKoppelNaam(deviceId) {
+  const kop = S.toestelKoppeling || {};
+  const tid = Object.keys(kop).find(t => kop[t] === deviceId);
+  const t = tid && (S.toestellen || []).find(x => x._id === tid);
+  return t ? t.naam : '';
+}
+function _apLijst() {
+  return Object.entries(_presence || {})
+    .filter(([id, p]) => p && typeof p === 'object')
+    .map(([id, p]) => Object.assign({ id }, p))
+    .sort((a, b) => ((b.online === true) - (a.online === true)) || ((b.lastSeen || 0) - (a.lastSeen || 0)));
+}
+function renderApparaten() {
+  const lijst = _apLijst();
+  const online = lijst.filter(p => p.online === true).length;
+  const oud = lijst.filter(p => p.online === true && p.version && isNewerVersion(APP_VERSION, p.version)).length;
+  const badge = document.getElementById('cfg-mob-badge-apparaten');
+  if (badge) badge.textContent = online ? online + ' online' : '';
+  const sam = document.getElementById('apparaten-samenvatting');
+  if (sam) sam.textContent = lijst.length
+    ? online + ' online \u00b7 ' + lijst.length + ' apparaten' + (oud ? ' \u00b7 ' + oud + ' online op een oude versie' : '')
+    : '';
+  const el = document.getElementById('apparaten-list');
+  if (!el) return;
+  // v3.79.1: problemen zichtbaar maken i.p.v. een stil leeg scherm.
+  const st = window.fbPresenceStatus ? window.fbPresenceStatus() : null;
+  const meldingen = [];
+  if (_presenceFout) meldingen.push('De apparatenlijst kan niet worden gelezen (' + _presenceFout + '). Controleer of de rules v3.79.0 of nieuwer zijn gepubliceerd en open dit scherm opnieuw.');
+  if (st && !st.ok && st.fout) meldingen.push('Dit apparaat kon zich niet aanmelden (' + st.fout + ').');
+  const meldHtml = meldingen.map(m => '<div class="ap-melding">' + escHtml(m) + '</div>').join('');
+  if (!lijst.length) {
+    el.innerHTML = meldHtml + (_presenceFout ? '' : '<div class="u-leegtekst">' + (st && st.bezig ? 'Dit apparaat wordt aangemeld\u2026' : 'Nog geen apparaten gezien. Een apparaat verschijnt hier zodra het v3.79.0 of nieuwer draait.') + '</div>');
+    return;
+  }
+  const nu = Date.now();
+  el.innerHTML = meldHtml + '<div class="ap-lijst">' + lijst.map(p => {
+    const isOn = p.online === true;
+    const verouderd = p.version && isNewerVersion(APP_VERSION, p.version);
+    const inactief = !isOn && p.lastSeen && (nu - p.lastSeen > AP_INACTIEF_MS);
+    const naam = p.naam || _apKoppelNaam(p.id) || p.platform || 'Apparaat';
+    const sub = [p.naam || _apKoppelNaam(p.id) ? p.platform : '', p.email].filter(Boolean).map(escHtml).join(' \u00b7 ');
+    const status = isOn ? 'Online sinds ' + _apSinds(p.since || p.lastSeen) : 'Laatst gezien ' + _apTijd(p.lastSeen);
+    return '<div class="ap-rij' + (inactief ? ' ap-inactief' : '') + '">' +
+      '<span class="ap-dot' + (isOn ? ' on' : '') + '" aria-label="' + (isOn ? 'online' : 'offline') + '"></span>' +
+      '<div class="ap-info"><div class="ap-naam">' + escHtml(naam) + (p.id === DEVICE_ID ? '<span class="ap-dit">dit apparaat</span>' : '') + '</div>' +
+      '<div class="ap-sub">' + (sub ? sub + ' \u00b7 ' : '') + '<span class="ap-id">' + escHtml(p.id) + '</span></div></div>' +
+      (p.version ? '<span class="ap-versie' + (verouderd ? ' oud' : '') + '" title="' + (verouderd ? 'Oudere versie dan deze (v' + escHtml(APP_VERSION) + ')' : 'Actuele versie') + '">v' + escHtml(p.version) + '</span>' : '') +
+      '<div class="ap-status">' + escHtml(status) + '</div>' +
+      '<div class="ap-knoppen">' +
+        '<button type="button" class="ap-knop" data-act="apparaatNaam" data-id="' + escHtml(p.id) + '" title="Naam geven" aria-label="Naam geven">\u270e</button>' +
+        (isOn ? '' : '<button type="button" class="ap-knop" data-act="apparaatVerwijder" data-id="' + escHtml(p.id) + '" title="Uit de lijst verwijderen" aria-label="Uit de lijst verwijderen">\u2715</button>') +
+      '</div></div>';
+  }).join('') + '</div>';
+}
+// Relatieve tijden bijwerken zolang het overzicht open staat.
+TIMERS.set('apparatenTick', () => { if (_cfgActiveSection === 'apparaten') renderApparaten(); }, 60000);
+
+let _apparaatNaamId = null;
+function openApparaatNaam(id) {
+  const p = (_presence || {})[id];
+  if (!p) return;
+  _apparaatNaamId = id;
+  const inp = document.getElementById('inp-apparaat-naam');
+  if (inp) inp.value = p.naam || '';
+  const info = document.getElementById('apparaat-modal-info');
+  if (info) info.textContent = [p.platform, p.email, id].filter(Boolean).join(' \u00b7 ');
+  _animOpen(document.getElementById('apparaat-modal-overlay'));
+  setTimeout(() => { if (inp) inp.focus(); }, 50);
+}
+function cancelApparaatNaam() {
+  document.getElementById('apparaat-modal-overlay').style.display = 'none';
+  _apparaatNaamId = null;
+}
+function saveApparaatNaam() {
+  const id = _apparaatNaamId;
+  if (!id) return;
+  const inp = document.getElementById('inp-apparaat-naam');
+  // Natuurlijke waarde opslaan; escapen gebeurt bij het tonen (escHtml).
+  const naam = String(inp && inp.value || '').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 40);
+  cancelApparaatNaam();
+  window.fbUpdate(window.fbRef(window.fbDb), { ['presence/' + id + '/naam']: naam || null })
+    .then(() => { logEvent('settings', naam ? 'Apparaat benoemd: ' + naam + ' (' + id + ')' : 'Apparaatnaam gewist (' + id + ')'); })
+    .catch(e => showToast('Opslaan mislukt: ' + String(e)));
+}
+async function verwijderApparaat(id) {
+  const p = (_presence || {})[id];
+  if (!p || p.online === true) return;
+  const naam = p.naam || _apKoppelNaam(id) || p.platform || id;
+  const ok = await customConfirm(naam + ' uit het overzicht verwijderen? Meldt het apparaat zich later weer aan, dan verschijnt het opnieuw.',
+    { title: 'Apparaat verwijderen?', confirmLabel: 'Verwijderen', cancelLabel: 'Annuleren' });
+  if (!ok) return;
+  window.fbRemove(window.fbRef(window.fbDb, 'presence/' + id))
+    .then(() => logEvent('settings', 'Apparaat uit overzicht verwijderd: ' + naam + ' (' + id + ')'))
+    .catch(e => showToast('Verwijderen mislukt: ' + String(e)));
+}
+
+// ── Dienstmiddelen-subviews (v3.78.0) ───────────────────────────────────────
+var _dmSubView = 'toestellen'; // 'toestellen' | 'sleutels'
+function dmSubView(which) {
+  _dmSubView = which === 'sleutels' ? 'sleutels' : 'toestellen';
+  var isT = _dmSubView === 'toestellen';
+  var bT = document.getElementById('cfg-nav-sub-dm-toestellen');
+  var bS = document.getElementById('cfg-nav-sub-dm-sleutels');
+  if (bT) bT.classList.toggle('active', isT);
+  if (bS) bS.classList.toggle('active', !isT);
+  // Mobiel segmented control (zelfde opmaak als Medewerkers/Rollen, via CSSOM)
+  [['dm-seg-toestellen', isT], ['dm-seg-sleutels', !isT]].forEach(function(p) {
+    var el = document.getElementById(p[0]);
+    if (!el) return;
+    el.style.background = p[1] ? 'var(--c-brand)' : 'transparent';
+    el.style.color = p[1] ? '#fff' : 'var(--c-text-3)';
+    el.style.fontWeight = p[1] ? '600' : '500';
+  });
+  var vT = document.getElementById('dm-view-toestellen');
+  var vS = document.getElementById('dm-view-sleutels');
+  if (vT) vT.style.display = isT ? '' : 'none';
+  if (vS) vS.style.display = isT ? 'none' : 'block';
+  var sub = document.getElementById('dm-sub-title');
+  var btn = document.getElementById('dm-action-btn');
+  if (sub) sub.textContent = isT ? 'Toestellen die surveillanten meenemen tijdens hun dienst' : 'Sleutelbossen die surveillanten meenemen tijdens hun dienst';
+  if (btn) btn.textContent = isT ? '+ Toestel' : '+ Sleutelbos';
+  updateCfgMobActionLabel();
+}
+function dmActionBtn() {
+  if (_dmSubView === 'sleutels') openSleutelModal(-1); else openToestelModal(-1);
 }
 
 function medActionBtn() {
@@ -11490,6 +12185,7 @@ function _verplaatsToestel(van, naar) {
 function openToestelModal(idx) {
   var isEdit = (typeof idx === 'number' && idx >= 0 && S.toestellen && S.toestellen[idx]);
   _toestelModalIdx = isEdit ? idx : -1;
+  _toestelEditKey = isEdit ? _itemSleutel(S.toestellen[idx]) : null;
   var bron = isEdit ? S.toestellen[idx] : null;
   document.getElementById('toestel-modal-title').textContent = isEdit ? 'Toestel wijzigen' : 'Toestel toevoegen';
   document.getElementById('inp-toestel-naam').value = bron ? bron.naam : '';
@@ -11512,6 +12208,11 @@ function cancelToestelEdit() {
 }
 
 function saveToestelEdit() {
+  if (_toestelModalIdx >= 0) {
+    var _i = _zoekItem(S.toestellen, _toestelEditKey);
+    if (_i < 0) { _itemWeg('Dit toestel'); return; }
+    _toestelModalIdx = _i;
+  }
   var naam = sanitizeForStorage(document.getElementById('inp-toestel-naam').value || '').slice(0, 40);
   if (!naam) return;
   var nummer = String(document.getElementById('inp-toestel-nummer').value || '').replace(/[^0-9+\-\s]/g, '').trim().slice(0, 20);
@@ -11543,6 +12244,8 @@ async function rmToestel(idx) {
     : ('Toestel "' + t.naam + '" verwijderen?');
   var ok = await customConfirm(vraag);
   if (!ok) return;
+  idx = _zoekItem(S.toestellen, _itemSleutel(t));
+  if (idx < 0) return;
   S.toestellen.splice(idx, 1);
   save();
   logEvent('settings', 'Toestel verwijderd', { naam: t.naam });
@@ -11630,6 +12333,7 @@ function _verplaatsSleutel(van, naar) {
 function openSleutelModal(idx) {
   var isEdit = (typeof idx === 'number' && idx >= 0 && S.sleutels && S.sleutels[idx]);
   _sleutelModalIdx = isEdit ? idx : -1;
+  _sleutelEditKey = isEdit ? _itemSleutel(S.sleutels[idx]) : null;
   var bron = isEdit ? S.sleutels[idx] : null;
   document.getElementById('sleutel-modal-title').textContent = isEdit ? 'Sleutelbos wijzigen' : 'Sleutelbos toevoegen';
   document.getElementById('inp-sleutel-nummer').value = bron ? bron.nummer : '';
@@ -11651,6 +12355,11 @@ function cancelSleutelEdit() {
 }
 
 function saveSleutelEdit() {
+  if (_sleutelModalIdx >= 0) {
+    var _i = _zoekItem(S.sleutels, _sleutelEditKey);
+    if (_i < 0) { _itemWeg('Deze sleutelbos'); return; }
+    _sleutelModalIdx = _i;
+  }
   var nummer = sanitizeForStorage(document.getElementById('inp-sleutel-nummer').value || '').slice(0, 20);
   if (!nummer) return;
   var bestaat = (S.sleutels || []).some(function(s, i) {
@@ -11681,6 +12390,8 @@ async function rmSleutel(idx) {
     : ('Sleutelbos ' + s.nummer + ' verwijderen?');
   var ok = await customConfirm(vraag);
   if (!ok) return;
+  idx = _zoekItem(S.sleutels, _itemSleutel(s));
+  if (idx < 0) return;
   S.sleutels.splice(idx, 1);
   save();
   logEvent('settings', 'Sleutelbos verwijderd', { nummer: s.nummer });
@@ -11763,6 +12474,7 @@ function _verplaatsPost(van, naar) {
 function openPostModal(idx) {
   var isEdit = (typeof idx === 'number' && idx >= 0 && S.posten && S.posten[idx]);
   _postModalIdx = isEdit ? idx : -1;
+  _postEditKey = isEdit ? _itemSleutel(S.posten[idx]) : null;
   var bron = isEdit ? S.posten[idx] : null;
   _postModalData = {
     naam: bron ? bron.naam : '',
@@ -11890,6 +12602,11 @@ function cancelPostEdit() {
 }
 
 function savePostEdit() {
+  if (_postModalIdx >= 0) {
+    var _i = _zoekItem(S.posten, _postEditKey);
+    if (_i < 0) { _itemWeg('Deze post'); return; }
+    _postModalIdx = _i;
+  }
   if (!_postModalData) return;
   var inp = document.getElementById('inp-post-naam');
   var naam = sanitizeForStorage(inp ? inp.value : '').slice(0, 80);
@@ -11951,8 +12668,11 @@ function savePostEdit() {
 async function rmPost(idx) {
   if (!S.posten || !S.posten[idx]) return;
   var naam = S.posten[idx].naam;
+  var _sl = _itemSleutel(S.posten[idx]);
   var ok = await customConfirm('Post "' + naam + '" verwijderen?');
   if (!ok) return;
+  idx = _zoekItem(S.posten, _sl);
+  if (idx < 0) return;
   S.posten.splice(idx, 1);
   save();
   logEvent('settings', 'Post verwijderd', { naam: naam });
@@ -12067,6 +12787,7 @@ function _verplaatsRol(van, naar) {
 
 function openRolModal(idx) {
   _rolEditIdx = idx;
+  _rolEditKey = idx !== null ? _itemSleutel((S.rollen || [])[idx]) : null;
   var isEdit = idx !== null;
   document.getElementById('rol-modal-title').textContent = isEdit ? 'Rol / Functie wijzigen' : 'Rol / Functie toevoegen';
   document.getElementById('inp-rol-naam').value = isEdit ? (S.rollen[idx] || '') : '';
@@ -12212,6 +12933,11 @@ function cancelRolEdit() {
 }
 
 function saveRolEdit() {
+  if (_rolEditIdx !== null) {
+    var _i = _zoekItem(S.rollen, _rolEditKey);
+    if (_i < 0) { _itemWeg('Deze rol'); return; }
+    _rolEditIdx = _i;
+  }
   var naam = sanitizeForStorage(document.getElementById('inp-rol-naam').value || '').slice(0, 50);
   if (!naam) { showToast('Vul een naam in'); return; }
   var isEdit = _rolEditIdx !== null;
@@ -12277,6 +13003,8 @@ function rmRol(idx) {
   if (!naam) return;
   confirmDelete('Rol / Functie', 'medewerker', naam).then(function(ok) {
     if (!ok) return;
+    idx = _zoekItem(S.rollen, _itemSleutel(naam));
+    if (idx < 0) return;
     S.rollen.splice(idx, 1);
     (S.medewerkers || []).forEach(function(m) { var arr = rolArray(m.rol).filter(function(r) { return r !== naam; }); m.rol = arr.join(','); });
     // Lokale rolVoorstel-sleutel opruimen — het Firebase-veld verdwijnt
@@ -12294,14 +13022,14 @@ function rmRol(idx) {
 
 var CFG_MOB_SECTIONS = {
   medewerkers: { title: 'Medewerkers', action: '+ Medewerker / Rol', fn: function() { medActionBtn(); } },
-  toestellen:  { title: 'Diensttelefoons', action: '+ Toestel',       fn: function() { openToestelModal(-1); } },
-  sleutels:    { title: 'Sleutels',        action: '+ Sleutelbos',    fn: function() { openSleutelModal(-1); } },
+  dienstmiddelen: { title: 'Dienstmiddelen', action: '+ Toestel / Sleutelbos', fn: function() { dmActionBtn(); } },
   posten:      { title: 'Posten',      action: '+ Post',              fn: function() { openPostModal(-1); } },
   rondes:      { title: 'Rondes',      action: '+ Ronde / Categorie', fn: function() { rondesActionBtn(); } },
   schema:      { title: 'Dagplanning', action: '+ Item / Dagdeel', fn: function() { schemaActionBtn(); } },
   plattegrond: { title: 'Plattegrond', action: null,           fn: null },
   gedrag:      { title: 'Gedrag',      action: null,           fn: null },
   auditlog:    { title: 'Audit log',   action: null,           fn: null },
+  apparaten:   { title: 'Apparaten',   action: null,           fn: null },
   beheerders:  { title: 'Accountbeheer', action: null, fn: null },
 };
 
@@ -12311,7 +13039,7 @@ var CFG_MOB_SECTIONS = {
   if (z) z.addEventListener('input', function() { _accRender(); });
 })();
 
-var _accFilter = 'alle'; // 'alle' | 'beheerder' | 'statistieken'
+var _accFilter = 'alle'; // 'alle' | 'beheerder' | 'applicatiebeheerder' | 'statistieken' | 'dienst'
 
 // Render de gecombineerde accountlijst (systeembeheerders + applicatiebeheerders + statistieken).
 function _accRender() {
@@ -12332,7 +13060,8 @@ function _accRender() {
   var TYPES = {
     beheerder:           { data: _beheerders           || {}, badge: 'beh',  label: 'Systeembeheerder',    delAct: 'verwijderBeheerder' },
     applicatiebeheerder: { data: _applicatiebeheerders || {}, badge: 'app',  label: 'Applicatiebeheerder',  delAct: 'verwijderApplicatiebeheerder' },
-    statistieken:        { data: _statistiekenAccounts || {}, badge: 'stat', label: 'Statistieken',         delAct: 'verwijderStatistieken' }
+    statistieken:        { data: _statistiekenAccounts || {}, badge: 'stat', label: 'Statistieken',         delAct: 'verwijderStatistieken' },
+    dienst:              { data: _dienstaccounts       || {}, badge: 'dienst', label: 'Dienst-account',     delAct: 'verwijderDienstaccount' }
   };
 
   var items = [];
@@ -12347,12 +13076,14 @@ function _accRender() {
   var nBeh  = items.filter(function(i) { return i.type === 'beheerder'; }).length;
   var nApp  = items.filter(function(i) { return i.type === 'applicatiebeheerder'; }).length;
   var nStat = items.filter(function(i) { return i.type === 'statistieken'; }).length;
+  var nDienst = items.filter(function(i) { return i.type === 'dienst'; }).length;
   var sub = document.getElementById('acc-sub');
   if (sub) sub.textContent = items.length + ' account' + (items.length === 1 ? '' : 's') + ' met toegang tot het dashboard';
   var nAlle = document.getElementById('acc-n-alle'); if (nAlle) nAlle.textContent = items.length;
   var nB = document.getElementById('acc-n-beh');  if (nB) nB.textContent = nBeh;
   var nA = document.getElementById('acc-n-app');  if (nA) nA.textContent = nApp;
   var nS = document.getElementById('acc-n-stat'); if (nS) nS.textContent = nStat;
+  var nD = document.getElementById('acc-n-dienst'); if (nD) nD.textContent = nDienst;
 
   // Filterknoppen actief zetten
   var seg = document.getElementById('acc-filter');
@@ -12431,9 +13162,14 @@ function _accUpdateInfo() {
   var isSysteem = _accountModalType === 'beheerder';
   var isAppInst = isSysteem || _accountModalType === 'applicatiebeheerder';
   var ok = '<span class="ok">\u2714</span>', nee = '<span class="nee">\u2718</span>';
+  // v3.76.0: dienst-account (gedeeld bewaker-account) ziet de Statistieken-tab
+  // alleen als Gedrag → zichtbaarheid op "iedereen" staat.
+  var statRegel = _accountModalType === 'dienst'
+    ? '<div class="r">' + ok + ' Statistieken-tab, alleen als die voor iedereen zichtbaar is (Gedrag)</div>'
+    : '<div class="r">' + ok + ' Statistieken-tab</div>';
   el.innerHTML = '<div class="kop">Deze rol krijgt toegang tot</div>' +
     '<div class="r">' + ok + ' Operationele tabs (Registratie, Planning, Op dienst)</div>' +
-    '<div class="r">' + ok + ' Statistieken-tab</div>' +
+    statRegel +
     '<div class="r">' + (isAppInst ? ok : nee) + ' Applicatie-instellingen (Medewerkers, Rondes, Dagplanning, Plattegrond)</div>' +
     '<div class="r">' + (isSysteem ? ok : nee) + ' Systeembeheer (Gedrag, Audit log, Accountbeheer)</div>';
   // Rolknoppen
@@ -12444,7 +13180,7 @@ function _accUpdateInfo() {
 }
 
 function accModalRol(r) {
-  _accountModalType = (r === 'statistieken' || r === 'applicatiebeheerder') ? r : 'beheerder';
+  _accountModalType = (r === 'statistieken' || r === 'applicatiebeheerder' || r === 'dienst') ? r : 'beheerder';
   _accUpdateInfo();
 }
 
@@ -12454,9 +13190,10 @@ var _dummySections = {
 function isMobile() { return window.innerWidth <= 700; }
 
 function cfgMobGoSection(id) {
-  if ((id === 'gedrag' || id === 'auditlog' || id === 'beheerders') && !_isBeheerder) {
+  if ((id === 'gedrag' || id === 'auditlog' || id === 'beheerders' || id === 'apparaten') && !_isBeheerder) {
     id = 'medewerkers';
   }
+  if (id === 'toestellen' || id === 'sleutels') { _dmSubView = id; id = 'dienstmiddelen'; } // v3.78.0
   _cfgActiveSection = id;
   var cfg = CFG_MOB_SECTIONS[id];
   if (!cfg) return;
@@ -12466,7 +13203,8 @@ function cfgMobGoSection(id) {
     var labelMap = {
       rondes:      (_rondesSubView === 'cats'      ? '+ Categorie' : '+ Ronde'),
       medewerkers: (_medSubView    === 'rollen'    ? '+ Rol / Functie' : '+ Medewerker'),
-      schema:      (_schemaSubView === 'dagdelen'  ? '+ Dagdeel' : '+ Item')
+      schema:      (_schemaSubView === 'dagdelen'  ? '+ Dagdeel' : '+ Item'),
+      dienstmiddelen: (_dmSubView  === 'sleutels'  ? '+ Sleutelbos' : '+ Toestel')
     };
     btn.textContent = labelMap[id] || cfg.action;
     btn.style.display = 'block'; btn._cfgFn = cfg.fn;
@@ -12480,6 +13218,7 @@ function cfgMobGoSection(id) {
   // Belangrijk dat dit vóór de kopie hieronder gebeurt: de mobiele
   // detailweergave kopieert de sectie, dus die moet eerst bijgewerkt zijn.
   if (id === 'beheerders') _accRender();
+  if (id === 'apparaten') { _apparatenHerstel(); renderApparaten(); } // v3.79.0: vóór de kopie
   var srcSec = document.getElementById('cfg-sec-' + id);
   var body = document.getElementById('cfg-mob-detail-body');
   if (srcSec && body) {
@@ -12504,6 +13243,11 @@ function cfgMobGoSection(id) {
       var segM = body.querySelector('#med-seg-ctrl');
       if (segM) segM.style.display = 'flex';
       medSubView(_medSubView);
+    }
+    if (id === 'dienstmiddelen') {
+      var segD = body.querySelector('#dm-seg-ctrl');
+      if (segD) segD.style.display = 'flex';
+      dmSubView(_dmSubView);
     }
     if (id === 'schema') {
       var segS = body.querySelector('#schema-seg-ctrl');
@@ -12582,8 +13326,8 @@ function cfgShowMobile() {
   setBadge('medewerkers', S.medewerkers && S.medewerkers.length ? S.medewerkers.length + (S.rollen && S.rollen.length ? ' / ' + S.rollen.length : '') : '');
   setBadge('rondes', S.routes && S.routes.length ? S.routes.length + (S.routeCats && S.routeCats.length ? ' / ' + S.routeCats.length : '') : '');
   setBadge('posten', S.posten && S.posten.length ? String(S.posten.length) : '');
-  setBadge('toestellen', S.toestellen && S.toestellen.length ? String(S.toestellen.length) : '');
-  setBadge('sleutels', S.sleutels && S.sleutels.length ? String(S.sleutels.length) : '');
+  var _nT = (S.toestellen || []).length, _nS = (S.sleutels || []).length;
+  setBadge('dienstmiddelen', (_nT || _nS) ? _nT + ' / ' + _nS : '');
   var dagdelenSrc = S.dagdelen || DAGDELEN_DEFAULT;
   var schemaSrc = S.schema || SCHEMA;
   var schemaCount = (schemaSrc && schemaSrc.length) ? schemaSrc.length : 0;
@@ -12620,11 +13364,13 @@ function cfgGoSection(id) {
   // v3.47.0: Systeembeheer-secties zijn voorbehouden aan systeembeheerders;
   // de nav-items zijn al verborgen voor applicatiebeheerders, maar deze guard
   // dekt ook een directe aanroep (bv. via devtools of een verouderde staat).
-  if ((id === 'gedrag' || id === 'auditlog' || id === 'beheerders') && !_isBeheerder) {
+  if ((id === 'gedrag' || id === 'auditlog' || id === 'beheerders' || id === 'apparaten') && !_isBeheerder) {
     id = 'medewerkers';
   }
+  // v3.78.0: oude sectienamen blijven werken als alias naar Dienstmiddelen.
+  if (id === 'toestellen' || id === 'sleutels') { _dmSubView = id; id = 'dienstmiddelen'; }
   _cfgActiveSection = id;
-  ['medewerkers','toestellen','sleutels','posten','rondes','schema','plattegrond','gedrag','auditlog','beheerders'].forEach(function(s) {
+  ['medewerkers','dienstmiddelen','posten','rondes','schema','plattegrond','gedrag','auditlog','apparaten','beheerders'].forEach(function(s) {
     var el = document.getElementById('cfg-sec-' + s);
     if (el) el.classList.remove('active');
     var nav = document.getElementById('cfg-nav-' + s);
@@ -12635,7 +13381,7 @@ function cfgGoSection(id) {
   var navTarget = document.getElementById('cfg-nav-' + id);
   if (navTarget) navTarget.classList.add('active');
   // Sub-navs: uitklappen voor het actieve item, inklappen voor de rest
-  ['medewerkers','rondes','schema'].forEach(function(s) {
+  ['medewerkers','dienstmiddelen','rondes','schema'].forEach(function(s) {
     var sub = document.getElementById('cfg-nav-sub-' + s);
     var nav = document.getElementById('cfg-nav-' + s);
     var open = (s === id);
@@ -12646,10 +13392,12 @@ function cfgGoSection(id) {
   if (id === 'schema') {
     setTimeout(function() { schemaSubView(_schemaSubView); }, 0);
   }
+  if (id === 'dienstmiddelen') dmSubView(_dmSubView);
   renderCfg();
   if (id === 'auditlog') renderEventLog();
   if (id === 'beheerders') _accRender();   // v3.70.9: was renderBeheerders() (dood, zie boven)
   if (id === 'plattegrond') pgInit();
+  if (id === 'apparaten') { _apparatenHerstel(); renderApparaten(); }
 }
 
 // ── GEDRAG-INSTELLINGEN ────────────────────────────────────────────────────
@@ -15136,9 +15884,14 @@ async function rmSchemaItem(i) {
   const hDisp = item.h % 24;
   const tijdStr = String(hDisp).padStart(2,'0') + ':' + String(item.m).padStart(2,'0');
   if (!await confirmDelete('Schema-item', 'schema', tijdStr + ' — ' + item.taak, 'Dit schema-item wordt permanent verwijderd.')) return;
-  const _rem = activeSchema[i];
-  activeSchema.splice(i, 1);
-  S.schema = activeSchema;
+  // v3.79.6: de ACTUELE lijst gebruiken, niet de kopie van vóór de vraag
+  // (die zou intussen binnengekomen wijzigingen terugdraaien).
+  const huidig = S.schema ? [...S.schema] : [...SCHEMA];
+  const j = _zoekItem(huidig, _itemSleutel(item));
+  if (j < 0) return;
+  const _rem = huidig[j];
+  huidig.splice(j, 1);
+  S.schema = huidig;
   LS.set('rn_schema', S.schema);
   fbSave();
   logEvent('settings', 'Schema-item verwijderd', _rem);
@@ -15174,7 +15927,16 @@ function sanitizeForStorage(str) {
 async function rmName(i) {
   if (!S.medewerkers || !S.medewerkers[i]) return;
   const naam = S.medewerkers[i].naam;
+  const _sl = _itemSleutel(S.medewerkers[i]);
+  // v3.76.1: niet verwijderen tijdens een lopende ronde. Anders blijft er een
+  // spookronde achter (onderweg + op dienst, maar zonder medewerker-record).
+  if (S.active && S.active[naam]) {
+    showToast(naam.split(' ')[0] + ' is nu onderweg (' + S.active[naam].route + ') — meld eerst retour en verwijder daarna', 5000);
+    return;
+  }
   if (!await confirmDelete('Medewerker', 'medewerker', naam)) return;
+  i = _zoekItem(S.medewerkers, _sl);
+  if (i < 0) return; // intussen elders verwijderd
   S.medewerkers.splice(i, 1);
   if (S.dienst.has(naam)) markDienstPending(naam, 'remove');
   S.dienst.delete(naam);
@@ -15186,7 +15948,10 @@ async function rmName(i) {
 
 async function rmRoute(i) {
   const ronde = S.routes[i].naam;
+  const _sl = _itemSleutel(S.routes[i]);
   if (!await confirmDelete('Ronde', 'ronde', ronde)) return;
+  i = _zoekItem(S.routes, _sl);
+  if (i < 0) return;
   S.routes.splice(i, 1);
   // Verwijder ronde-koppeling uit schema-items
   if (S.schema && S.schema.length) {
@@ -15261,6 +16026,7 @@ function catOmlaag(i) {
 
 function openCatModal(idx) {
   _catEditIdx = idx;
+  _catEditKey = idx !== null ? _itemSleutel((S.routeCats || [])[idx]) : null;
   const isEdit = idx !== null;
   document.getElementById('cat-modal-title').textContent = isEdit ? 'Categorie wijzigen' : 'Categorie toevoegen';
   document.getElementById('inp-cat-naam').value = isEdit ? (S.routeCats[idx] || '') : '';
@@ -15275,6 +16041,11 @@ function cancelCatEdit() {
 }
 
 function saveCatEdit() {
+  if (_catEditIdx !== null) {
+    const _i = _zoekItem(S.routeCats, _catEditKey);
+    if (_i < 0) { _itemWeg('Deze categorie'); return; }
+    _catEditIdx = _i;
+  }
   const naam = sanitizeForStorage(document.getElementById('inp-cat-naam').value || '').slice(0, 50);
   if (!naam) { showToast('Vul een naam in'); return; }
   const isEdit = _catEditIdx !== null;
@@ -15305,6 +16076,8 @@ async function rmCat(i) {
     ? `${count} ronde${count !== 1 ? 's' : ''} verlies${count !== 1 ? 'n' : 't'} hierdoor de categorie-koppeling.`
     : 'Deze categorie wordt permanent verwijderd.';
   if (!await confirmDelete('Categorie', 'categorie', cat, desc)) return;
+  i = _zoekItem(S.routeCats, _itemSleutel(cat));
+  if (i < 0) return;
   S.routeCats.splice(i, 1);
   // Rondes met deze categorie krijgen lege categorie
   S.routes.forEach(r => { if (r.categorie === cat) r.categorie = ''; });
@@ -15317,6 +16090,7 @@ let _rondeEditIdx = null;
 
 function openRondeModal(idx) {
   _rondeEditIdx = idx;
+  _rondeEditKey = idx !== null ? _itemSleutel((S.routes || [])[idx]) : null;
   const isEdit = idx !== null;
   document.getElementById('ronde-modal-title').textContent = isEdit ? 'Ronde wijzigen' : 'Ronde toevoegen';
   document.getElementById('inp-ronde-edit-naam').value = isEdit ? (S.routes[idx].naam || '') : '';
@@ -15340,6 +16114,11 @@ function openRondeModal(idx) {
 function editRonde(i) { openRondeModal(i); }
 
 function saveRondeEdit() {
+  if (_rondeEditIdx !== null) {
+    const _i = _zoekItem(S.routes, _rondeEditKey);
+    if (_i < 0) { _itemWeg('Deze ronde'); return; }
+    _rondeEditIdx = _i;
+  }
   const naam = sanitizeForStorage(document.getElementById('inp-ronde-edit-naam').value || '').slice(0, 60);
   if (!naam) { showToast('Vul een naam in'); return; }
   const cat = document.getElementById('inp-ronde-edit-cat').value || '';
@@ -15350,7 +16129,11 @@ function saveRondeEdit() {
   if (isDuplicate) { showToast('Deze ronde bestaat al'); return; }
   if (isEdit) {
     const oude = S.routes[_rondeEditIdx].naam;
+    // v3.76.6: Firebase-id meenemen. Zonder _id kreeg een hernoemde ronde een
+    // NIEUW id; plattegrond-zones (op ronde-id) raakten dan hun ronde kwijt.
+    const oudId = S.routes[_rondeEditIdx]._id;
     S.routes[_rondeEditIdx] = { naam, categorie: cat, dubbelOk, toonOpKaart };
+    if (oudId) S.routes[_rondeEditIdx]._id = oudId;
     S.routes.sort((a, b) => a.naam.toLowerCase().localeCompare(b.naam.toLowerCase(), 'nl'));
     // Update alle schema-items die naar de oude ronde verwijzen
     if (oude !== naam && S.schema && S.schema.length) {
@@ -16494,18 +17277,27 @@ function renderDienst() {
 
 function dienstLeeg() {
   const geblokkeerd = [];
+  const afgemeld = [];   // v3.79.4: voor de audit-regel
   let changed = false;
-  for (const n of S.dienst) {
+  for (const n of [...S.dienst]) {
     if (S.active[n]) {
       geblokkeerd.push(n.split(' ')[0]);
     } else {
       // Mark intent BEFORE state change so any in-flight fbListen respects it
       markDienstPending(n, 'remove');
       S.dienst.delete(n);
+      afgemeld.push(n);
       changed = true;
     }
   }
-  if (changed) { fbSaveDienst(); renderDienst(); renderNameBtns(); }
+  if (changed) {
+    fbSaveDienst(); renderDienst(); renderNameBtns();
+    // v3.79.4: één audit-regel voor de hele actie (na opslaan + renderen).
+    const namen = afgemeld.join(', ');
+    logEvent('dienst', ('Iedereen van dienst gehaald (' + afgemeld.length + '): ' + namen +
+        (geblokkeerd.length ? ' \u2014 nog onderweg, niet afgemeld: ' + geblokkeerd.join(', ') : '')).slice(0, 480),
+      { aantal: afgemeld.length, namen: afgemeld, nogOnderweg: geblokkeerd });
+  }
   if (geblokkeerd.length) {
     const hebben = geblokkeerd.length === 1 ? 'heeft' : 'hebben';
     showToast('⚠ ' + geblokkeerd.join(', ') + ' ' + hebben + ' nog een actieve ronde. Meld eerst retour.', 4000);
@@ -17405,6 +18197,7 @@ function _accountInfo() {
     if (_beheerders && _beheerders[uid] && _beheerders[uid].naam) naam = _beheerders[uid].naam;
     else if (typeof _applicatiebeheerders !== 'undefined' && _applicatiebeheerders[uid] && _applicatiebeheerders[uid].naam) naam = _applicatiebeheerders[uid].naam;
     else if (typeof _statistiekenAccounts !== 'undefined' && _statistiekenAccounts[uid] && _statistiekenAccounts[uid].naam) naam = _statistiekenAccounts[uid].naam;
+    else if (typeof _dienstaccounts !== 'undefined' && _dienstaccounts[uid] && _dienstaccounts[uid].naam) naam = _dienstaccounts[uid].naam;
   }
   // window._isBeheerderV3 e.d. zijn altijd veilig; de kale _isBeheerder-let kan
   // in de temporal dead zone zitten als het menu heel vroeg wordt gevuld.
@@ -17628,12 +18421,15 @@ const MODAL_REGISTRY = [
   { id: 'dagdeel-modal-overlay',    close: () => cancelDagdeelEdit() },
   { id: 'schema-modal-overlay',     close: () => closeSchemaModal() },
   { id: 'logout-overlay',           close: () => logoutCancel() },
-  { id: 'modal-overlay',            close: () => modalCancel() },
   { id: 'rs-detail-overlay',         close: () => closeRsDetail() },
   { id: 'wzh-lijst-overlay',        close: () => cancelWzhLijst() },
   { id: 'wzh-pers-overlay',         close: () => cancelWzhPersPopup() },
   { id: 'vs-pers-overlay',          close: () => cancelVsPersPopup() },
   { id: 'wzh-modal-overlay',        close: () => cancelWzhModal() },
+  // v3.76.5: generieke bevestiging na alle bewerkvensters, zodat Escape en de
+  // focus-trap háár pakken als ze vanuit een ander venster wordt geopend.
+  { id: 'apparaat-modal-overlay',   close: () => cancelApparaatNaam() },
+  { id: 'modal-overlay',            close: () => modalCancel() },
   { id: 'autologout-overlay',       close: () => autoLogoutBlijf() }
 ];
 
@@ -17709,6 +18505,7 @@ function initFirebase() {
   setTimeout(pruneStaleActive, 5000);
   // Eerste log-opschoning 12s na init (ná verbinding); daarna elke 30 min via TIMERS.
   setTimeout(pruneLog, 12000);
+  _presenceStart(); // v3.79.0: dit apparaat aanmelden in het apparatenoverzicht
   // Audit-opschoning: 30-60s na init, gespreid zodat niet alle toestellen die
   // tegelijk (her)laden op hetzelfde moment de hele audit log ophalen.
   setTimeout(pruneEventLog, 30000 + Math.floor(Math.random() * 30000));
@@ -18659,7 +19456,7 @@ function _checkBeheerder(uid) {
       _isBeheerder = !!(snap && snap.exists());
       _beheerderChecked = true;
       applyBeheerderUI();
-      if (_isBeheerder) { fbListenBeheerders(); fbListenStatistiekenAccounts(); fbListenApplicatiebeheerders(); }
+      if (_isBeheerder) { fbListenBeheerders(); fbListenStatistiekenAccounts(); fbListenApplicatiebeheerders(); fbListenDienstaccounts(); }
     })
     .catch(function() {
       // Verbindingsfout (dode socket): NIET de beheerder-rol wegklappen — dat gaf
@@ -18672,7 +19469,7 @@ function _checkBeheerder(uid) {
 function applyBeheerderUI() {
   window._isBeheerderV3 = _isBeheerder;
   window._isApplicatiebeheerderV3 = _isApplicatiebeheerder;
-  if (_isBeheerder) fbListenEventLog(); // audit log alleen voor systeembeheer
+  if (_isBeheerder) { fbListenEventLog(); fbListenPresence(); } // audit log + apparaten alleen voor systeembeheer
   applyHeatmapTabUI();
   // v3.47.0: Instellingen-tab is nu voor twee rollen — echte systeembeheerders
   // én applicatiebeheerders. Het Systeembeheer-blok daarbinnen (Gedrag, Audit
@@ -18686,7 +19483,7 @@ function applyBeheerderUI() {
     if (cfgPane && cfgPane.classList.contains('on')) goTab('reg');
   }
   // Systeembeheer-only: Gedrag, Audit log, Accountbeheer + de rail-scheider.
-  ['gedrag', 'auditlog', 'beheerders'].forEach(function(sec) {
+  ['gedrag', 'auditlog', 'apparaten', 'beheerders'].forEach(function(sec) {
     var nav = document.getElementById('cfg-nav-' + sec);
     var mob = document.getElementById('cfg-mob-row-' + sec);
     // Expliciete waarde i.p.v. de inline style wissen: het verborgen-zijn komt
@@ -18700,7 +19497,7 @@ function applyBeheerderUI() {
   if (railLabel) railLabel.style.display = _isBeheerder ? 'block' : 'none';
   // Stond een applicatiebeheerder toevallig op een Systeembeheer-sectie (bv.
   // via een oude sessie of devtools), val terug op Medewerkers.
-  if (!_isBeheerder && ['gedrag', 'auditlog', 'beheerders'].indexOf(_cfgActiveSection) >= 0) {
+  if (!_isBeheerder && ['gedrag', 'auditlog', 'apparaten', 'beheerders'].indexOf(_cfgActiveSection) >= 0) {
     cfgGoSection('medewerkers');
   }
 }
@@ -18757,6 +19554,37 @@ async function verwijderStatistiekenAccount(uid) {
     .catch(function(e) { showToast('Verwijderen mislukt: ' + String(e)); });
 }
 
+// ── Dienst-accounts (v3.76.0) ──────────────────────────────────────────────
+// Gedeelde bewaker-accounts. Rules v3.75.3 geven alleen UIDs uit één van de
+// vier lijsten toegang; zonder vermelding hier kan een dienst-account niets.
+var _dienstaccounts = {};
+let _dienstaccountsListenerStarted = false;
+
+function fbListenDienstaccounts() {
+  if (_dienstaccountsListenerStarted || !window.fbDb) return;
+  _dienstaccountsListenerStarted = true;
+  window.fbOnValue(window.fbRef(window.fbDb, 'dashboard/dienstaccounts'), function(snap) {
+    _dienstaccounts = snap.val() || {};
+    _accRender();
+    if (typeof _accountMenuVul === 'function') _accountMenuVul();
+  });
+}
+
+async function verwijderDienstaccount(uid) {
+  var a = _dienstaccounts[uid];
+  if (!a) return;
+  var enige = Object.keys(_dienstaccounts).length === 1;
+  const ok = await customConfirm(
+    a.naam + ' (' + a.email + ') verwijderen als dienst-account? Alle apparaten die met dit account zijn ingelogd, verliezen direct hun toegang.' +
+      (enige ? ' Dit is het ENIGE dienst-account: geen enkel bewaker-apparaat kan daarna nog iets laden of opslaan.' : ''),
+    { title: 'Dienst-account verwijderen?', confirmLabel: 'Verwijderen', cancelLabel: 'Annuleren' }
+  );
+  if (!ok) return;
+  window.fbRemove(window.fbRef(window.fbDb, 'dashboard/dienstaccounts/' + uid))
+    .then(function() { logEvent('settings', 'Dienst-account verwijderd: ' + a.naam + ' (' + a.email + ')'); })
+    .catch(function(e) { showToast('Verwijderen mislukt: ' + String(e)); });
+}
+
 // ── Applicatiebeheerder-accounts (v3.47.0) ─────────────────────────────────
 var _applicatiebeheerders = {};
 let _appBeheerdersListenerStarted = false;
@@ -18790,7 +19618,7 @@ var _accEditUid = null; // null=toevoegen, string=bewerken
 
 function openAccountModal(type) {
   _accEditUid = null;
-  _accountModalType = type === 'statistieken' ? 'statistieken' : type === 'applicatiebeheerder' ? 'applicatiebeheerder' : 'beheerder';
+  _accountModalType = (type === 'statistieken' || type === 'applicatiebeheerder' || type === 'dienst') ? type : 'beheerder';
   _accUpdateInfo();
   openBeheerderModal();
 }
@@ -18798,7 +19626,7 @@ function openAccountModal(type) {
 function openBeheerderModal() {
   var isEdit = !!_accEditUid;
   document.getElementById('acc-m-titel').textContent = isEdit ? 'Account bewerken' : 'Account toevoegen';
-  document.getElementById('acc-m-sub').textContent = isEdit ? 'Pas de naam, het e-mailadres of de rol aan.' : 'Kies een rol en koppel een bestaand Firebase-account.';
+  document.getElementById('acc-m-sub').textContent = isEdit ? 'Pas de naam, het e-mailadres of de rol aan.' : 'Maak het account eerst aan in de Firebase Console (Authentication \u2192 Users), kies hier de rol en koppel het met de UID.';
   var uidInp = document.getElementById('inp-beheerder-uid');
   if (!isEdit) {
     document.getElementById('inp-beheerder-naam').value = '';
@@ -18816,7 +19644,7 @@ function openBeheerderModal() {
 }
 
 function accEdit(uid, type) {
-  var BRONNEN = { beheerder: _beheerders, applicatiebeheerder: _applicatiebeheerders, statistieken: _statistiekenAccounts };
+  var BRONNEN = { beheerder: _beheerders, applicatiebeheerder: _applicatiebeheerders, statistieken: _statistiekenAccounts, dienst: _dienstaccounts };
   var data = (BRONNEN[type] || {})[uid];
   if (!data) return;
   _accEditUid = uid;
@@ -18842,9 +19670,9 @@ function saveBeheerderModal() {
   if (!email) { err.textContent = 'E-mail is verplicht.'; err.style.display = 'block'; return; }
   if (!uid || uid.length < 10) { err.textContent = 'Voer een geldige Firebase UID in (minimaal 10 tekens).'; err.style.display = 'block'; return; }
 
-  var PADEN = { beheerder: 'dashboard/beheerders/', applicatiebeheerder: 'dashboard/applicatiebeheerders/', statistieken: 'dashboard/statistieken/' };
-  var LABELS = { beheerder: 'Systeembeheerder', applicatiebeheerder: 'Applicatiebeheerder', statistieken: 'Statistieken-account' };
-  var BRONNEN = { beheerder: _beheerders, applicatiebeheerder: _applicatiebeheerders, statistieken: _statistiekenAccounts };
+  var PADEN = { beheerder: 'dashboard/beheerders/', applicatiebeheerder: 'dashboard/applicatiebeheerders/', statistieken: 'dashboard/statistieken/', dienst: 'dashboard/dienstaccounts/' };
+  var LABELS = { beheerder: 'Systeembeheerder', applicatiebeheerder: 'Applicatiebeheerder', statistieken: 'Statistieken-account', dienst: 'Dienst-account' };
+  var BRONNEN = { beheerder: _beheerders, applicatiebeheerder: _applicatiebeheerders, statistieken: _statistiekenAccounts, dienst: _dienstaccounts };
   var fbPad   = PADEN[_accountModalType];
   var typeLbl = LABELS[_accountModalType];
   var bestaand = BRONNEN[_accountModalType];
@@ -18879,7 +19707,10 @@ function saveBeheerderModal() {
   }
 
   // ── TOEVOEG-MODUS ──
-  if (bestaand[uid]) { err.textContent = 'Deze UID staat al in de lijst.'; err.style.display = 'block'; return; }
+  // v3.76.0: een UID hoort bij precies één rol; anders is onduidelijk welke geldt.
+  var alType = null;
+  Object.keys(BRONNEN).forEach(function(t) { if (BRONNEN[t] && BRONNEN[t][uid]) alType = t; });
+  if (alType) { err.textContent = 'Deze UID heeft al de rol ' + LABELS[alType] + '. Bewerk dat account om de rol te wijzigen.'; err.style.display = 'block'; return; }
   window.fbSet(window.fbRef(window.fbDb, fbPad + uid), { naam: naam, email: email, toegevoegdOp: Date.now() })
     .then(function() {
       closeBeheerderModal();
